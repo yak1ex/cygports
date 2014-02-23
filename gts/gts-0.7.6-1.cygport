@@ -1,0 +1,35 @@
+inherit usrlocal
+inherit initial
+
+DESCRIPTION="GNU Triangulated Surface Library"
+LDESCRIPTION="GTS stands for the GNU Triangulated Surface Library.
+It is an Open Source Free Software Library intended 
+to provide a set of useful functions to deal with 
+3D surfaces meshed with interconnected triangles."
+CATEGORY="Libs Math"
+HOMEPAGE="http://gts.sourceforge.net/"
+SRC_URI="mirror://sourceforge/gts/${P}.tar.gz"
+LICENSE="  LGPL"
+LANGUAGE="C"
+
+DIFF_EXCLUDES="predicates_init.h"
+
+PKG_NAMES="$PN libgts5 libgts-devel gts-doc"
+PKG_CONTENTS[0]="$prefix_/bin/*.exe usr/share/doc --exclude usr/share/doc/${PN}/html"
+PKG_CONTENTS[1]="$prefix_/bin/*.dll"
+PKG_CONTENTS[2]="$prefix_/include $prefix_/lib $prefix_/bin/gts-config $prefix_/bin/gtstemplate $prefix_/share/aclocal"
+PKG_CONTENTS[3]="$prefix_/share/doc/gts/html"
+
+CPPFLAGS="-I/usr/include/netpbm"
+
+src_install() {
+    cd ${B}
+    mycyginstall
+
+    cd ${S}/doc/html
+    docinto html
+    mydodoc *.html
+
+    prep_initial_cygwin_doc
+    __myprepetc && __myprepman
+}

@@ -1,0 +1,8 @@
+DESCRIPTION="source code tagging system"
+HOMEPAGE="http://www.tamacom.com/global.html"
+SRC_URI="mirror://gnu/global/${P}.tar.gz"
+
+DOCS="BOKIN_MODEL BOKIN_MODEL_FAQ DONORS"
+DIFF_EXCLUDES="config-h.in global.info stamp-vti version.texi global.cgi.tmpl"
+
+inherit usrlocal

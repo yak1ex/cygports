@@ -1,0 +1,61 @@
+inherit usrlocal
+
+DESCRIPTION='A library manager for Objective Caml'
+LDESCRIPTION="Findlib is a library manager for Objective Caml. 
+It provides a convention how to store libraries, and a file 
+format ("META") to describe the properties of libraries. 
+There is also a tool (ocamlfind) for interpreting the META 
+files, so that it is very easy to use libraries in programs 
+and scripts."
+HOMEPAGE=http://projects.camlcity.org/projects/findlib.html
+LICENSE='  MIT license'
+LANGUAGE='OCaml'
+SRC_URI=http://download.camlcity.org/download/${P}.tar.gz
+
+src_compile() {
+	lndirs
+	cd ${B}
+	./configure -mandir $mandir
+	cygmake all opt
+}
+
+src_install() {
+	cd ${B}
+	mycyginstall prefix=${D}
+        ocamllibdir=${prefix}/lib/ocaml
+	dirs=${ocamllibdir}/site-lib/stublibs
+
+# postinstall
+
+        dodir /etc/postinstall
+        cat <<EOF >>${D}/etc/postinstall/${PN}.sh
+
+mkdir -p ${dirs}
+for dir in ${dirs}; do
+    if ! /bin/grep -q \$dir ${ocamllibdir}/ld.conf; then
+        echo \$dir >> ${ocamllibdir}/ld.conf
+    fi
+done
+
+EOF
+
+        chmod +x ${D}/etc/postinstall/${PN}.sh
+
+# preremove
+
+        for dir in $dirs; do
+            dir=`echo $dir | sed -e 's,/,\\\\/,g'`
+            sedarg="$sedarg -e '/^$dir\$/d'"
+        done
+
+        dodir /etc/preremove
+        cat <<EOF >>${D}/etc/preremove/${PN}.sh
+
+rmdir ${dirs}
+rmdir ${ocamllibdir}/site-lib
+sed -i $sedarg ${ocamllibdir}/ld.conf
+
+EOF
+
+
+}

@@ -1,0 +1,60 @@
+diff -urN '--exclude=*.orig' origsrc/boost_1_52_0/libs/filesystem/src/operations.cpp src/boost_1_52_0/libs/filesystem/src/operations.cpp
+--- origsrc/boost_1_52_0/libs/filesystem/src/operations.cpp	2012-08-13 21:49:12.000000000 +0900
++++ src/boost_1_52_0/libs/filesystem/src/operations.cpp	2012-12-12 02:13:11.007222600 +0900
+@@ -95,8 +95,8 @@
+ 
+     const fs::path dot_path(L".");
+     const fs::path dot_dot_path(L"..");
+-#   if (defined(__MINGW32__) || defined(__CYGWIN__)) && !defined(WINVER)
+-      // Versions of MinGW or Cygwin that support Filesystem V3 support at least WINVER 0x501.
++#   if (defined(__MINGW32__) && !defined(WINVER)
++      // Versions of MinGW that support Filesystem V3 support at least WINVER 0x501.
+       // See MinGW's windef.h
+ #     define WINVER 0x501
+ #   endif
+@@ -1947,8 +1947,7 @@
+   {
+     errno = 0;
+ 
+-#   if !defined(__CYGWIN__)\
+-    && defined(_POSIX_THREAD_SAFE_FUNCTIONS)\
++#   if defined(_POSIX_THREAD_SAFE_FUNCTIONS)\
+     && defined(_SC_THREAD_SAFE_FUNCTIONS)\
+     && (_POSIX_THREAD_SAFE_FUNCTIONS+0 >= 0)\
+     && (!defined(__hpux) || defined(_REENTRANT)) \
+diff -urN '--exclude=*.orig' origsrc/boost_1_52_0/libs/filesystem/test/deprecated_test.cpp src/boost_1_52_0/libs/filesystem/test/deprecated_test.cpp
+--- origsrc/boost_1_52_0/libs/filesystem/test/deprecated_test.cpp	2012-04-18 10:31:53.000000000 +0900
++++ src/boost_1_52_0/libs/filesystem/test/deprecated_test.cpp	2012-12-12 02:13:11.011223000 +0900
+@@ -199,7 +199,7 @@
+   // The choice of platform is make at runtime rather than compile-time
+   // so that compile errors for all platforms will be detected even though
+   // only the current platform is runtime tested.
+-  platform = (platform == "Win32" || platform == "Win64" || platform == "Cygwin")
++  platform = (platform == "Win32" || platform == "Win64" )
+                ? "Windows"
+                : "POSIX";
+   std::cout << "Platform is " << platform << '\n';
+diff -urN '--exclude=*.orig' origsrc/boost_1_52_0/libs/filesystem/test/operations_test.cpp src/boost_1_52_0/libs/filesystem/test/operations_test.cpp
+--- origsrc/boost_1_52_0/libs/filesystem/test/operations_test.cpp	2012-08-13 21:49:12.000000000 +0900
++++ src/boost_1_52_0/libs/filesystem/test/operations_test.cpp	2012-12-12 02:13:11.016223500 +0900
+@@ -1932,7 +1932,7 @@
+     platform = "POSIX";
+ # elif defined(BOOST_WINDOWS_API)
+     platform = "Windows";
+-#   if !defined(__MINGW32__) && !defined(__CYGWIN__)
++#   if !defined(__MINGW32__)
+       language_id = ::GetUserDefaultUILanguage();
+ #   else
+       language_id = 0x0409; // Assume US English
+diff -urN '--exclude=*.orig' origsrc/boost_1_52_0/libs/filesystem/test/path_test.cpp src/boost_1_52_0/libs/filesystem/test/path_test.cpp
+--- origsrc/boost_1_52_0/libs/filesystem/test/path_test.cpp	2012-04-23 00:07:08.000000000 +0900
++++ src/boost_1_52_0/libs/filesystem/test/path_test.cpp	2012-12-12 02:13:11.020223900 +0900
+@@ -1775,7 +1775,7 @@
+   // The choice of platform is make at runtime rather than compile-time
+   // so that compile errors for all platforms will be detected even though
+   // only the current platform is runtime tested.
+-  platform = (platform == "Win32" || platform == "Win64" || platform == "Cygwin")
++  platform = (platform == "Win32" || platform == "Win64" )
+                ? "Windows"
+                : "POSIX";
+   std::cout << "Platform is " << platform << '\n';

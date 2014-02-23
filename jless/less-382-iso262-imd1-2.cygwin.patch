@@ -1,0 +1,79 @@
+--- origsrc/less-382/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/less-382/CYGWIN-PATCHES/README	2009-12-31 10:40:28.462625000 +0900
+@@ -0,0 +1,67 @@
++less-382-iso262-imd1
++------------------------------------------------------------------------
++Enhanced less for reading texts using ISO 2022 code extention techniques 
++and using multiple Japanese encoding schemes.
++
++Runtime requirements:
++  cygwin
++  libncurses8
++
++Build requirements:
++  cygport-usrlocal-0.2-1
++  cygwin
++  libncurses-devel
++  libncurses8
++
++Canonical homepage:
++  Original:    http://www.greenwoodsoftware.com/less/
++  Jam less:    http://www25.big.jp/~jam/less/
++  CP932 patch: http://www.d2.dion.ne.jp/~imady/freesoft/lesspatch/index.html
++
++Canonical download:
++  http://www25.big.jp/~jam/less/less-382.tar.gz
++  http://www25.big.jp/~jam/less/less-382-iso258.patch.gz
++  http://www25.big.jp/~jam/less/less-382-iso258-259.patch.gz
++  http://www25.big.jp/~jam/less/less-382-iso259-260.patch.gz
++  http://www25.big.jp/~jam/less/less-382-iso260-261.patch.gz
++  http://www25.big.jp/~jam/less/less-382-iso261-262.patch.gz
++
++License:
++  Less License (BSD style license)
++
++Language:
++  C
++
++------------------------------------------------------------------------
++
++Build instructions:
++  unpack less-382-iso262-imd1-2-src.tar.bz2
++    if you use setup to install this src package, it will be
++	 unpacked under /usr/src automatically
++  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
++  cd /usr/src
++  cygport less-382-iso262-imd1-2.cygport all
++
++This will create:
++  less-382-iso262-imd1-2.tar.bz2
++  less-382-iso262-imd1-2-src.tar.bz2
++
++Or use 'cygport less-382-iso262-imd1-2.cygport prep' to get a patched source directory
++
++To find out the files included in the binary distribution, you can
++use "cygcheck -l less-382-iso262-imd1".
++
++------------------------------------------------------------------------
++
++Port Notes:
++
++----------  less-382-iso262-imd1-2 -- 2008/01/01 ----------------------------
++Initial release.
++- Use cygport framework.
++
++For more information about this package, see the upstream documentation in
++/usr/share/doc/less-382-iso262-imd1-2.
++
++This private port maintained by: Yak! <yak_ex@mx.scn.tv>
++Please address all questions to the above address, NOT to the Cygwin 
++mailing list at <cygwin@cygwin.com>.
+--- origsrc/less-382/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/less-382/CYGWIN-PATCHES/setup.hint	2009-12-31 10:40:28.665750000 +0900
+@@ -0,0 +1,6 @@
++@ less-382-iso262-imd1
++sdesc: "Jam less"
++ldesc: "Enhanced less for reading texts using ISO 2022 code extention techniques and using multiple Japanese encoding schemes."
++category: Utils Text
++requires: cygwin libncurses8
++curr: 382-iso262-imd1-2

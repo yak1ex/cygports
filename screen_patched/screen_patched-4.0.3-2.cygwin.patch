@@ -1,0 +1,190 @@
+--- origsrc/screen-4.0.3/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/screen-4.0.3/CYGWIN-PATCHES/README	2009-12-31 21:27:27.043125000 +0900
+@@ -0,0 +1,169 @@
++==============
++screen_patched
++==============
++
++Screen is a terminal multiplexer and window manager that runs several
++separate 'screens' on a single physical character-based terminal.
++Each virtual terminal emulates a DEC VT100 plus several ANSI X3.64 and
++ISO 2022 functions.  You can create multiple windows with any programs
++in them, kill the current window, switch between windows or copy text
++between them, view a list of active windows, rename windows, view the
++scrollback history, etc.  You can detach your session and even log out
++if you wish; your programs will keep running, and you can reattach
++later, maybe when logged in from a different host.
++
++Full documentation for screen is available from "man screen" or,
++probably more usefully, "info screen".
++
++Source homepage:     http://directory.fsf.org/screen.html
++Source download:     http://ftp.uni-erlangen.de/pub/utilities/screen/screen-4.0.3.tar.gz
++Upstream maintainer: screen@uni-erlangen.de
++Cygwin maintainer:   Andrew Schulman <andrex@alumni.utexas.net>
++License:             GPL; see COPYING for details.
++
++This is a private build. Please address questions and bug reports to 
++the <yak_ex@mx.scn.tv>, NOT to Cygwin mailing list.
++
++-------------------------------------------------------------------------
++
++Cygwin-specific notes for screen:
++
++screen has been reported to work well inside the following terminals
++in Cygwin:
++
++  rxvt
++  xterm
++  PuTTYcyg (http://web.gccaz.edu/~medgar/puttycyg/)
++
++In a DOS console, screen works, but in order to be able to reattach
++detached sessions, ** you must set "tty" in the CYGWIN environment
++variable before you open the console **.  See the description and
++warnings about the tty switch in
++http://cygwin.com/cygwin-ug-net/using-cygwinenv.html before you set
++this.  Then from your desktop, right-click on My Computer, go to
++Properties > Advanced > Environment Variables, and under System
++Variables, create the CYGWIN variable if necessary, and add the string
++"tty" (without the quotes) to it.
++
++If you use screen in a DOS console without CYGWIN=tty, you will be
++able to detach sessions, but reattaching to them later is likely to
++fail.  Then you'll have to use 'screen -wipe' to clear out your old
++unusable sessions, and you may have to manually kill their child
++processes.
++
++screen may or may not work well with other terminals in Cygwin.
++Please post test reports to the Cygwin mailing list.
++
++screen may work on Win9x systems, but I can't support it there.  I
++don't have access to any Win9x systems for testing, and there's reason
++to believe that screen won't work there, since I left out some patches
++that were supposed to improve Win9x support.  Those patches were
++fairly large, I can't tell if they work, and since Cygwin itself is
++dropping support for Win9x, it didn't seem worthwhile to me to include
++them.
++
++-------------------------------------------------------------------------
++
++Additional patches included in this port:
++
++This port includes following additional patches.
++
++- https://savannah.gnu.org/bugs/?11021
++- https://savannah.gnu.org/bugs/?19805
++
++- http://www.jp.freebsd.org/cgi/cvsweb.cgi/ports/sysutils/screen/files/patch-ansi.c?rev=1.1&content-type=text/x-cvsweb-markup
++- http://www.jp.freebsd.org/cgi/cvsweb.cgi/ports/sysutils/screen/files/patch-resize.c?rev=1.1&content-type=text/x-cvsweb-markup
++
++- http://www.dekaino.net/screen/screen-4.0.2-deadlock-patch
++- http://www.dekaino.net/screen/screen-4.0.2-hankanacopy-patch
++- http://www.dekaino.net/screen/screen-4.0.2-patch-cjkwidth-cvs-2006052001
++(see http://www.dekaino.net/screen/01install.html)
++
++- http://pc8.2ch.net/test/read.cgi/unix/1111357444/310
++- http://pc8.2ch.net/test/read.cgi/unix/1111357444/280-283
++- http://pc8.2ch.net/test/read.cgi/unix/1111357444/699
++(you can retrive contents from http://www.dekaino.net/screen/screen-thread4.txt)
++
++- http://yak.myhome.cx/junks/patch/screen-4.0.3_sjis_fix.patch
++
++-------------------------------------------------------------------------
++
++Runtime requirements:
++  crypt
++  cygwin
++  libncurses8
++
++Build requirements:
++  binutils
++  coreutils
++  cygport
++  cygport-usrlocal
++  gcc
++  make
++
++Build instructions:
++  tar -jxf screen_patched-4.0.3-1-src.tar.bz2
++    if you use setup to install this src package, it will be
++    unpacked under /usr/src automatically
++  cd /usr/src
++  cygport screen_patched-4.0.3-1.cygport all
++
++This will create:
++  /usr/src/screen_patched-4.0.3-1.tar.bz2
++  /usr/src/screen_patched-4.0.3-1-src.tar.bz2
++
++Or use 'cygport screen_patched-4.0.3-1.cygport prep' to get a patched source
++directory.
++
++-------------------------------------------------------------------------
++
++Files included in the base binary distribution:
++prefix or name of document directory can vary depending on your selection.
++
++  /etc/defaults/etc/screenrc
++  /etc/postinstall/screen.sh
++  /usr/bin/screen.exe
++  /usr/share/doc/Cygwin/screen-4.0.3.README
++  /usr/share/doc/screen/COPYING
++  /usr/share/doc/screen/ChangeLog
++  /usr/share/doc/screen/FAQ
++  /usr/share/doc/screen/INSTALL
++  /usr/share/doc/screen/NEWS
++  /usr/share/doc/screen/README
++  /usr/share/doc/screen/README.Cygwin
++  /usr/share/doc/screen/TODO
++  /usr/share/info/screen.info-1.gz
++  /usr/share/info/screen.info-2.gz
++  /usr/share/info/screen.info-3.gz
++  /usr/share/info/screen.info-4.gz
++  /usr/share/info/screen.info-5.gz
++  /usr/share/info/screen.info.gz
++  /usr/share/man/man1/screen.1.gz
++  /usr/share/screen/utf8encodings/01
++  /usr/share/screen/utf8encodings/02
++  /usr/share/screen/utf8encodings/03
++  /usr/share/screen/utf8encodings/04
++  /usr/share/screen/utf8encodings/18
++  /usr/share/screen/utf8encodings/19
++  /usr/share/screen/utf8encodings/a1
++  /usr/share/screen/utf8encodings/bf
++  /usr/share/screen/utf8encodings/c2
++  /usr/share/screen/utf8encodings/c3
++  /usr/share/screen/utf8encodings/c4
++  /usr/share/screen/utf8encodings/c6
++  /usr/share/screen/utf8encodings/c7
++  /usr/share/screen/utf8encodings/c8
++  /usr/share/screen/utf8encodings/cc
++  /usr/share/screen/utf8encodings/cd
++  /usr/share/screen/utf8encodings/d6
++
++-------------------------------------------------------------------------
++
++Cygwin version history:
++
++4.0.3-1:
++* Initial Cygwin release.
++* Patch: make several adjustments to allow screen to compile under Cygwin
++(http://cygwin.com/ml/cygwin-apps/2005-04/msg00163.html, and 
++http://cygwin.com/ml/cygwin/2006-09/msg00102.html).
++* Patch: signal processes to exit when a window is killed.
+--- origsrc/screen-4.0.3/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/screen-4.0.3/CYGWIN-PATCHES/setup.hint	2009-12-31 21:27:27.152500000 +0900
+@@ -0,0 +1,15 @@
++sdesc: "Run separate screens on a single terminal with several patches"
++ldesc: "screen is a terminal multiplexer and window manager that runs
++several separate 'screens' on a single physical character-based
++terminal.  Each virtual terminal emulates a DEC VT100 plus several
++ANSI X3.64 and ISO 2022 functions.  You can create multiple windows
++with any programs in them, kill the current window, switch between
++windows or copy text between them, view a list of active windows,
++rename windows, view scrollback history, and more.  You can detach
++your session and even log out if you wish; your programs will keep
++running, and you can reattach later, maybe when logged in from a
++different host.
++This port includes several additional patches."
++category: Utils
++requires: cygwin crypt libncurses8 
++curr: 4.0.3-1

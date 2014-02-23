@@ -1,0 +1,76 @@
+Index: less/multi.c
+diff -u less/multi.c:1.142 less/multi.c:1.143
+--- less/multi.c:1.142	Sat Feb 18 09:38:02 2006
++++ less/multi.c	Fri Feb 24 02:17:10 2006
+@@ -320,6 +320,8 @@
+     mp->multics[mp->intindex + 0] = JISX0208KANJI;
+     mp->multics[mp->intindex + 1] = REST_MASK | JISX0208KANJI;
+     mp->intindex += 2;
++    /* flush buffer */
++    mp->startpos = mp->lastpos + 1;
+ }
+ 
+ /*
+@@ -354,6 +356,7 @@
+ 	case JISX0212KANJISUP:
+ 	case JISX0213KANJI1:
+ 	case JISX0213KANJI2:
++	case JISX02132004KANJI1:
+ 	case UJIS:
+ 	case UJIS2000:
+ 	case UJIS2004:
+@@ -365,6 +368,7 @@
+ 	case GB2312:
+ 	case KSC5601:
+ 	default:
++	    put_wrongmark(mp);
+ 	    break;
+ 	}
+     } else {
+@@ -2120,7 +2124,8 @@
+ 		cvindex = 0;
+ 		return (cvbuffer);
+ 	} else if (cs == JISX0208_78KANJI || cs == JISX0208KANJI ||
+-		   cs == JISX0208_90KANJI || cs == JISX0213KANJI1)
++		   cs == JISX0208_90KANJI || cs == JISX0213KANJI1 ||
++		   cs == JISX02132004KANJI1)
+ 	{
+ 		if (cvindex == 1)
+ 			return (nullcvbuffer);
+@@ -2191,7 +2196,8 @@
+ 		cvindex = 0;
+ 		return (cvbuffer);
+ 	} else if (cs == JISX0208_78KANJI || cs == JISX0208KANJI ||
+-		   cs == JISX0208_90KANJI || cs == JISX0213KANJI1)
++		   cs == JISX0208_90KANJI || cs == JISX0213KANJI1 ||
++		   cs == JISX02132004KANJI1)
+ 	{
+ 		register int c1, c2, c3;
+ 		static unsigned char table_sjis[] = {
+@@ -2286,7 +2292,8 @@
+ 		cvindex = 0;
+ 		return (cvbuffer);
+ 	} else if (cs == JISX0208_78KANJI || cs == JISX0208KANJI ||
+-		   cs == JISX0208_90KANJI || cs == JISX0213KANJI1)
++		   cs == JISX0208_90KANJI || cs == JISX0213KANJI1 ||
++		   cs == JISX02132004KANJI1)
+ 	{
+ 		cvindex = 0;
+ 		return (cvbuffer);
+Index: less/version.c
+diff -u less/version.c:1.109 less/version.c:1.111
+--- less/version.c:1.109	Sat Feb 18 09:57:24 2006
++++ less/version.c	Fri Feb 24 02:25:22 2006
+@@ -755,7 +755,10 @@
+ 		Now jless use two variables, one represents supporting
+ 		character sets for input stream, and the other represents
+ 		encoding scheme for output stream.
+-		Changed to support JISX1983:2004.
++		Changed to support JISX0213:2004.
++iso261 2/24/06	Changed put_wrongmark function to make it work with new iso260
++		buffering semantics.  And applied a patch provied by Takuji.
++		Thanks to Takuji.
+ */
+ 
+-char version[] = "382+iso260";
++char version[] = "382+iso261";

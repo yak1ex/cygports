@@ -1,0 +1,53 @@
+#
+# cygport build script for screen
+#
+
+inherit usrlocal
+
+P_=`echo $P | sed 's,_[a-z0-9]*-,-,'`
+PN_=`echo $PN | sed 's,_[a-z0-9]*,,'`
+
+DESCRIPTION="Run separate screens on a single terminal"
+HOMEPAGE="http://directory.fsf.org/screen.html"
+#SRC_URI="http://ftp.gnu.org/gnu/${PN}/${P}.tar.gz"
+SRC_URI="http://ftp.uni-erlangen.de/pub/utilities/${PN_}/${P_}.tar.gz"
+SRC_DIR=${P_}
+
+# Hack to force cygport to install docs in /usr/share/doc/${PN}
+# (which I think is better) instead of /usr/share/doc/${PN}-${PV}
+function dodoc ()
+{
+	docinto ../${PN}
+	command dodoc "$@"
+}
+
+src_compile() {
+	cd ${S}
+	autoconf || error "autoconf failed"
+	cd ${B}
+	mycygconf --with-sys-screenrc=${sysconfdir}/screenrc --enable-colors256
+	cygmake
+}
+
+src_install() {
+	dodir /usr/share/doc/${PN}
+	dodir /usr/share/doc/Cygwin
+
+	cd ${B}
+        MAKEOPTS=-j1
+	mycyginstall
+        __myprepetc && __myprepman
+
+        dodir /etc/postinstall
+	insinto ${sysconfdir}/defaults/etc
+	newins ${S}/etc/etcscreenrc screenrc
+#	make_etc_defaults /etc/screenrc
+        cat >> ${D}/etc/postinstall/${PN}.sh <<EOF
+if [ ! -f ${sysconfdir}/screenrc ]
+then
+    /bin/cp ${sysconfdir}/defaults/etc/screenrc ${sysconfdir}/screenrc
+fi
+EOF
+
+	dosym ../Cygwin/${P}.README /usr/share/doc/${PN}/README.Cygwin
+}

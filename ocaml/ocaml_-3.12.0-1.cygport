@@ -1,0 +1,65 @@
+inherit yak-ocaml
+inherit usrlocal
+
+DESCRIPTION='The Objective Caml compiler and runtime'
+LDESCRIPTION="Objective Caml is a fast modern type-inferring functional
+programming language descended from the ML (Meta Language)
+family, containing objects, modules, and a high-performance
+native-code compiler.  The O'Caml compiler was developed at
+INRIA Rocquencourt, projet Cristal."
+HOMEPAGE=http://caml.inria.fr/ocaml/index.en.html
+LICENSE='  the Compiler: Q Public License version 1.0
+  the Library: LGPL version 2
+
+  Please see LICENSE file for their classification. Probably, it is different 
+  from your first assumption.'
+LANGUAGE='Assembler, C and OCaml'
+SP_=`echo ${P_} | sed -e 's,\([0-9][0-9]*\.[0-9][0-9]*\)\.[0-9][0-9]*,\1,'`
+SRC_URI=http://caml.inria.fr/pub/distrib/${SP_}/${P_}.tar.bz2
+SRC_DIR="${P_}"
+
+src_compile() {
+    lndirs
+    cd ${B}
+    ./configure -prefix ${prefix} -mandir ${mandir} -with-graphicsW32
+    make world.opt
+}
+
+src_install() {
+    cd ${B}
+    make PREFIX=${D}${prefix} MANDIR=${D}${mandir} install
+
+    rm ${D}${prefix}/lib/ocaml/ld.conf
+    OCAML_LIBDIRS="${prefix}/lib/ocaml ${prefix}/lib/ocaml/stublibs"
+    prep_ocaml_ldconf_fix
+}
+
+__myprepstrip() {
+    local exe;
+
+    cd ${D};
+
+    echo "Stripping executables:";
+
+    # Ruby and Apache2 modules should be *.so, nothing else!!!
+    for exe in $(find * -type f -name '*.dll' -o -name '*.exe' -o -name '*.so')
+    do
+        chmod +x ${exe};
+        # OCaml bytecode executables must not be stripped!
+        if ! strings -a ${exe} | grep -q 'not found or is not a bytecode executable file'
+        then
+            echo "        ${exe}";
+            strip ${exe};
+        fi
+    done
+
+    find * -name '*.la' -exec prep_libtool_modules.sh '{}' + || error "Libtool module postinstall failed"
+}
+
+mysrc_postinst() {
+    __prepdoc && __prepetc && __myprepetc && __prepman && __myprepman && __myprepstrip;
+}
+
+# overriding a readonly function
+shopt -s expand_aliases
+alias src_postinst=mysrc_postinst

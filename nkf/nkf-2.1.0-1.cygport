@@ -1,0 +1,53 @@
+inherit usrlocal
+inherit initial
+
+DESCRIPTION="Network Kanji Filter"
+LDESCRIPTION="Nkf is a yet another kanji code converter among networks, 
+hosts and terminals. It converts input kanji code to designated 
+kanji code such as 7-bit JIS, MS-kanji (shifted-JIS), utf-8 or EUC.
+One of the most unique facility of nkf is the guess of the input kanji code."
+CATEGORY="Utils"
+HOMEPAGE="http://sourceforge.jp/projects/nkf/"
+SRC_URI="http://osdn.dl.sourceforge.jp/nkf/44486/nkf-2.1.0.tar.gz"
+LICENSE="  zlib/libpng License"
+LANGUAGE="C"
+
+
+if defined USRLOCAL; then
+PKG_NAMES="${PN}"
+PKG_HINTS="nkf"
+else
+PKG_NAMES="${PN} ${PN}-perl"
+PKG_HINTS="nkf perl"
+PKG_CONTENTS[1]="${prefix#/}/lib/perl5/site_perl"
+fi
+PKG_CONTENTS[0]="${prefix#/}/bin/nkf.exe usr/share/doc ${mandir#/}"
+
+src_compile() {
+    cd ${S}
+    lndirs
+
+    cd ${B}
+    cygmake
+
+    if ! defined USRLOCAL; then
+        cd ${B}/NKF.mod
+        perl Makefile.PL
+        cygmake
+    fi
+}
+
+src_install() {
+    dodir ${prefix}/bin ${mandir} ${mandir}/man1 ${mandir}/ja ${mandir}/ja/man1
+
+    cd ${B}
+    USE_DESTDIR=NO mycyginstall
+
+    if ! defined USRLOCAL; then
+        cd ${B}/NKF.mod
+        USE_DESTDIR=YES mycyginstall
+    fi
+
+    __myprepetc && __myprepman
+    prep_initial_cygwin_doc
+}

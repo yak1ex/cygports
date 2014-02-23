@@ -1,0 +1,77 @@
+# for variant
+inherit usrlocal
+
+DESCRIPTION="Provides an implementation of iconv() for conversion between character set encodings"
+HOMEPAGE="http://www.gnu.org/software/libiconv/"
+SRC_URI="http://ftp.gnu.org/gnu/libiconv/${PN_}-${PV}.tar.gz"
+PATCH_URI="http://www2d.biglobe.ne.jp/~msyk/software/libiconv/libiconv-1.13-ja-1.patch.gz"
+SRC_DIR=${PN_}-${PV}
+
+PKG_NAMES="${PN} libiconv2_ja libcharset1_ja"
+PKG_HINTS="${PN_} libiconv2 libcharset1"
+PKG_CONTENTS[0]='--exclude=usr/bin/*.dll usr/'
+PKG_CONTENTS[1]='usr/bin/cygiconv-2.dll'
+PKG_CONTENTS[2]='usr/bin/cygcharset-1.dll'
+
+DIFF_EXCLUDES="aliases.h aliases_sysaix.h"
+
+libiconv_bootstrap() {
+
+	inform "Bootstrapping. This may take some time..."
+
+	cp COPYING.LIB COPYING.LIB.save
+	cp COPYING     COPYING.save
+	libtoolize --force --copy
+
+	cd libcharset
+	cp COPYING.LIB COPYING.LIB.save
+	libtoolize --copy --force
+	cd ..
+
+	make -f Makefile.devel
+		
+	mv COPYING.LIB.save COPYING.LIB
+	mv COPYING.save     COPYING
+	cd libcharset
+	mv COPYING.LIB.save COPYING.LIB
+	cd ..
+
+	make -f Makefile.devel srclib/Makefile.in
+}
+
+src_compile() {
+	cd ${S}
+	libiconv_bootstrap
+	cd ${B}
+	cygconf \
+          --enable-shared \
+          --enable-static \
+          --enable-extra-encodings
+
+	# The following is needed when doing the initial package of a 
+	# given libiconv version.  Thank you, interdependent libiconv/gettext!
+	# --disable-nls --without-libiconv-prefix --without-libintl-prefix
+
+	cygmake -j1
+}
+
+src_test() {
+	cd ${B}
+	make check
+}
+
+src_install() {
+        cd ${B}
+        cyginstall
+
+	dodir /usr/share/doc/${P}
+	if [ -d ${D}/usr/share/doc/${PN} ]
+	then
+		mv ${D}/usr/share/doc/${PN}/* ${D}/usr/share/doc/${P}/
+		rmdir ${D}/usr/share/doc/${PN}
+	fi
+
+	# this belongs to gettext
+	rm -f ${D}/usr/lib/charset.alias
+}
+

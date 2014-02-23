@@ -1,0 +1,9 @@
+--- origsrc/syck-0.55/tests/Makefile.am	2005-01-01 11:06:25.000000000 +0900
++++ src/syck-0.55/tests/Makefile.am	2010-01-01 14:44:48.561000000 +0900
+@@ -1,5 +1,5 @@
+ INCLUDES = -I$(top_srcdir)/lib
+-LDFLAGS = -L$(top_srcdir)/lib
++LDFLAGS = -L$(top_builddir)/lib
+ 
+ TESTS = test-basic test-parse test-yts test-emit
+ noinst_PROGRAMS = test-basic test-parse test-yts test-emit

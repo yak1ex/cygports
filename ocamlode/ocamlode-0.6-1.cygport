@@ -1,0 +1,21 @@
+inherit usrlocal
+inherit yak-ocaml
+
+DESCRIPTION='A set of OCaml bindings to the ODE'
+LDESCRIPTION="OCamlODE is a set of Objective CAML 
+bindings to the Open Dynamics Engine (ODE)."
+HOMEPAGE=http://www.linux-nantes.org/~fmonnier/OCaml/ODE/
+LICENSE='  GNU Library General Public License with the special OCaml linking exception'
+LANGUAGE='C and OCaml'
+SRC_URI=http://www.linux-nantes.org/~fmonnier/OCaml/ODE/download/${P}.tar.gz
+
+src_compile() {
+    lndirs
+    cd ${B}
+    cygmake
+}
+
+src_install() {
+    ocamlmakefile_install install_findlib
+    __myprepetc && __myprepman
+}

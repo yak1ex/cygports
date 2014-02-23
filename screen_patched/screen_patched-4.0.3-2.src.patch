@@ -1,0 +1,1864 @@
+--- origsrc/screen-4.0.3/Makefile	2006-10-23 22:06:32.000000000 +0900
++++ src/screen-4.0.3/Makefile	2009-12-31 21:34:38.918125000 +0900
+@@ -1,3 +1,324 @@
+-install all Makefiles and config:
++#
++# Makefile template for screen 
++#
++# See machine dependant config.h for more configuration options.
++#
++
++srcdir = /var/tmp/screen_patched-4.0.3-2/src/screen-4.0.3
++VPATH = /var/tmp/screen_patched-4.0.3-2/src/screen-4.0.3
++
++DESTDIR = 
++
++# Where to install screen.
++
++prefix = /usr/local
++exec_prefix = /usr/local
++
++# don't forget to change mandir and infodir in doc/Makefile.
++bindir  = $(exec_prefix)/bin
++
++VERSION = 4.0.3
++SCREEN = screen
++
++ETCSCREENRC = `sed < config.h -n -e '/define ETCSCREENRC/s/^.*"\([^"]*\)"/\1/p'`
++SCREENENCODINGS = `sed < config.h -n -e '/define SCREENENCODINGS/s/^.*"\([^"]*\)"/\1/p'`
++
++CC = gcc
++CFLAGS = -O2 -pipe 
++CPPFLAGS = 
++LDFLAGS = 
++LIBS = -lcurses  -lutil -lcrypt
++
++CPP=gcc -E
++CPP_DEPEND=$(CC) -MM
++
++INSTALL = /usr/bin/install -c
++INSTALL_PROGRAM = ${INSTALL}
++INSTALL_DATA = ${INSTALL} -m 644
++
++AWK = gawk
++
++### Chose some debug configuration options:
++# -DDEBUG
++#	Turn on really heavy debug output. This is written to 
++#	/tmp/debug/{SCREEN,screen}.<pid>. Look at these files and quote 
++#	questionable sections when sending bug-reports to the author.
++# -DDUMPSHADOW
++#	With shadow-pw screen would never dump core. Use this option if
++#	you still want to have a core. Use only for debugging.
++OPTIONS=
++#OPTIONS= -DDEBUG
++
++SHELL=/bin/sh
++
++CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
++	search.c tty.c term.c window.c utmp.c loadav.c putenv.c help.c \
++	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
++	kmapdef.c acls.c braille.c braille_tsi.c logfile.c layer.c \
++	sched.c teln.c nethack.c encoding.c
++OFILES=	screen.o ansi.o fileio.o mark.o misc.o resize.o socket.o \
++	search.o tty.o term.o window.o utmp.o loadav.o putenv.o help.o \
++	termcap.o input.o attacher.o pty.o process.o display.o comm.o \
++	kmapdef.o acls.o braille.o braille_tsi.o logfile.o layer.o \
++	sched.o teln.o nethack.o encoding.o
++
++all:	screen
++
++screen: $(OFILES)
++	$(CC) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
++
++.c.o:
++	$(CC) -c -I. -I$(srcdir) $(M_CFLAGS) $(DEFS) $(OPTIONS) $(CFLAGS) $<
++
++install_bin: .version screen
++	$(INSTALL_PROGRAM) screen $(DESTDIR)$(bindir)/$(SCREEN)
++	cp $(srcdir)/utf8encodings/?? $(DESTDIR)$(SCREENENCODINGS)
++
++###############################################################################
++install: installdirs install_bin
++	cd doc ; $(MAKE) install
++	-if [ -d /usr/lib/terminfo ]; then \
++		PATH="$$PATH:/usr/5bin" tic ${srcdir}/terminfo/screeninfo.src; \
++		chmod 644 /usr/lib/terminfo/s/screen*; \
++	fi
++# Better do this by hand. E.g. under RCS...
++#	cat ${srcdir}/terminfo/screencap >> /etc/termcap
++	@echo "termcap entry (${srcdir}/terminfo/screencap) should be installed manually."
++	@echo "You may also want to install $(srcdir)/etc/etcscreenrc in" $(ETCSCREENRC)
++
++installdirs:
++# Path leading to ETCSCREENRC and Socketdirectory not checked.
++	$(srcdir)/etc/mkinstalldirs $(DESTDIR)$(bindir) $(DESTDIR)$(SCREENENCODINGS)
++	cd doc ; $(MAKE) installdirs
++
++uninstall: .version
++	rm -f $(DESTDIR)$(bindir)/$(SCREEN)
++	rm -f $(DESTDIR)$(bindir)/screen
++	-mv $(DESTDIR)$(bindir)/screen.old $(DESTDIR)$(bindir)/screen
++	rm -f $(DESTDIR)$(ETCSCREENRC)
++	cd doc; $(MAKE) uninstall
++
++shadow:
++	mkdir shadow;
++	cd shadow; ln -s ../*.[ch] ../*.in ../*.sh ../configure ../doc ../terminfo ../etc .
++	rm -f shadow/term.h shadow/tty.c shadow/comm.h shadow/osdef.h
++	echo "install all Makefiles and config:" > shadow/Makefile
++	echo "	rm -f config.cache" >> shadow/Makefile
++	echo "	sh ./configure" >> shadow/Makefile
++	
++term.h: term.c term.sh
++	AWK=$(AWK) srcdir=$(srcdir) sh $(srcdir)/term.sh
++
++kmapdef.c: term.h
++
++tty.c:	tty.sh 
++	sh $(srcdir)/tty.sh tty.c
++
++comm.h: comm.c comm.sh config.h
++	AWK=$(AWK) CC="$(CC) $(CFLAGS)" srcdir=${srcdir} sh $(srcdir)/comm.sh
++
++osdef.h: osdef.sh config.h osdef.h.in
++	CPP="$(CPP) $(CPPFLAGS)" srcdir=${srcdir} sh $(srcdir)/osdef.sh
++
++docs:
++	cd doc; $(MAKE) dvi screen.info
++
++dvi info screen.info:
++	-cd doc; $(MAKE) $@
++
++mostlyclean:
++	rm -f $(OFILES) screen config.cache osdef0.c osdef1.sed osdef2.sed
++
++clean celan: mostlyclean
++	rm -f tty.c term.h comm.h osdef.h kmapdef.c core
++
++# Delete all files from the current directory that are created by 
++# configuring or building the program.
++# building of term.h/comm.h requires awk. Keep it in the distribution
++# we keep config.h, as this file knows where 'make dist' finds the ETCSCREENRC.
++#distclean:	mostlyclean
++#	rm -f $(SCREEN).tar $(SCREEN).tar.gz
++#	rm -f config.status Makefile
++#	rm -f osdef.h doc/Makefile
++
++maintainer-clean:
++	@echo "This command is not even intended for maintainers to use;"
++	@echo "it deletes files that may require special tools to rebuild."
++
++
++# Delete everything from the current directory that can be
++# reconstructed with this Makefile.
++realclean: .version mostlyclean
++	rm -f $(SCREEN).tar $(SCREEN).tar.gz
++	rm -f config.status Makefile doc/Makefile
++	rm -f tty.c term.h comm.h osdef.h kmapdef.c
++	rm -f config.h
++	echo "install all Makefiles and config:" > Makefile
++	echo "  sh ./configure" >> Makefile
++
++tags TAGS: $(CFILES)
++	-ctags    *.sh $(CFILES) *.h
++	-ctags -e *.sh $(CFILES) *.h
++
++dist: .version $(SCREEN).tar.gz
++
++$(SCREEN).tar: .version term.h comm.h tty.c kmapdef.c
++	-rm -rf dist
++	mkdir dist
++	mkdir dist/$(SCREEN)
++	ln acls.h ansi.h display.h extern.h logfile.h mark.h os.h \
++	   layer.h patchlevel.h screen.h window.h image.h \
++	   osdef.h.in term.sh tty.sh comm.sh osdef.sh braille.h \
++	   sched.h \
++	   $(CFILES) \
++	   ChangeLog COPYING INSTALL NEWS* TODO install.sh \
++	   dist/$(SCREEN)
++	cd dist/$(SCREEN); mv tty.c tty.c.dist
++	cd dist/$(SCREEN); mv kmapdef.c kmapdef.c.dist
++	ln configure.in configure dist/$(SCREEN)
++	sed -e 's@"/local/screens@"/tmp/screens@' -e 's@"/local@"/usr/local@g' < config.h.in > dist/$(SCREEN)/config.h.in
++	sed -e 's@[	 ]/local@ /usr/local@g' -e 's/^CFLAGS = -g/CFLAGS = -O/' < Makefile.in > dist/$(SCREEN)/Makefile.in
++	ln term.h dist/$(SCREEN)/term.h.dist
++	ln comm.h dist/$(SCREEN)/comm.h.dist
++	ln README dist/$(SCREEN)/README
++	mkdir dist/$(SCREEN)/terminfo
++	cd terminfo; ln 8bits README checktc.c screencap \
++	  screeninfo.src test.txt tetris.c \
++	  ../dist/$(SCREEN)/terminfo
++	mkdir dist/$(SCREEN)/etc
++	cd etc; ln * ../dist/$(SCREEN)/etc
++	mkdir dist/$(SCREEN)/utf8encodings
++	cd utf8encodings; ln * ../dist/$(SCREEN)/utf8encodings
++	# sed -e 's/^startup/#startup/' -e 's/^autodetach/#autodetach/' < $(ETCSCREENRC) > dist/$(SCREEN)/etc/etcscreenrc 
++	cp $(HOME)/.screenrc dist/$(SCREEN)/etc/screenrc
++	mkdir dist/$(SCREEN)/doc
++	sed -e 's@/local/emacs@/usr/local@g' < doc/Makefile.in > dist/$(SCREEN)/doc/Makefile.in
++	cd doc; ln FAQ README.DOTSCREEN screen.1 screen.texinfo fdpat.ps make.help window_to_display.ps \
++	  ../dist/$(SCREEN)/doc
++	cd doc; if test -f screen.info; then ln screen.info* \
++	   ../dist/$(SCREEN)/doc; fi
++	cd dist/$(SCREEN)/doc; ln -s ../install.sh .
++	cd dist/$(SCREEN); ln -s doc/FAQ .
++	echo "install all Makefiles and config:" > dist/$(SCREEN)/Makefile
++	echo "	rm -f config.cache" >> dist/$(SCREEN)/Makefile
++	echo "	sh ./configure"     >> dist/$(SCREEN)/Makefile
++	cd dist; tar cf ../$(SCREEN).tar $(SCREEN)
++	rm -rf dist
++
++$(SCREEN).tar.gz: $(SCREEN).tar
++	gzip -nf $(SCREEN).tar || gzip -f $(SCREEN).tar
++
++# Perform self-tests (if any).
++check:
++
++lint:
++	lint -I. $(CFILES)
++
++saber:
++	#load $(CFLAGS) screen.c ansi.c $(LIBS)
++
++config:
+ 	rm -f config.cache
+ 	sh ./configure
++
++
++###############################################################################
++
++.version:
++	@rev=`sed < $(srcdir)/patchlevel.h -n -e '/#define REV/s/#define REV  *//p'`; \
++	vers=`sed < $(srcdir)/patchlevel.h -n -e '/#define VERS/s/#define VERS  *//p'`; \
++	pat=`sed < $(srcdir)/patchlevel.h -n -e '/#define PATCHLEVEL/s/#define PATCHLEVEL  *//p'`; \
++	if [ "$${rev}.$${vers}.$${pat}" != "$(VERSION)" ]; then \
++	echo "This distribution is screen-$${rev}.$${vers}.$${pat}, but"; \
++	echo "the Makefile is from $(VERSION). Please update!"; exit 1; fi
++
++###############################################################################
++
++mdepend: $(CFILES) term.h
++	@rm -f DEPEND ; \
++	for i in ${CFILES} ; do \
++	  echo "$$i" ; \
++	  echo `echo "$$i" | sed -e 's/.c$$/.o/'`": $$i" `\
++            cc -E $$i |\
++            grep '^# .*"\./.*\.h"' |\
++            (sort -t'"' -u -k 2,2 2>/dev/null || sort -t'"' -u +1 -2) |\
++            sed -e 's/.*"\.\/\(.*\)".*/\1/'\
++          ` >> DEPEND ; \
++	done
++
++
++depend: depend.in
++	./config.status || ./configure
++	
++depend.in: $(CFILES) term.h
++	cp Makefile.in Makefile.in~
++	sed -e '/\#\#\# Dependencies/q' < Makefile.in > tmp_make
++	for i in $(CFILES); do echo $$i; $(CPP_DEPEND) $$i >> tmp_make; done 
++	mv tmp_make Makefile.in
++
++###############################################################################
++
++### Dependencies:
++screen.o: screen.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h braille.h \
++ patchlevel.h logfile.h extern.h
++ansi.o: ansi.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h braille.h extern.h \
++ logfile.h
++fileio.o: fileio.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++mark.o: mark.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h mark.h extern.h
++misc.o: misc.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++resize.o: resize.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++socket.o: socket.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++search.o: search.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h mark.h extern.h
++tty.o: tty.c config.h screen.h os.h osdef.h ansi.h acls.h comm.h \
++ layer.h term.h image.h display.h window.h extern.h
++term.o: term.c term.h
++window.o: window.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h logfile.h
++utmp.o: utmp.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++loadav.o: loadav.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++putenv.o: putenv.c config.h
++help.o: help.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++termcap.o: termcap.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++input.o: input.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++attacher.o: attacher.c config.h screen.h os.h osdef.h ansi.h \
++ acls.h comm.h layer.h term.h image.h display.h window.h extern.h
++pty.o: pty.c config.h screen.h os.h osdef.h ansi.h acls.h comm.h \
++ layer.h term.h image.h display.h window.h extern.h
++process.o: process.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h logfile.h
++display.o: display.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h braille.h
++comm.o: comm.c config.h acls.h comm.h
++kmapdef.o: kmapdef.c config.h
++acls.o: acls.c config.h screen.h os.h osdef.h ansi.h acls.h comm.h \
++ layer.h term.h image.h display.h window.h extern.h
++braille.o: braille.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h braille.h
++braille_tsi.o: braille_tsi.c config.h screen.h os.h osdef.h ansi.h \
++ acls.h comm.h layer.h term.h image.h display.h window.h extern.h \
++ braille.h
++logfile.o: logfile.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h logfile.h
++layer.o: layer.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++sched.o: sched.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h logfile.h
++teln.o: teln.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++nethack.o: nethack.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++encoding.o: encoding.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
+--- origsrc/screen-4.0.3/Makefile.in	2006-10-23 22:06:32.000000000 +0900
++++ src/screen-4.0.3/Makefile.in	2009-12-31 21:27:33.621250000 +0900
+@@ -18,7 +18,7 @@ exec_prefix = @exec_prefix@
+ bindir  = $(exec_prefix)/bin
+ 
+ VERSION = @VERSION@
+-SCREEN = screen-$(VERSION)
++SCREEN = screen
+ 
+ ETCSCREENRC = `sed < config.h -n -e '/define ETCSCREENRC/s/^.*"\([^"]*\)"/\1/p'`
+ SCREENENCODINGS = `sed < config.h -n -e '/define SCREENENCODINGS/s/^.*"\([^"]*\)"/\1/p'`
+@@ -71,14 +71,7 @@ screen: $(OFILES)
+ 	$(CC) -c -I. -I$(srcdir) $(M_CFLAGS) $(DEFS) $(OPTIONS) $(CFLAGS) $<
+ 
+ install_bin: .version screen
+-	-if [ -f $(DESTDIR)$(bindir)/$(SCREEN) ] && [ ! -f $(DESTDIR)$(bindir)/$(SCREEN).old ]; \
+-		then mv $(DESTDIR)$(bindir)/$(SCREEN) $(DESTDIR)$(bindir)/$(SCREEN).old; fi
+ 	$(INSTALL_PROGRAM) screen $(DESTDIR)$(bindir)/$(SCREEN)
+-	-chown root $(DESTDIR)$(bindir)/$(SCREEN) && chmod 4755 $(DESTDIR)$(bindir)/$(SCREEN)
+-# This doesn't work if $(bindir)/screen is a symlink
+-	-if [ -f $(DESTDIR)$(bindir)/screen ] && [ ! -f $(DESTDIR)$(bindir)/screen.old ]; then mv $(DESTDIR)$(bindir)/screen $(DESTDIR)$(bindir)/screen.old; fi
+-	rm -f $(DESTDIR)$(bindir)/screen
+-	(cd $(DESTDIR)$(bindir) && ln -sf $(SCREEN) screen)
+ 	cp $(srcdir)/utf8encodings/?? $(DESTDIR)$(SCREENENCODINGS)
+ 
+ ###############################################################################
+--- origsrc/screen-4.0.3/ansi.c	2003-12-05 22:57:05.000000000 +0900
++++ src/screen-4.0.3/ansi.c	2009-12-31 21:27:33.668125000 +0900
+@@ -61,6 +61,7 @@ int visual_bell = 0;
+ int use_hardstatus = 1;		/* display status line in hs */
+ char *printcmd = 0;
+ int use_altscreen = 0;		/* enable alternate screen support? */
++int keep_altscreen = 0;		/* keep alternate screen contents when switching? */
+ 
+ unsigned char *blank;		/* line filled with spaces */
+ unsigned char *null;		/* line filled with '\0' */
+@@ -559,7 +560,7 @@ register int len;
+ 	    {
+ 	    case '0': case '1': case '2': case '3': case '4':
+ 	    case '5': case '6': case '7': case '8': case '9':
+-	      if (curr->w_NumArgs < MAXARGS)
++	      if (curr->w_NumArgs >= 0 && curr->w_NumArgs < MAXARGS)
+ 		{
+ 		  if (curr->w_args[curr->w_NumArgs] < 100000000)
+ 		    curr->w_args[curr->w_NumArgs] =
+@@ -681,7 +682,7 @@ register int len;
+ 	      curr->w_rend.font = 0;
+ 	    }
+ #  ifdef DW_CHARS
+-	  if (curr->w_encoding == UTF8 && c >= 0x1100 && utf8_isdouble(c))
++	  if (curr->w_encoding == UTF8 && utf8_isdouble(c))
+ 	    curr->w_mbcs = 0xff;
+ #  endif
+ 	  if (curr->w_encoding == UTF8 && c >= 0x0300 && utf8_iscomb(c))
+@@ -2268,10 +2269,21 @@ int n1, n2;
+   sprintf(rbuf, fmt, n1, n2);
+   len = strlen(rbuf);
+ 
+-  if ((unsigned)(curr->w_inlen + len) <= sizeof(curr->w_inbuf))
++  if (W_UWP(curr))
++    {
++      if ((unsigned)(curr->w_pwin->p_inlen + len) <= sizeof(curr->w_pwin->p_inbuf))
++	{
++	  bcopy(rbuf, curr->w_pwin->p_inbuf + curr->w_pwin->p_inlen, len);
++	  curr->w_pwin->p_inlen += len;
++	}
++    }
++  else
+     {
+-      bcopy(rbuf, curr->w_inbuf + curr->w_inlen, len);
+-      curr->w_inlen += len;
++      if ((unsigned)(curr->w_inlen + len) <= sizeof(curr->w_inbuf))
++	{
++	  bcopy(rbuf, curr->w_inbuf + curr->w_inlen, len);
++	  curr->w_inlen += len;
++	}
+     }
+ }
+ 
+--- origsrc/screen-4.0.3/attacher.c	2003-09-08 23:24:48.000000000 +0900
++++ src/screen-4.0.3/attacher.c	2009-12-31 21:27:33.730625000 +0900
+@@ -274,7 +274,7 @@ int how;
+     }
+   debug1("Attach decided, it is '%s'\n", SockPath);
+   debug1("Attach found MasterPid == %d\n", MasterPid);
+-  if (stat(SockPath, &st) == -1)
++  if (screen_stat(SockPath, &st) == -1)
+     Panic(errno, "stat %s", SockPath);
+   if ((st.st_mode & 0600) != 0600)
+     Panic(0, "Socket is in wrong mode (%03o)", (int)st.st_mode);
+@@ -420,7 +420,7 @@ AttacherFinit SIGDEFARG
+   debug("AttacherFinit();\n");
+   signal(SIGHUP, SIG_IGN);
+   /* Check if signal comes from backend */
+-  if (stat(SockPath, &statb) == 0 && (statb.st_mode & 0777) != 0600)
++  if (screen_stat(SockPath, &statb) == 0 && (statb.st_mode & 0777) != 0600)
+     {
+       debug("Detaching backend!\n");
+       bzero((char *) &m, sizeof(m));
+--- origsrc/screen-4.0.3/comm.c	2003-09-08 23:25:08.000000000 +0900
++++ src/screen-4.0.3/comm.c	2009-12-31 21:27:33.761875000 +0900
+@@ -112,6 +112,9 @@ struct comm comms[RC_LAST + 1] =
+ #endif
+   { "charset",          NEED_FORE|ARGS_1 },
+   { "chdir",		ARGS_01 },
++#ifdef DW_CHARS
++  { "cjkwidth",		ARGS_01 },
++#endif
+   { "clear",		NEED_FORE|ARGS_0 },
+   { "colon",		NEED_LAYER|ARGS_01 },
+   { "command",		NEED_DISPLAY|ARGS_02 },
+@@ -121,6 +124,7 @@ struct comm comms[RC_LAST + 1] =
+   { "console",		NEED_FORE|ARGS_01 },
+ #ifdef COPY_PASTE
+   { "copy",		NEED_FORE|ARGS_0 },
++  { "copyaltscreen",	NEED_FORE|ARGS_0 },
+   { "crlf",		ARGS_01 },
+ #endif
+   { "debug",		ARGS_01 },
+@@ -200,6 +204,7 @@ struct comm comms[RC_LAST + 1] =
+ #ifdef ENCODINGS
+   { "kanji",		NEED_FORE|ARGS_12 },
+ #endif
++  { "keepaltscreen",	ARGS_01 },
+   { "kill",		NEED_FORE|ARGS_0 },
+   { "lastmsg",		NEED_DISPLAY|ARGS_0 },
+   { "license",		NEED_LAYER|ARGS_0 },
+--- origsrc/screen-4.0.3/configure.in	2003-06-03 20:58:24.000000000 +0900
++++ src/screen-4.0.3/configure.in	2009-12-31 21:27:33.824375000 +0900
+@@ -270,7 +270,7 @@ dnl   Solaris seteuid doesn't change the
+ dnl     multiuser screen sessions
+ AC_CHECKING(seteuid)
+ AC_TRY_LINK(,[
+-#if defined(linux) || defined(NeXT) || defined(_AUX_SOURCE) || defined(AUX) || defined(ultrix) || (defined(sun) && defined(SVR4)) || defined(ISC) || defined(sony_news)
++#if defined(linux) || defined(NeXT) || defined(_AUX_SOURCE) || defined(AUX) || defined(ultrix) || (defined(sun) && defined(SVR4)) || defined(ISC) || defined(sony_news) || defined (__CYGWIN__)
+ seteuid_is_broken(0);
+ #else
+ seteuid(0);
+@@ -293,123 +293,12 @@ dnl    ****  FIFO tests  ****
+ dnl
+ 
+ AC_CHECKING(fifos)
+-AC_TRY_RUN([
+-#include <sys/types.h>
+-#include <sys/stat.h>
+-#include <fcntl.h>
+-
+-#ifndef O_NONBLOCK
+-#define O_NONBLOCK O_NDELAY
+-#endif
+-#ifndef S_IFIFO
+-#define S_IFIFO 0010000
+-#endif
+-
+-char *fin = "/tmp/conftest$$";
+-
+-main()
+-{
+-  struct stat stb;
+-#ifdef FD_SET
+-  fd_set f;
+-#else
+-  int f;
+-#endif
+-
+-  (void)alarm(5);
+-#ifdef POSIX
+-  if (mkfifo(fin, 0777))
+-#else
+-  if (mknod(fin, S_IFIFO|0777, 0))
+-#endif
+-    exit(1);
+-  if (stat(fin, &stb) || (stb.st_mode & S_IFIFO) != S_IFIFO)
+-    exit(1);
+-  close(0);
+-#ifdef __386BSD__
+-  /*
+-   * The next test fails under 386BSD, but screen works using fifos.
+-   * Fifos in O_RDWR mode are only used for the BROKEN_PIPE case and for
+-   * the select() configuration test.
+-   */
+-  exit(0);
+-#endif
+-  if (open(fin, O_RDONLY | O_NONBLOCK))
+-    exit(1);
+-  if (fork() == 0)
+-    {
+-      close(0);
+-      if (open(fin, O_WRONLY | O_NONBLOCK))
+-	exit(1);
+-      close(0);
+-      if (open(fin, O_WRONLY | O_NONBLOCK))
+-	exit(1);
+-      if (write(0, "TEST", 4) == -1)
+-	exit(1);
+-      exit(0);
+-    }
+-#ifdef FD_SET
+-  FD_SET(0, &f);
+-#else
+-  f = 1;
+-#endif
+-  if (select(1, &f, 0, 0, 0) == -1)
+-    exit(1);
+-  exit(0);
+-}
+-], AC_NOTE(- your fifos are usable) fifo=1,
+-AC_NOTE(- your fifos are not usable))
+-rm -f /tmp/conftest*
++AC_NOTE(- your fifos are usable) fifo=1
+ 
+ if test -n "$fifo"; then
+ AC_CHECKING(for broken fifo implementation)
+-AC_TRY_RUN([
+-#include <sys/types.h>
+-#include <fcntl.h>
+-#include <sys/time.h>
+-#include <sys/stat.h>
+-
+-#ifndef O_NONBLOCK
+-#define O_NONBLOCK O_NDELAY
+-#endif
+-#ifndef S_IFIFO
+-#define S_IFIFO 0010000
+-#endif
+-
+-char *fin = "/tmp/conftest$$";
+-
+-main()
+-{
+-  struct timeval tv;
+-#ifdef FD_SET
+-  fd_set f;
+-#else
+-  int f;
+-#endif
+-
+-#ifdef POSIX
+-  if (mkfifo(fin, 0600))
+-#else
+-  if (mknod(fin, S_IFIFO|0600, 0))
+-#endif
+-    exit(1);
+-  close(0);
+-  if (open(fin, O_RDONLY|O_NONBLOCK))
+-    exit(1);
+-#ifdef FD_SET
+-  FD_SET(0, &f);
+-#else
+-  f = 1;
+-#endif
+-  tv.tv_sec = 1;
+-  tv.tv_usec = 0;
+-  if (select(1, &f, 0, 0, &tv))
+-    exit(1);
+-  exit(0);
+-}
+-], AC_NOTE(- your implementation is ok), 
+-AC_NOTE(- you have a broken implementation) AC_DEFINE(BROKEN_PIPE) fifobr=1)
+-rm -f /tmp/conftest*
++dnl AC_NOTE(- your implementation is ok)
++AC_NOTE(- you have a broken implementation) AC_DEFINE(BROKEN_PIPE) fifobr=1
+ fi
+ 
+ dnl
+@@ -561,7 +450,7 @@ main()
+   int f;
+ #endif
+ 
+-#ifdef __FreeBSD__
++#if __FreeBSD__ || __CYGWIN__
+ /* From Andrew A. Chernov (ache@astral.msk.su):
+  * opening RDWR fifo fails in BSD 4.4, but select return values are
+  * right.
+@@ -882,7 +771,7 @@ fi
+ 
+ if test -z "$load" ; then
+ AC_EGREP_CPP(yes,
+-[#if defined(NeXT) || defined(apollo) || defined(linux)
++[#if defined(NeXT) || defined(apollo) || defined(linux) || defined (__CYGWIN__)
+   yes;
+ #endif
+ ], load=1)
+--- origsrc/screen-4.0.3/display.c	2003-12-05 22:45:41.000000000 +0900
++++ src/screen-4.0.3/display.c	2009-12-31 21:27:33.886875000 +0900
+@@ -94,6 +94,9 @@ extern int real_uid, real_gid;
+ /*
+  * tputs needs this to calculate the padding
+  */
++#if defined(__CYGWIN__) && !defined(NCURSES_STATIC)
++__declspec(dllimport)
++#endif
+ #ifndef NEED_OSPEED
+ extern
+ #endif /* NEED_OSPEED */
+@@ -2782,7 +2785,14 @@ int from, to, y;
+ #ifdef DW_CHARS
+       if (dw_right(ml, x, D_encoding))
+ 	{
+-	  x--;
++	  if (x>0)
++	    {
++	      x--;
++	    }
++	  else
++	    {
++	      x++;
++	    }
+ 	  debug1("DisplayLine on right side of dw char- x now %d\n", x);
+ 	  GotoPos(x, y);
+ 	}
+--- origsrc/screen-4.0.3/doc/screen.1	2003-12-05 22:51:57.000000000 +0900
++++ src/screen-4.0.3/doc/screen.1	2009-12-31 21:27:33.933750000 +0900
+@@ -1388,6 +1388,17 @@ can use this to adjust an already placed
+ .ti -2n
+ All keys not described here exit copy mode.
+ .in -4n
++.sp 
++.ne 3
++.B copyaltscreen
++.PP
++Enter copy/scrollback mode on the "alternate screen". This allows
++you to view the contents of the "alternate screen" after the program
++using it has finished, and copy text from it and its history into the
++paste buffer. The controls available in this mode are the same as
++for the `copy' command.
++This command requires both the `altscreen' and the `keepaltscreen'
++settings to be set to `on'.
+ .sp
+ .ne 3
+ .B copy_reg
+@@ -2037,6 +2048,13 @@ For system information use the \*Qtime\*
+ No longer exists, use \*Qpaste\*U instead.
+ .sp
+ .ne 3
++.BR "keepaltscreen on" | off
++.PP
++If set to on, the contents of the "alternate screen" are kept when leaving
++"alternate screen" mode. This is required in order to use the `copyaltscreen'
++command. Initial setting is `off'.
++.sp
++.ne 3
+ .B kill
+ .PP
+ Kill current window.
+--- origsrc/screen-4.0.3/doc/screen.texinfo	2003-12-05 22:51:46.000000000 +0900
++++ src/screen-4.0.3/doc/screen.texinfo	2009-12-31 21:27:33.965000000 +0900
+@@ -878,6 +878,8 @@ Selects compaction of trailing empty lin
+ Grab or ungrab console output.  @xref{Console}.
+ @item copy
+ Enter copy mode.  @xref{Copy}.
++@item copyaltscreen
++Enter copy mode on the alternate screen.  @xref{Copy}.
+ @item copy_reg [@var{key}]
+ Removed. Use @code{paste} instead.  @xref{Registers}.
+ @item crlf @var{state}
+@@ -984,6 +986,8 @@ Ignore character case in searches.  @xre
+ Display window settings.  @xref{Info}.
+ @item ins_reg [@var{key}]
+ Removed, use @code{paste} instead.  @xref{Registers}.
++@item keepaltscreen @var{state}
++Enable support for copying from the "alternate screen".  @xref{Copy}.
+ @item kill
+ Destroy the current window.  @xref{Kill}.
+ @item lastmsg
+@@ -2833,6 +2837,24 @@ current window and its history into the 
+ outlined below.
+ @end deffn
+ 
++@deffn Command keepaltscreen state
++(none)@*
++If set to on, the contents of the "alternate screen" are kept when leaving
++"alternate screen" mode.  This is required in order to use the @code{copyaltscreen}
++command.  Initial setting is @samp{off}.
++@end deffn
++
++@deffn Command copyaltscreen
++(none)@*
++Enter copy/scrollback mode on the "alternate screen". This allows
++you to view the contents of the "alternate screen" after the program
++using it has finished, and copy text from it and its history into the
++paste buffer.  The controls available in this mode are the same as
++for the @code{copy} command, outlined below.
++This command requires both the @code{altscreen} and the @code{keepaltscreen}
++settings to be set to @samp{on}.
++@end deffn
++
+ @menu
+ * Line Termination::            End copied lines with CR/LF
+ * Scrollback::                  Set the size of the scrollback buffer
+--- origsrc/screen-4.0.3/encoding.c	2006-10-23 21:58:14.000000000 +0900
++++ src/screen-4.0.3/encoding.c	2009-12-31 21:27:33.996250000 +0900
+@@ -35,6 +35,10 @@ extern struct layer *flayer;
+ 
+ extern char *screenencodings;
+ 
++#ifdef DW_CHARS
++extern int cjkwidth;
++#endif
++
+ static int  encmatch __P((char *, char *));
+ # ifdef UTF8
+ static int   recode_char __P((int, int, int));
+@@ -845,22 +849,107 @@ int encoding;
+ }
+ 
+ #ifdef DW_CHARS
++struct interval {
++  int first;
++  int last;
++};
++
++/* auxiliary function for binary search in interval table */
++static int bisearch(int ucs, const struct interval *table, int max) {
++  int min = 0;
++  int mid;
++
++  if (ucs < table[0].first || ucs > table[max].last)
++    return 0;
++  while (max >= min) {
++    mid = (min + max) / 2;
++    if (ucs > table[mid].last)
++      min = mid + 1;
++    else if (ucs < table[mid].first)
++      max = mid - 1;
++    else
++      return 1;
++  }
++
++  return 0;
++}
++
+ int
+ utf8_isdouble(c)
+ int c;
+ {
+-  return
+-    (c >= 0x1100 &&
+-     (c <= 0x115f ||                    /* Hangul Jamo init. consonants */
+-      (c >= 0x2e80 && c <= 0xa4cf && (c & ~0x0011) != 0x300a &&
+-       c != 0x303f) ||                  /* CJK ... Yi */
+-      (c >= 0xac00 && c <= 0xd7a3) || /* Hangul Syllables */
+-      (c >= 0xdf00 && c <= 0xdfff) || /* dw combining sequence */
+-      (c >= 0xf900 && c <= 0xfaff) || /* CJK Compatibility Ideographs */
+-      (c >= 0xfe30 && c <= 0xfe6f) || /* CJK Compatibility Forms */
+-      (c >= 0xff00 && c <= 0xff5f) || /* Fullwidth Forms */
+-      (c >= 0xffe0 && c <= 0xffe6) ||
+-      (c >= 0x20000 && c <= 0x2ffff)));
++  /* sorted list of non-overlapping intervals of East Asian Ambiguous
++   * characters, generated by "uniset +WIDTH-A -cat=Me -cat=Mn -cat=Cf c" */
++  static const struct interval ambiguous[] = {
++    { 0x00A1, 0x00A1 }, { 0x00A4, 0x00A4 }, { 0x00A7, 0x00A8 },
++    { 0x00AA, 0x00AA }, { 0x00AE, 0x00AE }, { 0x00B0, 0x00B4 },
++    { 0x00B6, 0x00BA }, { 0x00BC, 0x00BF }, { 0x00C6, 0x00C6 },
++    { 0x00D0, 0x00D0 }, { 0x00D7, 0x00D8 }, { 0x00DE, 0x00E1 },
++    { 0x00E6, 0x00E6 }, { 0x00E8, 0x00EA }, { 0x00EC, 0x00ED },
++    { 0x00F0, 0x00F0 }, { 0x00F2, 0x00F3 }, { 0x00F7, 0x00FA },
++    { 0x00FC, 0x00FC }, { 0x00FE, 0x00FE }, { 0x0101, 0x0101 },
++    { 0x0111, 0x0111 }, { 0x0113, 0x0113 }, { 0x011B, 0x011B },
++    { 0x0126, 0x0127 }, { 0x012B, 0x012B }, { 0x0131, 0x0133 },
++    { 0x0138, 0x0138 }, { 0x013F, 0x0142 }, { 0x0144, 0x0144 },
++    { 0x0148, 0x014B }, { 0x014D, 0x014D }, { 0x0152, 0x0153 },
++    { 0x0166, 0x0167 }, { 0x016B, 0x016B }, { 0x01CE, 0x01CE },
++    { 0x01D0, 0x01D0 }, { 0x01D2, 0x01D2 }, { 0x01D4, 0x01D4 },
++    { 0x01D6, 0x01D6 }, { 0x01D8, 0x01D8 }, { 0x01DA, 0x01DA },
++    { 0x01DC, 0x01DC }, { 0x0251, 0x0251 }, { 0x0261, 0x0261 },
++    { 0x02C4, 0x02C4 }, { 0x02C7, 0x02C7 }, { 0x02C9, 0x02CB },
++    { 0x02CD, 0x02CD }, { 0x02D0, 0x02D0 }, { 0x02D8, 0x02DB },
++    { 0x02DD, 0x02DD }, { 0x02DF, 0x02DF }, { 0x0391, 0x03A1 },
++    { 0x03A3, 0x03A9 }, { 0x03B1, 0x03C1 }, { 0x03C3, 0x03C9 },
++    { 0x0401, 0x0401 }, { 0x0410, 0x044F }, { 0x0451, 0x0451 },
++    { 0x2010, 0x2010 }, { 0x2013, 0x2016 }, { 0x2018, 0x2019 },
++    { 0x201C, 0x201D }, { 0x2020, 0x2022 }, { 0x2024, 0x2027 },
++    { 0x2030, 0x2030 }, { 0x2032, 0x2033 }, { 0x2035, 0x2035 },
++    { 0x203B, 0x203B }, { 0x203E, 0x203E }, { 0x2074, 0x2074 },
++    { 0x207F, 0x207F }, { 0x2081, 0x2084 }, { 0x20AC, 0x20AC },
++    { 0x2103, 0x2103 }, { 0x2105, 0x2105 }, { 0x2109, 0x2109 },
++    { 0x2113, 0x2113 }, { 0x2116, 0x2116 }, { 0x2121, 0x2122 },
++    { 0x2126, 0x2126 }, { 0x212B, 0x212B }, { 0x2153, 0x2154 },
++    { 0x215B, 0x215E }, { 0x2160, 0x216B }, { 0x2170, 0x2179 },
++    { 0x2190, 0x2199 }, { 0x21B8, 0x21B9 }, { 0x21D2, 0x21D2 },
++    { 0x21D4, 0x21D4 }, { 0x21E7, 0x21E7 }, { 0x2200, 0x2200 },
++    { 0x2202, 0x2203 }, { 0x2207, 0x2208 }, { 0x220B, 0x220B },
++    { 0x220F, 0x220F }, { 0x2211, 0x2211 }, { 0x2215, 0x2215 },
++    { 0x221A, 0x221A }, { 0x221D, 0x2220 }, { 0x2223, 0x2223 },
++    { 0x2225, 0x2225 }, { 0x2227, 0x222C }, { 0x222E, 0x222E },
++    { 0x2234, 0x2237 }, { 0x223C, 0x223D }, { 0x2248, 0x2248 },
++    { 0x224C, 0x224C }, { 0x2252, 0x2252 }, { 0x2260, 0x2261 },
++    { 0x2264, 0x2267 }, { 0x226A, 0x226B }, { 0x226E, 0x226F },
++    { 0x2282, 0x2283 }, { 0x2286, 0x2287 }, { 0x2295, 0x2295 },
++    { 0x2299, 0x2299 }, { 0x22A5, 0x22A5 }, { 0x22BF, 0x22BF },
++    { 0x2312, 0x2312 }, { 0x2460, 0x24E9 }, { 0x24EB, 0x254B },
++    { 0x2550, 0x2573 }, { 0x2580, 0x258F }, { 0x2592, 0x2595 },
++    { 0x25A0, 0x25A1 }, { 0x25A3, 0x25A9 }, { 0x25B2, 0x25B3 },
++    { 0x25B6, 0x25B7 }, { 0x25BC, 0x25BD }, { 0x25C0, 0x25C1 },
++    { 0x25C6, 0x25C8 }, { 0x25CB, 0x25CB }, { 0x25CE, 0x25D1 },
++    { 0x25E2, 0x25E5 }, { 0x25EF, 0x25EF }, { 0x2605, 0x2606 },
++    { 0x2609, 0x2609 }, { 0x260E, 0x260F }, { 0x2614, 0x2615 },
++    { 0x261C, 0x261C }, { 0x261E, 0x261E }, { 0x2640, 0x2640 },
++    { 0x2642, 0x2642 }, { 0x2660, 0x2661 }, { 0x2663, 0x2665 },
++    { 0x2667, 0x266A }, { 0x266C, 0x266D }, { 0x266F, 0x266F },
++    { 0x273D, 0x273D }, { 0x2776, 0x277F }, { 0xE000, 0xF8FF },
++    { 0xFFFD, 0xFFFD }, { 0xF0000, 0xFFFFD }, { 0x100000, 0x10FFFD }
++  };
++
++  return ((c >= 0x1100 &&
++           (c <= 0x115f ||                    /* Hangul Jamo init. consonants */
++            c == 0x2329 || c == 0x232a ||
++            (c >= 0x2e80 && c <= 0xa4cf &&
++             c != 0x303f) ||                  /* CJK ... Yi */
++            (c >= 0xac00 && c <= 0xd7a3) || /* Hangul Syllables */
++            (c >= 0xf900 && c <= 0xfaff) || /* CJK Compatibility Ideographs */
++            (c >= 0xfe30 && c <= 0xfe6f) || /* CJK Compatibility Forms */
++            (c >= 0xff00 && c <= 0xff60) || /* Fullwidth Forms */
++            (c >= 0xffe0 && c <= 0xffe6) ||
++            (c >= 0x20000 && c <= 0x2fffd) ||
++            (c >= 0x30000 && c <= 0x3fffd))) ||
++          (cjkwidth &&
++           bisearch(c, ambiguous,
++	            sizeof(ambiguous) / sizeof(struct interval) - 1)));
+ }
+ #endif
+ 
+@@ -1159,7 +1248,8 @@ int *statep;
+ 	      *statep = c;
+ 	      return -1;
+ 	    }
+-	  return c | (KANA << 16);
++	  if (c >= 0x80) return c | (KANA << 16);
++	  else return c;
+ 	}
+       t = c;
+       c = *statep;
+@@ -1324,7 +1414,7 @@ int *fontp;
+ 	  if (bp)
+ 	    {
+ 	      *bp++ = 0x8e;
+-	      *bp++ = c;
++	      *bp++ = c | 0x80;
+ 	    }
+ 	  return 2;
+ 	}
+--- origsrc/screen-4.0.3/etc/etcscreenrc	2003-12-05 22:46:13.000000000 +0900
++++ src/screen-4.0.3/etc/etcscreenrc	2009-12-31 21:27:34.011875000 +0900
+@@ -9,6 +9,7 @@
+ #startup_message off
+ 
+ #defflow on # will force screen to process ^S/^Q
++defflow off	# leave this off, so we can save in *emacs
+ 
+ deflogin on
+ #autodetach off
+@@ -65,6 +66,9 @@ terminfo xterm|fptwist hs@:cs=\E[%i%p1%d
+ termcap xterm 'is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l'
+ terminfo xterm 'is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l'
+ 
++# Set the hardstatus prop on gui terms to set the titlebar/icon title
++termcapinfo xterm*|rxvt*|kterm*|Eterm*|cygwin hs:ts=\E]0;:fs=\007:ds=\E]0;\007
++
+ #
+ # Do not use xterms alternate window buffer. 
+ # This one would not add lines to the scrollback buffer.
+--- origsrc/screen-4.0.3/etc/screenrc	2006-10-23 22:06:32.000000000 +0900
++++ src/screen-4.0.3/etc/screenrc	2009-12-31 21:27:34.043125000 +0900
+@@ -37,6 +37,11 @@ defscrollback 1000
+ 
+ # enable support for the "alternate screen" capability in all windows
+ # altscreen on
++#
++# keep the contents of the alternate screen around, and bind a key to
++# entering copy mode on the alternate screen
++# keepaltscreen on
++# bind ^A copyaltscreen
+ 
+ ################
+ #
+--- origsrc/screen-4.0.3/extern.h	2003-08-22 21:27:57.000000000 +0900
++++ src/screen-4.0.3/extern.h	2009-12-31 21:27:34.105625000 +0900
+@@ -100,7 +100,7 @@ extern int   SttyMode __P((struct mode *
+ 
+ /* mark.c */
+ extern int   GetHistory __P((void));
+-extern void  MarkRoutine __P((void));
++extern void  MarkRoutine __P((int));
+ extern void  revto_line __P((int, int, int));
+ extern void  revto __P((int, int));
+ extern int   InMark __P((void));
+@@ -316,8 +316,8 @@ extern char *xrealloc __P((char *, int))
+ extern void  ResizeLayersToCanvases __P((void));
+ extern void  ResizeLayer __P((struct layer *, int, int, struct display *));
+ extern int   MayResizeLayer __P((struct layer *));
+-extern void  FreeAltScreen __P((struct win *));
+ extern void  EnterAltScreen __P((struct win *));
++extern void  SwitchAltScreen __P((struct win *));
+ extern void  LeaveAltScreen __P((struct win *));
+ 
+ /* sched.c */
+@@ -490,3 +490,19 @@ extern int   PrepareEncodedChar __P((int
+ # endif
+ #endif
+ extern int   EncodeChar __P((char *, int, int, int *));
++
++#ifdef CYGWIN_FILEMODE
++extern int screen_stat __P((char *, struct stat *));
++extern int screen_chmod __P((char *, mode_t));
++# ifdef NAMEDPIPE
++extern int screen_mkfifo __P((char *, mode_t));
++# endif
++extern int screen_unlink __P((char *));
++#else /* CYGWIN_FILEMODE */
++# define screen_stat(path, st) stat(path, st)
++# define screen_chmod(path, mode) chmod(path, mode)
++# ifdef NAMEDPIPE
++#  define screen_mkfifo(path, mode) mkfifo(path, mode)
++# endif
++# define screen_unlink(path) unlink(path)
++#endif /* CYGWIN_FILEMODE */
+--- origsrc/screen-4.0.3/loadav.c	2003-09-08 23:25:51.000000000 +0900
++++ src/screen-4.0.3/loadav.c	2009-12-31 21:27:34.136875000 +0900
+@@ -53,7 +53,7 @@ static int loadok;
+ 
+ /***************************************************************/
+ 
+-#if defined(linux) && !defined(LOADAV_DONE)
++#if (defined(linux) || defined (__CYGWIN__)) && !defined(LOADAV_DONE)
+ #define LOADAV_DONE
+ /*
+  * This is the easy way. It relies in /proc being mounted.
+@@ -107,7 +107,7 @@ GetLoadav()
+     }
+   return i;
+ }
+-#endif /* linux */
++#endif /* linux || __CYGWIN__ */
+ 
+ /***************************************************************/
+ 
+--- origsrc/screen-4.0.3/mark.c	2003-09-08 23:26:00.000000000 +0900
++++ src/screen-4.0.3/mark.c	2009-12-31 21:27:34.168125000 +0900
+@@ -49,6 +49,7 @@ static int  MarkScrollDownDisplay __P((i
+ static int  MarkScrollUpDisplay __P((int));
+ 
+ static void MarkProcess __P((char **, int *));
++static void MarkExit __P((void));
+ static void MarkAbort __P((void));
+ static void MarkRedisplayLine __P((int, int, int, int));
+ static int  MarkRewrite __P((int, int, int, struct mchar *, int));
+@@ -168,7 +169,7 @@ int *xp, *yp, flags, num;
+       if (x >= xx || x < 0)
+ 	q = 0;
+       else if (flags & NW_BIG)
+-        q = ml->image[x] == ' ';
++        q = ml->image[x] != ' ';
+       else
+         q = is_letter(ml->image[x]);
+       if (oq >= 0 && oq != q)
+@@ -430,7 +431,8 @@ GetHistory()	/* return value 1 if copybu
+ 
+ 
+ void
+-MarkRoutine()
++MarkRoutine(altscreen)
++int altscreen;
+ {
+   int x, y;
+ 
+@@ -439,12 +441,25 @@ MarkRoutine()
+   debug2("MarkRoutine called: fore nr %d, display %s\n",
+          fore->w_number, D_usertty);
+ 
++  if (altscreen)
++    {
++      SwitchAltScreen(fore);
++      Activate(-1);
++    }
+   if (InitOverlayPage(sizeof(*markdata), &MarkLf, 1))
+-    return;
++    {
++      if (altscreen)
++	{
++	  SwitchAltScreen(fore);
++	  Activate(-1);
++	}
++      return;
++    }
+   flayer->l_encoding = fore->w_encoding;
+   markdata = (struct markdata *)flayer->l_data;
+   markdata->md_user = D_user;	/* XXX: Correct? */
+   markdata->md_window = fore;
++  markdata->md_altscreen = altscreen;
+   markdata->second = 0;
+   markdata->rep_cnt = 0;
+   markdata->append_mode = 0;
+@@ -794,6 +809,9 @@ int *inlenp;
+ 	case 'n':
+ 	  Search(0);
+ 	  break;
++	case 'N':
++	  Search(2);
++	  break;
+ 	case 'y':
+ 	case 'Y':
+ 	  if (markdata->second == 0)
+@@ -922,7 +940,7 @@ int *inlenp;
+ 		{
+ 		  LAY_CALL_UP(LRefreshAll(flayer, 0));
+ 		}
+-	      ExitOverlayPage();
++	      MarkExit();
+ 	      if (append_mode)
+ 		LMsg(0, "Appended %d characters to buffer",
+ 		    newcopylen);
+@@ -1109,6 +1127,23 @@ int tx, ty, line;
+ }
+ 
+ static void
++MarkExit()
++{
++  int altscreen;
++
++  markdata = (struct markdata *)flayer->l_data;
++  altscreen = markdata->md_altscreen;
++
++  ExitOverlayPage();
++
++  if (altscreen)
++    {
++      SwitchAltScreen(fore);
++      Activate(-1);
++    }
++}
++
++static void
+ MarkAbort()
+ {
+   int yend, redisp;
+@@ -1131,7 +1166,7 @@ MarkAbort()
+     {
+       rem(markdata->x1, markdata->y1, markdata->cx, markdata->cy, redisp, (char *)0, yend);
+     }
+-  ExitOverlayPage();
++  MarkExit();
+ }
+ 
+ 
+--- origsrc/screen-4.0.3/mark.h	2002-01-09 00:42:30.000000000 +0900
++++ src/screen-4.0.3/mark.h	2009-12-31 21:27:34.199375000 +0900
+@@ -26,6 +26,7 @@ struct markdata
+ {
+   struct win *md_window;/* pointer to window we are working on */
+   struct acluser *md_user;	/* The user who brought us up */
++  int	md_altscreen;	/* are we marking the alternate screen? */
+   int	cx, cy;		/* cursor Position in WIN coords*/
+   int	x1, y1;		/* first mark in WIN coords */
+   int	second;		/* first mark dropped flag */
+--- origsrc/screen-4.0.3/misc.c	2003-12-05 22:45:41.000000000 +0900
++++ src/screen-4.0.3/misc.c	2009-12-31 21:27:34.324375000 +0900
+@@ -613,11 +613,11 @@ char *value;
+    */
+ # endif /* NEEDSETENV */
+ #else /* USESETENV */
+-# if defined(linux) || defined(__convex__) || (BSD >= 199103)
++# if defined(linux) || defined(__convex__) || (BSD >= 199103) || defined (__CYGWIN__)
+   setenv(var, value, 1);
+ # else
+   setenv(var, value);
+-# endif /* linux || convex || BSD >= 199103 */
++# endif /* linux || convex || BSD >= 199103 || __CYGWIN__ */
+ #endif /* USESETENV */
+ }
+ 
+@@ -632,6 +632,9 @@ register int delay;
+ int (*outc) __P((int));
+ {
+   int pad;
++#if defined(__CYGWIN__) && !defined(NCURSES_STATIC)
++__declspec(dllimport)
++#endif
+   extern short ospeed;
+   static short osp2pad[] = {
+     0,2000,1333,909,743,666,500,333,166,83,55,41,20,10,5,2,1,1
+--- origsrc/screen-4.0.3/os.h	2002-01-09 00:42:33.000000000 +0900
++++ src/screen-4.0.3/os.h	2009-12-31 21:27:34.371250000 +0900
+@@ -32,9 +32,9 @@
+ # define hpux
+ #endif
+ 
+-#if defined(__bsdi__) || defined(__386BSD__) || defined(_CX_UX) || defined(hpux) || defined(_IBMR2) || defined(linux)
++#if defined(__bsdi__) || defined(__386BSD__) || defined(_CX_UX) || defined(hpux) || defined(_IBMR2) || defined(linux) || defined (__CYGWIN__)
+ # include <signal.h>
+-#endif /* __bsdi__ || __386BSD__ || _CX_UX || hpux || _IBMR2 || linux */
++#endif /* __bsdi__ || __386BSD__ || _CX_UX || hpux || _IBMR2 || linux || __CYGWIN__ */
+ 
+ #ifdef ISC
+ # ifdef ENAMETOOLONG
+@@ -260,7 +260,7 @@ extern int errno;
+ #endif
+ 
+ #if defined(UTMPOK) || defined(BUGGYGETLOGIN)
+-# if defined(SVR4) && !defined(DGUX) && !defined(__hpux) && !defined(linux)
++# if defined(SVR4) && !defined(DGUX) && !defined(__hpux) && !defined(linux) && !defined (__CYGWIN__)
+ #  include <utmpx.h>
+ #  define UTMPFILE	UTMPX_FILE
+ #  define utmp		utmpx
+@@ -411,7 +411,7 @@ extern int errno;
+ #endif
+ 
+ /* Geeeee, reverse it? */
+-#if defined(SVR4) || (defined(SYSV) && defined(ISC)) || defined(_AIX) || defined(linux) || defined(ultrix) || defined(__386BSD__) || defined(__bsdi__) || defined(POSIX) || defined(NeXT)
++#if defined(SVR4) || (defined(SYSV) && defined(ISC)) || defined(_AIX) || defined(linux) || defined(ultrix) || defined(__386BSD__) || defined(__bsdi__) || defined(POSIX) || defined(NeXT) || defined (__CYGWIN__)
+ # define SIGHASARG
+ #endif
+ 
+--- origsrc/screen-4.0.3/osdef.sh	2001-06-19 02:08:15.000000000 +0900
++++ src/screen-4.0.3/osdef.sh	2009-12-31 21:27:34.402500000 +0900
+@@ -24,7 +24,7 @@ cat << EOF > osdef0.c
+ #ifndef sun
+ #include <sys/ioctl.h>
+ #endif
+-#ifdef linux
++#if defined(linux) || defined (__CYGWIN__)
+ #include <string.h>
+ #include <stdlib.h>
+ #endif
+--- origsrc/screen-4.0.3/process.c	2003-09-18 21:53:54.000000000 +0900
++++ src/screen-4.0.3/process.c	2009-12-31 21:27:34.558750000 +0900
+@@ -57,7 +57,7 @@ extern int log_flush, logtstamp_on, logt
+ extern char *VisualBellString;
+ extern int VBellWait, MsgWait, MsgMinWait, SilenceWait;
+ extern char SockPath[], *SockName;
+-extern int TtyMode, auto_detach, use_altscreen;
++extern int TtyMode, auto_detach, use_altscreen, keep_altscreen;
+ extern int iflag, maxwin;
+ extern int use_hardstatus, visual_bell;
+ #ifdef COLOR
+@@ -103,6 +103,9 @@ extern int VerboseCreate;
+ #ifdef UTF8
+ extern char *screenencodings;
+ #endif
++#ifdef DW_CHARS
++extern int cjkwidth;
++#endif
+ 
+ static int  CheckArgNum __P((int, char **));
+ static void ClearAction __P((struct action *));
+@@ -1494,6 +1497,7 @@ int key;
+ 	      break;
+ 	    }
+ 	  args += 2;
++	  argl += 2;
+ 	}
+ #endif
+       /* 
+@@ -1557,6 +1561,7 @@ int key;
+ 	      break;
+ 	    }
+ 	  args += 2;
++	  argl += 2;
+ 	  argc -= 2;
+ 	}
+ #endif
+@@ -2085,7 +2090,7 @@ int key;
+ 	  Msg(0, "Must be on a window layer");
+ 	  break;
+ 	}
+-      MarkRoutine();
++      MarkRoutine(0);
+       break;
+     case RC_HISTORY:
+       {
+@@ -3419,6 +3424,7 @@ int key;
+ 	    {
+ 	      WinSwitchEncoding(fore, n);
+ 	      ResetCharsets(fore);
++	      RedisplayDisplays(0);
+ 	    }
+ 	  else if (i && display)
+ 	    D_encoding  = n;
+@@ -3732,6 +3738,35 @@ int key;
+       if (msgok)
+         Msg(0, "Will %sdo alternate screen switching", use_altscreen ? "" : "not ");
+       break;
++    case RC_KEEPALTSCREEN:
++      (void)ParseSwitch(act, &keep_altscreen);
++      if (msgok)
++        Msg(0, "Will %skeep contents of alternate screen when switching", keep_altscreen ? "" : "not ");
++      break;
++#ifdef COPY_PASTE
++    case RC_COPYALTSCREEN:
++      if (flayer->l_layfn != &WinLf)
++	{
++	  Msg(0, "Must be on a window layer");
++	}
++      else if (!use_altscreen)
++	{
++	  Msg(0, "altscreen not set");
++	}
++      else if (!keep_altscreen)
++	{
++	  Msg(0, "keepaltscreen not set");
++	}
++      else if (!D_fore->w_alt_mlines)
++	{
++	  Msg(0, "No alternate screen");
++	}
++      else
++	{
++	  MarkRoutine(1);
++	}
++      break;
++#endif
+     case RC_MAXWIN:
+       if (ParseNum(act, &n))
+ 	break;
+@@ -3821,6 +3856,15 @@ int key;
+ 	    Msg(0, "idle off");
+ 	}
+       break;
++#ifdef DW_CHARS
++    case RC_CJKWIDTH:
++      if(ParseSwitch(act, &cjkwidth) == 0)
++      {
++        if(msgok)
++          Msg(0, "Treat ambiguous width characters as %s width", cjkwidth ? "full" : "half");
++      }
++      break;
++#endif
+     default:
+ #ifdef HAVE_BRAILLE
+       /* key == -2: input from braille keybord, msgok always 0 */
+--- origsrc/screen-4.0.3/pty.c	2003-09-08 23:26:18.000000000 +0900
++++ src/screen-4.0.3/pty.c	2009-12-31 21:27:34.574375000 +0900
+@@ -34,7 +34,7 @@
+ #endif
+ 
+ /* for solaris 2.1, Unixware (SVR4.2) and possibly others */
+-#ifdef HAVE_SVR4_PTYS
++#if defined(HAVE_SVR4_PTYS) && !defined(__CYGWIN__)
+ # include <sys/stropts.h>
+ #endif
+ 
+@@ -131,7 +131,7 @@ int f;
+ {
+   if (f < 0)
+     return;
+-#if defined(I_PUSH) && defined(HAVE_SVR4_PTYS) && !defined(sgi) && !defined(linux) && !defined(__osf__) && !defined(M_UNIX)
++#if defined(I_PUSH) && defined(HAVE_SVR4_PTYS) && !defined(sgi) && !defined(linux) && !defined(__osf__) && !defined(M_UNIX) && !defined (__CYGWIN__)
+   if (ioctl(f, I_PUSH, "ptem"))
+     Panic(errno, "InitPTY: cannot I_PUSH ptem");
+   if (ioctl(f, I_PUSH, "ldterm"))
+@@ -249,13 +249,13 @@ char **ttyn;
+   register int f;
+   char *m, *ptsname();
+   int unlockpt __P((int)), grantpt __P((int));
+-#if defined(HAVE_GETPT) && defined(linux)
++#if defined(HAVE_GETPT) && (defined(linux) || defined (__CYGWIN__))
+   int getpt __P((void));
+ #endif
+   sigret_t (*sigcld)__P(SIGPROTOARG);
+ 
+   strcpy(PtyName, "/dev/ptmx");
+-#if defined(HAVE_GETPT) && defined(linux)
++#if defined(HAVE_GETPT) && (defined(linux) || defined (__CYGWIN__))
+   if ((f = getpt()) == -1)
+ #else
+   if ((f = open(PtyName, O_RDWR | O_NOCTTY)) == -1)
+--- origsrc/screen-4.0.3/resize.c	2003-09-08 23:26:31.000000000 +0900
++++ src/screen-4.0.3/resize.c	2009-12-31 21:27:34.652500000 +0900
+@@ -52,6 +52,7 @@ extern struct mline mline_blank, mline_n
+ extern struct win *windows;
+ extern int Z0width, Z1width;
+ extern int captionalways;
++extern int keep_altscreen;
+ 
+ #if defined(TIOCGWINSZ) || defined(TIOCSWINSZ)
+ struct winsize glwz;
+@@ -682,6 +683,17 @@ int wi, he, hi;
+   if (wi == 0)
+     he = hi = 0;
+ 
++  if (wi > 1000)
++    {
++      Msg(0, "Window width too large, truncated");
++      wi = 1000;
++    }
++  if (he > 1000)
++    {
++      Msg(0, "Window height too large, truncated");
++      he = 1000;
++    }
++
+   if (p->w_width == wi && p->w_height == he && p->w_histheight == hi)
+     {
+       debug("ChangeWindowSize: No change.\n");
+@@ -993,7 +1005,11 @@ int wi, he, hi;
+ 
+   /* signal new size to window */
+ #ifdef TIOCSWINSZ
++#ifndef __CYGWIN__
+   if (wi && (p->w_width != wi || p->w_height != he) && p->w_ptyfd >= 0 && p->w_pid)
++#else
++  if (wi && (p->w_width != wi || p->w_height != he) && p->w_ptyfd >= 0)
++#endif
+     {
+       glwz.ws_col = wi;
+       glwz.ws_row = he;
+@@ -1093,12 +1109,20 @@ struct win *p;
+ }
+ 
+ void
+-LeaveAltScreen(p)
++SwitchAltScreen(p)
+ struct win *p;
+ {
+   if (!p->w_alt_mlines)
+     return;
+   SwapAltScreen(p);
+   ChangeWindowSize(p, p->w_alt_width, p->w_alt_height, p->w_alt_histheight);
+-  FreeAltScreen(p);
++}
++
++void
++LeaveAltScreen(p)
++struct win *p;
++{
++  SwitchAltScreen(p);
++  if (!keep_altscreen)
++    FreeAltScreen(p);
+ }
+--- origsrc/screen-4.0.3/screen.c	2003-09-08 23:26:41.000000000 +0900
++++ src/screen-4.0.3/screen.c	2009-12-31 21:27:34.777500000 +0900
+@@ -221,6 +221,10 @@ char *preselect = NULL;		/* only used in
+ char *screenencodings;
+ #endif
+ 
++#ifdef DW_CHARS
++int cjkwidth;
++#endif
++
+ #ifdef NETHACK
+ int nethackflag = 0;
+ #endif
+@@ -468,6 +472,9 @@ char **av;
+   InitBuiltinTabs();
+   screenencodings = SaveStr(SCREENENCODINGS);
+ #endif
++#ifdef DW_CHARS
++  cjkwidth = 0;
++#endif
+   nwin = nwin_undef;
+   nwin_options = nwin_undef;
+   strcpy(screenterm, "screen");
+@@ -762,6 +769,19 @@ char **av;
+       debug1("environment says encoding=%d\n", nwin_options.encoding);
+ #endif
+     }
++# ifdef DW_CHARS
++  {
++    char *s;
++    if((s = getenv("LC_ALL")) || (s = getenv("LC_CTYPE")) ||
++       (s = getenv("LANG")))
++    {
++      if(!strncmp(s, "zh_", 3) || !strncmp(s, "ja_", 3) || !strncmp(s, "ko_", 3))
++      {
++        cjkwidth = 1;
++      }
++    }
++  }
++#endif
+ #endif
+   if (SockMatch && strlen(SockMatch) >= MAXSTR)
+     Panic(0, "Ridiculously long socketname - try again.");
+@@ -890,7 +910,7 @@ char **av;
+   if (!detached && !lsflag && !cmdflag && !(dflag && !mflag && !rflag && !xflag))
+     {
+       /* ttyname implies isatty */
+-      if (!(attach_tty = ttyname(0)))
++      if (!(attach_tty = strdup(ttyname(0))))
+         Panic(0, "Must be connected to a terminal.");
+       if (strlen(attach_tty) >= MAXPATHLEN)
+ 	Panic(0, "TtyName too long - sorry.");
+@@ -992,8 +1012,10 @@ char **av;
+ 	      n = (eff_uid == 0 && (real_uid || (st.st_mode & 0775) != 0775)) ? 0755 :
+ 	          (eff_gid == (int)st.st_gid && eff_gid != real_gid) ? 0775 :
+ 		  0777;
++#if !defined(__CYGWIN__)
+ 	      if (((int)st.st_mode & 0777) != n)
+ 		Panic(0, "Directory '%s' must have mode %03o.", SockDir, n);
++#endif
+ 	    }
+ 	  sprintf(SockPath, "%s/S-%s", SockDir, LoginName);
+ 	  if (access(SockPath, F_OK))
+@@ -1023,8 +1045,10 @@ char **av;
+       if ((int)st.st_uid != real_uid)
+ 	Panic(0, "You are not the owner of %s.", SockPath);
+     }
++#if !defined(__CYGWIN__)
+   if ((st.st_mode & 0777) != 0700)
+     Panic(0, "Directory %s must have mode 700.", SockPath);
++#endif
+   if (SockMatch && index(SockMatch, '/'))
+     Panic(0, "Bad session name '%s'", SockMatch);
+   SockName = SockPath + strlen(SockPath) + 1;
+@@ -1070,7 +1094,7 @@ char **av;
+       char *sty = 0;
+ 
+       /* attach_tty is not mandatory */
+-      if ((attach_tty = ttyname(0)) == 0)
++      if ((attach_tty = strdup(ttyname(0))) == 0)
+         attach_tty = "";
+       if (strlen(attach_tty) >= MAXPATHLEN)
+ 	Panic(0, "TtyName too long - sorry.");
+@@ -1418,7 +1442,7 @@ SigChldHandler()
+       signal(SIGCHLD, SigChld);
+ #endif
+     }
+-  if (stat(SockPath, &st) == -1)
++  if (screen_stat(SockPath, &st) == -1)
+     {
+       debug1("SigChldHandler: Yuck! cannot stat '%s'\n", SockPath);
+       if (!RecoverSocket())
+@@ -1637,7 +1661,7 @@ int i;
+       xseteuid(real_uid);
+       xsetegid(real_gid);
+ #endif
+-      (void) unlink(SockPath);
++      (void) screen_unlink(SockPath);
+ #ifdef USE_SETEUID
+       xseteuid(eff_uid);
+       xsetegid(eff_gid);
+@@ -1675,7 +1699,7 @@ int e;
+       debug1("we unlink(%s)\n", SockPath);
+       setgid(real_gid);
+       setuid(real_uid);
+-      (void) unlink(SockPath);
++      (void) screen_unlink(SockPath);
+     }
+   exit(e);
+ }
+@@ -2564,6 +2588,18 @@ int rec;
+ 	    }
+ 	  p += strlen(p) - 1;
+ 	  break;
++#ifdef ENCODINGS
++	case 'e':
++	  *p = 0;
++	  D_encoding = nwin_options.encoding > 0 ? nwin_options.encoding : 0;
++	  if (win && win->w_encoding)
++	    {
++	      *p++ = ' ';
++	      strcpy(p, EncodingName(win->w_encoding));
++	    }
++	  p += strlen(p) - 1;
++	  break;
++#endif
+ 	case '{':
+           {
+ 	    char rbuf[128];
+--- origsrc/screen-4.0.3/search.c	2003-09-08 23:26:45.000000000 +0900
++++ src/screen-4.0.3/search.c	2009-12-31 21:27:34.824375000 +0900
+@@ -50,13 +50,23 @@ Search(dir)
+ int dir;
+ {
+   struct markdata *markdata;
+-  if (dir == 0)
++  if (dir == 0 || dir == 2)
+     {
+       markdata = (struct markdata *)flayer->l_data;
+-      if (markdata->isdir > 0)
+-	searchend(0, 0, NULL);
+-      else if (markdata->isdir < 0)
+-	backsearchend(0, 0, NULL);
++      if (markdata->isdir > 0) {
++	if (dir == 0) {
++	  searchend(0, 0, NULL);
++	} else {
++	  backsearchend(0, 0, NULL);
++	}
++      }
++      else if (markdata->isdir < 0) {
++	if (dir == 0) {
++	  backsearchend(0, 0, NULL);
++	} else {
++	  searchend(0, 0, NULL);
++	}
++      }
+       else
+ 	LMsg(0, "No previous pattern");
+     }
+@@ -77,9 +87,10 @@ char *data;	/* dummy */
+ 
+   markdata = (struct markdata *)flayer->l_data;
+   p = markdata->md_window;
+-  markdata->isdir = 1;
+-  if (len)
++  if (len) {
++    markdata->isdir = 1;
+     strcpy(markdata->isstr, buf);
++  }
+   sx = markdata->cx + 1;
+   ex = flayer->l_width - 1;
+   for (y = markdata->cy; y < p->w_histheight + flayer->l_height; y++, sx = 0)
+@@ -106,9 +117,10 @@ char *data;	/* dummy */
+   struct markdata *markdata;
+ 
+   markdata = (struct markdata *)flayer->l_data;
+-  markdata->isdir = -1;
+-  if (len)
++  if (len) {
++    markdata->isdir = -1;
+     strcpy(markdata->isstr, buf);
++  }
+   ex = markdata->cx - 1;
+   for (y = markdata->cy; y >= 0; y--, ex = flayer->l_width - 1)
+     {
+@@ -255,6 +267,7 @@ char *data;	/* dummy */
+       pos = markdata->isstartpos;
+       /*FALLTHROUGH*/
+     case '\033':	/* ESC */
++    case '\r':	/* ESC */
+       *p = 0;
+       break;
+     case '\013':	/* CTRL-K */
+--- origsrc/screen-4.0.3/socket.c	2003-09-08 23:26:50.000000000 +0900
++++ src/screen-4.0.3/socket.c	2009-12-31 21:27:34.855625000 +0900
+@@ -181,7 +181,7 @@ char *match;
+       errno = 0;
+       debug2("uid = %d, gid = %d\n", getuid(), getgid());
+       debug2("euid = %d, egid = %d\n", geteuid(), getegid());
+-      if (stat(SockPath, &st))
++      if (screen_stat(SockPath, &st))
+ 	{
+ 	  debug1("errno = %d\n", errno);
+ 	  continue;
+@@ -260,7 +260,7 @@ char *match;
+ 	  sent->mode = -1;
+ 	  if (wipeflag)
+ 	    {
+-	      if (unlink(SockPath) == 0)
++	      if (screen_unlink(SockPath) == 0)
+ 		{
+ 		  sent->mode = -2;
+ 		  nwipe++;
+@@ -416,7 +416,7 @@ MakeServerSocket()
+ 	  eexit(11);
+ 	}
+       Msg(0, "There is already a screen running on %s.", Filename(SockPath));
+-      if (stat(SockPath, &st) == -1)
++      if (screen_stat(SockPath, &st) == -1)
+ 	Panic(errno, "stat");
+       if ((int)st.st_uid != real_uid)
+ 	Panic(0, "Unfortunatelly you are not its owner.");
+@@ -442,8 +442,8 @@ MakeServerSocket()
+ # else /* !USE_SETEUID */
+   if (UserContext() > 0)
+     {
+-      (void) unlink(SockPath);
+-      UserReturn(mkfifo(SockPath, SOCKMODE));
++      (void) screen_unlink(SockPath);
++      UserReturn(screen_mkfifo(SockPath, SOCKMODE));
+     }
+   if (UserStatus())
+     Panic(0, "mkfifo %s failed", SockPath);
+@@ -508,7 +508,7 @@ MakeServerSocket()
+ 	  eexit(11);
+ 	}
+       Msg(0, "There is already a screen running on %s.", Filename(SockPath));
+-      if (stat(SockPath, &st) == -1)
++      if (screen_stat(SockPath, &st) == -1)
+ 	Panic(errno, "stat");
+       if (st.st_uid != real_uid)
+ 	Panic(0, "Unfortunatelly you are not its owner.");
+@@ -523,7 +523,7 @@ MakeServerSocket()
+   if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
+     Panic(errno, "reopen socket");
+ #endif
+-  (void) unlink(SockPath);
++  (void) screen_unlink(SockPath);
+   if (bind(s, (struct sockaddr *) & a, strlen(SockPath) + 2) == -1)
+     Panic(errno, "bind (%s)", SockPath);
+ #ifdef SOCK_NOT_IN_FS
+@@ -534,7 +534,7 @@ MakeServerSocket()
+       close(f);
+     }
+ #else
+-  chmod(SockPath, SOCKMODE);
++  screen_chmod(SockPath, SOCKMODE);
+ # ifndef USE_SETEUID
+   chown(SockPath, real_uid, real_gid);
+ # endif
+@@ -908,7 +908,11 @@ ReceiveMsg()
+ 	  Msg(0, "Attach attempt with bad pid(%d)!", m.m.attach.apid);
+           break;
+ 	}
++#ifndef O_NOCTTY
+       if ((i = secopen(m.m_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
++#else /* O_NOCTTY */
++      if ((i = secopen(m.m_tty, O_RDWR | O_NONBLOCK | O_NOCTTY, 0)) < 0)
++#endif
+ 	{
+ 	  Msg(errno, "Attach: Could not open %s!", m.m_tty);
+ 	  Kill(m.m.attach.apid, SIG_BYE);
+@@ -1067,7 +1071,7 @@ chsock()
+       if (UserContext() <= 0)
+         return UserStatus();
+     }
+-  r = chmod(SockPath, SOCKMODE);
++  r = screen_chmod(SockPath, SOCKMODE);
+   /* 
+    * Sockets usually reside in the /tmp/ area, where sysadmin scripts
+    * may be happy to remove old files. We manually prevent the socket
+@@ -1090,11 +1094,11 @@ RecoverSocket()
+   if ((int)geteuid() != real_uid)
+     {
+       if (UserContext() > 0)
+-	UserReturn(unlink(SockPath));
++	UserReturn(screen_unlink(SockPath));
+       (void)UserStatus();
+     }
+   else
+-    (void) unlink(SockPath);
++    (void) screen_unlink(SockPath);
+ 
+   if ((ServerSocket = MakeServerSocket()) < 0)
+     return 0;
+@@ -1424,3 +1428,160 @@ struct msg *mp;
+   EffectiveAclUser = 0;
+ #endif
+ }
++
++#ifdef CYGWIN_FILEMODE
++/* On cygwin (without ntea/ntsec), the mode of the UNIX domain
++ * socket is always either 755 or 655. Unfortunately, screen
++ * saves the socket state as the file mode.
++ *
++ * Therefore, we emulate the file mode, creating a special
++ * key file. This is ugly and possibly unsecure hack, but not
++ * critical on single-user system.
++ *
++ * If you found any bug, mail me:
++ *   AIDA Shinra <aida_s@mx12.freecom.ne.jp>
++ */
++
++static char *GetModeKeyPath __P((char *));
++static int CreateModeKeyFile __P((char *, mode_t));
++static int ReadModeKeyFile __P((char *, mode_t *));
++static char modekey_format[] = "$$ screen: socket mode=0%o $$\n";
++
++int
++screen_stat(path, st)
++char *path;
++struct stat *st;
++{
++  mode_t modetmp;
++
++  if (stat(SockPath, st))
++    return -1;
++  if (!ReadModeKeyFile(path, &modetmp))
++    st->st_mode = (st->st_mode & ~07777) | modetmp;
++  errno = 0;
++  return 0;
++}
++
++int
++screen_chmod(path, mode)
++char *path;
++mode_t mode;
++{
++  if (chmod(path, mode))
++    return -1;
++  CreateModeKeyFile(path, mode);
++  errno = 0;
++  return 0;
++}
++
++#ifdef NAMEDPIPE
++int
++screen_mkfifo(path, mode)
++char *path;
++mode_t mode;
++{
++  if (mkfifo(path, mode))
++    return -1;
++  CreateModeKeyFile(path, mode);
++  errno = 0;
++  return 0;
++}
++#endif
++
++int
++screen_unlink(path)
++char *path;
++{
++  char *modekey_path;
++  
++  if (unlink(path))
++    return -1;
++  if ((modekey_path = GetModeKeyPath(path)) == NULL)
++    return -1;
++  unlink(modekey_path);
++  free(modekey_path);
++  errno = 0;
++  return 0;
++}
++
++static char *
++GetModeKeyPath(path)
++char *path;
++{
++  char *keypath;
++  char *base;
++
++  keypath = malloc(strlen(path) + 7);
++  if (keypath == NULL) {
++    Panic (0, strnomem);
++    return NULL;
++  }
++  base = strrchr(path, '/');
++  if (base == NULL)
++    base = path;
++  else
++    base++;
++  strncpy(keypath, path, base-path);
++  sprintf(keypath+(base-path), ".%s.mode", base);
++  return keypath;
++}
++
++static int
++CreateModeKeyFile(path, mode)
++char *path;
++mode_t mode;
++{
++  int err = 0;
++  char *modekey_path;
++  FILE *keyfile;
++
++  if ((modekey_path = GetModeKeyPath(path)) == NULL)
++    return -1;
++  if ((keyfile = fopen(modekey_path, "w")) == NULL) {
++    err = errno;
++  } else {
++    errno = 0;
++    fprintf(keyfile, modekey_format, (unsigned int)mode);
++    if (errno)
++      err = errno;
++    if (fclose(keyfile))
++      err = errno;
++# ifndef USE_SETEUID
++    if (chown(modekey_path, getuid(), getgid()))
++      err = errno;
++# endif
++  }
++  free(modekey_path);
++  errno = err;
++  return (err) ? -1 : 0;
++}
++
++static int
++ReadModeKeyFile(path, modep)
++char *path;
++mode_t *modep;
++{
++  int err = 0;
++  char *modekey_path;
++  FILE *keyfile;
++  unsigned int mode_u;
++
++  if ((modekey_path = GetModeKeyPath(path)) == NULL)
++    return -1;
++
++  if ((keyfile = fopen(modekey_path, "r")) == NULL) {
++    err = errno;
++  } else {
++    if (fscanf(keyfile, modekey_format, &mode_u) != 1)
++      err=errno;
++    if (fclose(keyfile))
++      err=errno;
++  }
++  free(modekey_path);
++  errno = err;
++  if (err)
++    return -1;
++  *modep = (mode_t)mode_u;
++  return 0;
++}
++#endif /* CYGWIN_FILEMODE */
+--- origsrc/screen-4.0.3/utmp.c	2003-09-08 23:27:17.000000000 +0900
++++ src/screen-4.0.3/utmp.c	2009-12-31 21:27:34.965000000 +0900
+@@ -89,7 +89,7 @@ static void endutent __P((void));
+ static int  initutmp __P((void));
+ static void setutent __P((void));
+ #endif
+-#if defined(linux) && defined(GETUTENT)
++#if (defined(linux) || defined (__CYGWIN__)) && defined(GETUTENT)
+ static struct utmp *xpututline __P((struct utmp *utmp));
+ # define pututline xpututline
+ #endif
+@@ -589,7 +589,7 @@ makedead(u)
+ struct utmp *u;
+ {
+   u->ut_type = DEAD_PROCESS;
+-#if !defined(linux) || defined(EMPTY)
++#if (!defined(linux) && !defined (__CYGWIN__)) || defined(EMPTY)
+   u->ut_exit.e_termination = 0;
+   u->ut_exit.e_exit = 0;
+ #endif
+@@ -607,7 +607,7 @@ int pid;
+   u->ut_type = USER_PROCESS;
+   strncpy(u->ut_user, user, sizeof(u->ut_user));
+   /* Now the tricky part... guess ut_id */
+-#if defined(sgi) || defined(linux)
++#if defined(sgi) || defined(linux) || defined (__CYGWIN__)
+   strncpy(u->ut_id, line + 3, sizeof(u->ut_id));
+ #else /* sgi */
+ # ifdef _IBMR2
+@@ -858,7 +858,7 @@ getlogin()
+ }
+ # endif /* BUGGYGETLOGIN */
+ 
+-#if defined(linux) && defined(GETUTENT)
++#if (defined(linux) || defined (__CYGWIN__)) && defined(GETUTENT)
+ # undef pututline
+ 
+ /* aargh, linux' pututline returns void! */
+--- origsrc/screen-4.0.3/window.c	2003-12-05 22:45:41.000000000 +0900
++++ src/screen-4.0.3/window.c	2009-12-31 21:27:35.136875000 +0900
+@@ -928,6 +928,9 @@ struct win *wp;
+   RemoveUtmp(wp);
+ #endif
+   CloseDevice(wp);
++  /* signal the child process to exit */
++  /* FIXME: is this right if wp->w_pwin? */
++  Kill(wp->w_pid, SIG_BYE);
+ 
+   if (wp == console_window)
+     {

@@ -1,0 +1,66 @@
+--- origsrc/ocamlode-0.6/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/ocamlode-0.6/CYGWIN-PATCHES/README	2010-08-16 22:41:01.296875000 +0900
+@@ -0,0 +1,53 @@
++ocamlode
++------------------------------------------------------------------------
++OCamlODE is a set of Objective CAML 
++bindings to the Open Dynamics Engine (ODE).
++
++Runtime requirements:
++
++Build requirements:
++
++
++Canonical homepage:
++  http://www.linux-nantes.org/~fmonnier/OCaml/ODE/
++
++Canonical download:
++  http://www.linux-nantes.org/~fmonnier/OCaml/ODE/download/ocamlode-0.6.tar.gz
++
++License:
++  GNU Library General Public License with the special OCaml linking exception
++
++Language:
++  C and OCaml
++
++------------------------------------------------------------------------
++
++Build instructions:
++  unpack ocamlode-0.6-1-src.tar.bz2
++    if you use setup to install this src package, it will be
++	 unpacked under /usr/src automatically
++  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
++  cd /usr/src
++  cygport ocamlode-0.6-1.cygport all
++
++This will create:
++  ocamlode-0.6-1.tar.bz2
++  ocamlode-0.6-1-src.tar.bz2
++
++Or use 'cygport ocamlode-0.6-1.cygport prep' to get a patched source directory
++
++To find out the files included in the binary distribution, you can
++use "cygcheck -l ocamlode".
++
++------------------------------------------------------------------------
++
++Port Notes:
++
++----------  ocamlode-0.6-1 -- 2010/08/14 ----------------------------
++Initial release.
++
++For more information about this package, see the upstream documentation in
++/usr/share/doc/ocamlode-0.6-1.
++
++This private port maintained by: Yak! <yak_ex@mx.scn.tv>
++Please address all questions to the above address, NOT to the Cygwin mailing list.
+--- origsrc/ocamlode-0.6/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/ocamlode-0.6/CYGWIN-PATCHES/setup.hint	2010-08-16 22:41:01.312500000 +0900
+@@ -0,0 +1,7 @@
++@ ocamlode
++sdesc: "A set of OCaml bindings to the ODE"
++ldesc: "OCamlODE is a set of Objective CAML 
++bindings to the Open Dynamics Engine (ODE)."
++category: 
++requires: 
++curr: 0.6-1

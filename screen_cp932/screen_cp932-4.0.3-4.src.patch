@@ -1,0 +1,2608 @@
+--- origsrc/screen-4.0.3/Makefile	2006-10-23 22:06:32.000000000 +0900
++++ src/screen-4.0.3/Makefile	2009-12-29 22:05:48.296875000 +0900
+@@ -1,3 +1,324 @@
+-install all Makefiles and config:
++#
++# Makefile template for screen 
++#
++# See machine dependant config.h for more configuration options.
++#
++
++srcdir = /var/tmp/screen_cp932-4.0.3-4/src/screen-4.0.3
++VPATH = /var/tmp/screen_cp932-4.0.3-4/src/screen-4.0.3
++
++DESTDIR = 
++
++# Where to install screen.
++
++prefix = /usr/local
++exec_prefix = /usr/local
++
++# don't forget to change mandir and infodir in doc/Makefile.
++bindir  = $(exec_prefix)/bin
++
++VERSION = 4.0.3
++SCREEN = screen
++
++ETCSCREENRC = `sed < config.h -n -e '/define ETCSCREENRC/s/^.*"\([^"]*\)"/\1/p'`
++SCREENENCODINGS = `sed < config.h -n -e '/define SCREENENCODINGS/s/^.*"\([^"]*\)"/\1/p'`
++
++CC = gcc
++CFLAGS = -O2 -pipe 
++CPPFLAGS = 
++LDFLAGS = 
++LIBS = -lcurses  -lutil -lcrypt
++
++CPP=gcc -E
++CPP_DEPEND=$(CC) -MM
++
++INSTALL = /usr/bin/install -c
++INSTALL_PROGRAM = ${INSTALL}
++INSTALL_DATA = ${INSTALL} -m 644
++
++AWK = gawk
++
++### Chose some debug configuration options:
++# -DDEBUG
++#	Turn on really heavy debug output. This is written to 
++#	/tmp/debug/{SCREEN,screen}.<pid>. Look at these files and quote 
++#	questionable sections when sending bug-reports to the author.
++# -DDUMPSHADOW
++#	With shadow-pw screen would never dump core. Use this option if
++#	you still want to have a core. Use only for debugging.
++OPTIONS=
++#OPTIONS= -DDEBUG
++
++SHELL=/bin/sh
++
++CFILES=	screen.c ansi.c fileio.c mark.c misc.c resize.c socket.c \
++	search.c tty.c term.c window.c utmp.c loadav.c putenv.c help.c \
++	termcap.c input.c attacher.c pty.c process.c display.c comm.c \
++	kmapdef.c acls.c braille.c braille_tsi.c logfile.c layer.c \
++	sched.c teln.c nethack.c encoding.c
++OFILES=	screen.o ansi.o fileio.o mark.o misc.o resize.o socket.o \
++	search.o tty.o term.o window.o utmp.o loadav.o putenv.o help.o \
++	termcap.o input.o attacher.o pty.o process.o display.o comm.o \
++	kmapdef.o acls.o braille.o braille_tsi.o logfile.o layer.o \
++	sched.o teln.o nethack.o encoding.o
++
++all:	screen
++
++screen: $(OFILES)
++	$(CC) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
++
++.c.o:
++	$(CC) -c -I. -I$(srcdir) $(M_CFLAGS) $(DEFS) $(OPTIONS) $(CFLAGS) $<
++
++install_bin: .version screen
++	$(INSTALL_PROGRAM) screen $(DESTDIR)$(bindir)/$(SCREEN)
++	cp $(srcdir)/utf8encodings/?? $(DESTDIR)$(SCREENENCODINGS)
++
++###############################################################################
++install: installdirs install_bin
++	cd doc ; $(MAKE) install
++	-if [ -d /usr/lib/terminfo ]; then \
++		PATH="$$PATH:/usr/5bin" tic ${srcdir}/terminfo/screeninfo.src; \
++		chmod 644 /usr/lib/terminfo/s/screen*; \
++	fi
++# Better do this by hand. E.g. under RCS...
++#	cat ${srcdir}/terminfo/screencap >> /etc/termcap
++	@echo "termcap entry (${srcdir}/terminfo/screencap) should be installed manually."
++	@echo "You may also want to install $(srcdir)/etc/etcscreenrc in" $(ETCSCREENRC)
++
++installdirs:
++# Path leading to ETCSCREENRC and Socketdirectory not checked.
++	$(srcdir)/etc/mkinstalldirs $(DESTDIR)$(bindir) $(DESTDIR)$(SCREENENCODINGS)
++	cd doc ; $(MAKE) installdirs
++
++uninstall: .version
++	rm -f $(DESTDIR)$(bindir)/$(SCREEN)
++	rm -f $(DESTDIR)$(bindir)/screen
++	-mv $(DESTDIR)$(bindir)/screen.old $(DESTDIR)$(bindir)/screen
++	rm -f $(DESTDIR)$(ETCSCREENRC)
++	cd doc; $(MAKE) uninstall
++
++shadow:
++	mkdir shadow;
++	cd shadow; ln -s ../*.[ch] ../*.in ../*.sh ../configure ../doc ../terminfo ../etc .
++	rm -f shadow/term.h shadow/tty.c shadow/comm.h shadow/osdef.h
++	echo "install all Makefiles and config:" > shadow/Makefile
++	echo "	rm -f config.cache" >> shadow/Makefile
++	echo "	sh ./configure" >> shadow/Makefile
++	
++term.h: term.c term.sh
++	AWK=$(AWK) srcdir=$(srcdir) sh $(srcdir)/term.sh
++
++kmapdef.c: term.h
++
++tty.c:	tty.sh 
++	sh $(srcdir)/tty.sh tty.c
++
++comm.h: comm.c comm.sh config.h
++	AWK=$(AWK) CC="$(CC) $(CFLAGS)" srcdir=${srcdir} sh $(srcdir)/comm.sh
++
++osdef.h: osdef.sh config.h osdef.h.in
++	CPP="$(CPP) $(CPPFLAGS)" srcdir=${srcdir} sh $(srcdir)/osdef.sh
++
++docs:
++	cd doc; $(MAKE) dvi screen.info
++
++dvi info screen.info:
++	-cd doc; $(MAKE) $@
++
++mostlyclean:
++	rm -f $(OFILES) screen config.cache osdef0.c osdef1.sed osdef2.sed
++
++clean celan: mostlyclean
++	rm -f tty.c term.h comm.h osdef.h kmapdef.c core
++
++# Delete all files from the current directory that are created by 
++# configuring or building the program.
++# building of term.h/comm.h requires awk. Keep it in the distribution
++# we keep config.h, as this file knows where 'make dist' finds the ETCSCREENRC.
++#distclean:	mostlyclean
++#	rm -f $(SCREEN).tar $(SCREEN).tar.gz
++#	rm -f config.status Makefile
++#	rm -f osdef.h doc/Makefile
++
++maintainer-clean:
++	@echo "This command is not even intended for maintainers to use;"
++	@echo "it deletes files that may require special tools to rebuild."
++
++
++# Delete everything from the current directory that can be
++# reconstructed with this Makefile.
++realclean: .version mostlyclean
++	rm -f $(SCREEN).tar $(SCREEN).tar.gz
++	rm -f config.status Makefile doc/Makefile
++	rm -f tty.c term.h comm.h osdef.h kmapdef.c
++	rm -f config.h
++	echo "install all Makefiles and config:" > Makefile
++	echo "  sh ./configure" >> Makefile
++
++tags TAGS: $(CFILES)
++	-ctags    *.sh $(CFILES) *.h
++	-ctags -e *.sh $(CFILES) *.h
++
++dist: .version $(SCREEN).tar.gz
++
++$(SCREEN).tar: .version term.h comm.h tty.c kmapdef.c
++	-rm -rf dist
++	mkdir dist
++	mkdir dist/$(SCREEN)
++	ln acls.h ansi.h display.h extern.h logfile.h mark.h os.h \
++	   layer.h patchlevel.h screen.h window.h image.h \
++	   osdef.h.in term.sh tty.sh comm.sh osdef.sh braille.h \
++	   sched.h \
++	   $(CFILES) \
++	   ChangeLog COPYING INSTALL NEWS* TODO install.sh \
++	   dist/$(SCREEN)
++	cd dist/$(SCREEN); mv tty.c tty.c.dist
++	cd dist/$(SCREEN); mv kmapdef.c kmapdef.c.dist
++	ln configure.in configure dist/$(SCREEN)
++	sed -e 's@"/local/screens@"/tmp/screens@' -e 's@"/local@"/usr/local@g' < config.h.in > dist/$(SCREEN)/config.h.in
++	sed -e 's@[	 ]/local@ /usr/local@g' -e 's/^CFLAGS = -g/CFLAGS = -O/' < Makefile.in > dist/$(SCREEN)/Makefile.in
++	ln term.h dist/$(SCREEN)/term.h.dist
++	ln comm.h dist/$(SCREEN)/comm.h.dist
++	ln README dist/$(SCREEN)/README
++	mkdir dist/$(SCREEN)/terminfo
++	cd terminfo; ln 8bits README checktc.c screencap \
++	  screeninfo.src test.txt tetris.c \
++	  ../dist/$(SCREEN)/terminfo
++	mkdir dist/$(SCREEN)/etc
++	cd etc; ln * ../dist/$(SCREEN)/etc
++	mkdir dist/$(SCREEN)/utf8encodings
++	cd utf8encodings; ln * ../dist/$(SCREEN)/utf8encodings
++	# sed -e 's/^startup/#startup/' -e 's/^autodetach/#autodetach/' < $(ETCSCREENRC) > dist/$(SCREEN)/etc/etcscreenrc 
++	cp $(HOME)/.screenrc dist/$(SCREEN)/etc/screenrc
++	mkdir dist/$(SCREEN)/doc
++	sed -e 's@/local/emacs@/usr/local@g' < doc/Makefile.in > dist/$(SCREEN)/doc/Makefile.in
++	cd doc; ln FAQ README.DOTSCREEN screen.1 screen.texinfo fdpat.ps make.help window_to_display.ps \
++	  ../dist/$(SCREEN)/doc
++	cd doc; if test -f screen.info; then ln screen.info* \
++	   ../dist/$(SCREEN)/doc; fi
++	cd dist/$(SCREEN)/doc; ln -s ../install.sh .
++	cd dist/$(SCREEN); ln -s doc/FAQ .
++	echo "install all Makefiles and config:" > dist/$(SCREEN)/Makefile
++	echo "	rm -f config.cache" >> dist/$(SCREEN)/Makefile
++	echo "	sh ./configure"     >> dist/$(SCREEN)/Makefile
++	cd dist; tar cf ../$(SCREEN).tar $(SCREEN)
++	rm -rf dist
++
++$(SCREEN).tar.gz: $(SCREEN).tar
++	gzip -nf $(SCREEN).tar || gzip -f $(SCREEN).tar
++
++# Perform self-tests (if any).
++check:
++
++lint:
++	lint -I. $(CFILES)
++
++saber:
++	#load $(CFLAGS) screen.c ansi.c $(LIBS)
++
++config:
+ 	rm -f config.cache
+ 	sh ./configure
++
++
++###############################################################################
++
++.version:
++	@rev=`sed < $(srcdir)/patchlevel.h -n -e '/#define REV/s/#define REV  *//p'`; \
++	vers=`sed < $(srcdir)/patchlevel.h -n -e '/#define VERS/s/#define VERS  *//p'`; \
++	pat=`sed < $(srcdir)/patchlevel.h -n -e '/#define PATCHLEVEL/s/#define PATCHLEVEL  *//p'`; \
++	if [ "$${rev}.$${vers}.$${pat}" != "$(VERSION)" ]; then \
++	echo "This distribution is screen-$${rev}.$${vers}.$${pat}, but"; \
++	echo "the Makefile is from $(VERSION). Please update!"; exit 1; fi
++
++###############################################################################
++
++mdepend: $(CFILES) term.h
++	@rm -f DEPEND ; \
++	for i in ${CFILES} ; do \
++	  echo "$$i" ; \
++	  echo `echo "$$i" | sed -e 's/.c$$/.o/'`": $$i" `\
++            cc -E $$i |\
++            grep '^# .*"\./.*\.h"' |\
++            (sort -t'"' -u -k 2,2 2>/dev/null || sort -t'"' -u +1 -2) |\
++            sed -e 's/.*"\.\/\(.*\)".*/\1/'\
++          ` >> DEPEND ; \
++	done
++
++
++depend: depend.in
++	./config.status || ./configure
++	
++depend.in: $(CFILES) term.h
++	cp Makefile.in Makefile.in~
++	sed -e '/\#\#\# Dependencies/q' < Makefile.in > tmp_make
++	for i in $(CFILES); do echo $$i; $(CPP_DEPEND) $$i >> tmp_make; done 
++	mv tmp_make Makefile.in
++
++###############################################################################
++
++### Dependencies:
++screen.o: screen.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h braille.h \
++ patchlevel.h logfile.h extern.h
++ansi.o: ansi.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h braille.h extern.h \
++ logfile.h
++fileio.o: fileio.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++mark.o: mark.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h mark.h extern.h
++misc.o: misc.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++resize.o: resize.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++socket.o: socket.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++search.o: search.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h mark.h extern.h
++tty.o: tty.c config.h screen.h os.h osdef.h ansi.h acls.h comm.h \
++ layer.h term.h image.h display.h window.h extern.h
++term.o: term.c term.h
++window.o: window.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h logfile.h
++utmp.o: utmp.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++loadav.o: loadav.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++putenv.o: putenv.c config.h
++help.o: help.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++termcap.o: termcap.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++input.o: input.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++attacher.o: attacher.c config.h screen.h os.h osdef.h ansi.h \
++ acls.h comm.h layer.h term.h image.h display.h window.h extern.h
++pty.o: pty.c config.h screen.h os.h osdef.h ansi.h acls.h comm.h \
++ layer.h term.h image.h display.h window.h extern.h
++process.o: process.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h logfile.h
++display.o: display.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h braille.h
++comm.o: comm.c config.h acls.h comm.h
++kmapdef.o: kmapdef.c config.h
++acls.o: acls.c config.h screen.h os.h osdef.h ansi.h acls.h comm.h \
++ layer.h term.h image.h display.h window.h extern.h
++braille.o: braille.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h braille.h
++braille_tsi.o: braille_tsi.c config.h screen.h os.h osdef.h ansi.h \
++ acls.h comm.h layer.h term.h image.h display.h window.h extern.h \
++ braille.h
++logfile.o: logfile.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h logfile.h
++layer.o: layer.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++sched.o: sched.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h logfile.h
++teln.o: teln.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++nethack.o: nethack.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
++encoding.o: encoding.c config.h screen.h os.h osdef.h ansi.h acls.h \
++ comm.h layer.h term.h image.h display.h window.h extern.h
+--- origsrc/screen-4.0.3/Makefile.in	2006-10-23 22:06:32.000000000 +0900
++++ src/screen-4.0.3/Makefile.in	2009-12-29 21:57:28.640625000 +0900
+@@ -18,7 +18,7 @@ exec_prefix = @exec_prefix@
+ bindir  = $(exec_prefix)/bin
+ 
+ VERSION = @VERSION@
+-SCREEN = screen-$(VERSION)
++SCREEN = screen
+ 
+ ETCSCREENRC = `sed < config.h -n -e '/define ETCSCREENRC/s/^.*"\([^"]*\)"/\1/p'`
+ SCREENENCODINGS = `sed < config.h -n -e '/define SCREENENCODINGS/s/^.*"\([^"]*\)"/\1/p'`
+@@ -71,14 +71,7 @@ screen: $(OFILES)
+ 	$(CC) -c -I. -I$(srcdir) $(M_CFLAGS) $(DEFS) $(OPTIONS) $(CFLAGS) $<
+ 
+ install_bin: .version screen
+-	-if [ -f $(DESTDIR)$(bindir)/$(SCREEN) ] && [ ! -f $(DESTDIR)$(bindir)/$(SCREEN).old ]; \
+-		then mv $(DESTDIR)$(bindir)/$(SCREEN) $(DESTDIR)$(bindir)/$(SCREEN).old; fi
+ 	$(INSTALL_PROGRAM) screen $(DESTDIR)$(bindir)/$(SCREEN)
+-	-chown root $(DESTDIR)$(bindir)/$(SCREEN) && chmod 4755 $(DESTDIR)$(bindir)/$(SCREEN)
+-# This doesn't work if $(bindir)/screen is a symlink
+-	-if [ -f $(DESTDIR)$(bindir)/screen ] && [ ! -f $(DESTDIR)$(bindir)/screen.old ]; then mv $(DESTDIR)$(bindir)/screen $(DESTDIR)$(bindir)/screen.old; fi
+-	rm -f $(DESTDIR)$(bindir)/screen
+-	(cd $(DESTDIR)$(bindir) && ln -sf $(SCREEN) screen)
+ 	cp $(srcdir)/utf8encodings/?? $(DESTDIR)$(SCREENENCODINGS)
+ 
+ ###############################################################################
+--- origsrc/screen-4.0.3/ansi.c	2003-12-05 22:57:05.000000000 +0900
++++ src/screen-4.0.3/ansi.c	2009-12-29 21:57:28.687500000 +0900
+@@ -61,6 +61,7 @@ int visual_bell = 0;
+ int use_hardstatus = 1;		/* display status line in hs */
+ char *printcmd = 0;
+ int use_altscreen = 0;		/* enable alternate screen support? */
++int keep_altscreen = 0;		/* keep alternate screen contents when switching? */
+ 
+ unsigned char *blank;		/* line filled with spaces */
+ unsigned char *null;		/* line filled with '\0' */
+@@ -559,7 +560,7 @@ register int len;
+ 	    {
+ 	    case '0': case '1': case '2': case '3': case '4':
+ 	    case '5': case '6': case '7': case '8': case '9':
+-	      if (curr->w_NumArgs < MAXARGS)
++	      if (curr->w_NumArgs >= 0 && curr->w_NumArgs < MAXARGS)
+ 		{
+ 		  if (curr->w_args[curr->w_NumArgs] < 100000000)
+ 		    curr->w_args[curr->w_NumArgs] =
+@@ -681,7 +682,7 @@ register int len;
+ 	      curr->w_rend.font = 0;
+ 	    }
+ #  ifdef DW_CHARS
+-	  if (curr->w_encoding == UTF8 && c >= 0x1100 && utf8_isdouble(c))
++	  if (curr->w_encoding == UTF8 && utf8_isdouble(c))
+ 	    curr->w_mbcs = 0xff;
+ #  endif
+ 	  if (curr->w_encoding == UTF8 && c >= 0x0300 && utf8_iscomb(c))
+@@ -726,7 +727,7 @@ register int len;
+ 	    {
+ 	      /* Lets see if it is the first byte of a kanji */
+ 	      debug1("%x may be first of SJIS\n", c);
+-	      if ((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xef))
++	      if ((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xfc))
+ 		{
+ 		  debug("YES!\n");
+ 		  curr->w_mbcs = c;
+@@ -814,7 +815,7 @@ register int len;
+ #ifdef ENCODINGS
+ 	      if (c == 0x80 && font == 0 && curr->w_encoding == GBK)
+ 		c = 0xa4;
+-	      else
++	      else if (curr->w_encoding != SJIS || curr->w_rend.font != KANJI)
+ 	        c &= 0x7f;
+ 	      if (c < ' ' && font != 031)
+ 		goto tryagain;
+@@ -2268,10 +2269,21 @@ int n1, n2;
+   sprintf(rbuf, fmt, n1, n2);
+   len = strlen(rbuf);
+ 
+-  if ((unsigned)(curr->w_inlen + len) <= sizeof(curr->w_inbuf))
++  if (W_UWP(curr))
+     {
+-      bcopy(rbuf, curr->w_inbuf + curr->w_inlen, len);
+-      curr->w_inlen += len;
++      if ((unsigned)(curr->w_pwin->p_inlen + len) <= sizeof(curr->w_pwin->p_inbuf))
++	{
++	  bcopy(rbuf, curr->w_pwin->p_inbuf + curr->w_pwin->p_inlen, len);
++	  curr->w_pwin->p_inlen += len;
++	}
++    }
++  else
++    {
++      if ((unsigned)(curr->w_inlen + len) <= sizeof(curr->w_inbuf))
++	{
++	  bcopy(rbuf, curr->w_inbuf + curr->w_inlen, len);
++	  curr->w_inlen += len;
++	}
+     }
+ }
+ 
+--- origsrc/screen-4.0.3/attacher.c	2003-09-08 23:24:48.000000000 +0900
++++ src/screen-4.0.3/attacher.c	2009-12-29 21:57:28.718750000 +0900
+@@ -274,7 +274,7 @@ int how;
+     }
+   debug1("Attach decided, it is '%s'\n", SockPath);
+   debug1("Attach found MasterPid == %d\n", MasterPid);
+-  if (stat(SockPath, &st) == -1)
++  if (screen_stat(SockPath, &st) == -1)
+     Panic(errno, "stat %s", SockPath);
+   if ((st.st_mode & 0600) != 0600)
+     Panic(0, "Socket is in wrong mode (%03o)", (int)st.st_mode);
+@@ -420,7 +420,7 @@ AttacherFinit SIGDEFARG
+   debug("AttacherFinit();\n");
+   signal(SIGHUP, SIG_IGN);
+   /* Check if signal comes from backend */
+-  if (stat(SockPath, &statb) == 0 && (statb.st_mode & 0777) != 0600)
++  if (screen_stat(SockPath, &statb) == 0 && (statb.st_mode & 0777) != 0600)
+     {
+       debug("Detaching backend!\n");
+       bzero((char *) &m, sizeof(m));
+--- origsrc/screen-4.0.3/comm.c	2003-09-08 23:25:08.000000000 +0900
++++ src/screen-4.0.3/comm.c	2009-12-29 21:57:28.750000000 +0900
+@@ -112,6 +112,9 @@ struct comm comms[RC_LAST + 1] =
+ #endif
+   { "charset",          NEED_FORE|ARGS_1 },
+   { "chdir",		ARGS_01 },
++#ifdef DW_CHARS
++  { "cjkwidth",		ARGS_01 },
++#endif
+   { "clear",		NEED_FORE|ARGS_0 },
+   { "colon",		NEED_LAYER|ARGS_01 },
+   { "command",		NEED_DISPLAY|ARGS_02 },
+@@ -121,6 +124,7 @@ struct comm comms[RC_LAST + 1] =
+   { "console",		NEED_FORE|ARGS_01 },
+ #ifdef COPY_PASTE
+   { "copy",		NEED_FORE|ARGS_0 },
++  { "copyaltscreen",	NEED_FORE|ARGS_0 },
+   { "crlf",		ARGS_01 },
+ #endif
+   { "debug",		ARGS_01 },
+@@ -200,6 +204,7 @@ struct comm comms[RC_LAST + 1] =
+ #ifdef ENCODINGS
+   { "kanji",		NEED_FORE|ARGS_12 },
+ #endif
++  { "keepaltscreen",	ARGS_01 },
+   { "kill",		NEED_FORE|ARGS_0 },
+   { "lastmsg",		NEED_DISPLAY|ARGS_0 },
+   { "license",		NEED_LAYER|ARGS_0 },
+--- origsrc/screen-4.0.3/configure.in	2003-06-03 20:58:24.000000000 +0900
++++ src/screen-4.0.3/configure.in	2009-12-29 21:57:28.781250000 +0900
+@@ -270,7 +270,7 @@ dnl   Solaris seteuid doesn't change the
+ dnl     multiuser screen sessions
+ AC_CHECKING(seteuid)
+ AC_TRY_LINK(,[
+-#if defined(linux) || defined(NeXT) || defined(_AUX_SOURCE) || defined(AUX) || defined(ultrix) || (defined(sun) && defined(SVR4)) || defined(ISC) || defined(sony_news)
++#if defined(linux) || defined(NeXT) || defined(_AUX_SOURCE) || defined(AUX) || defined(ultrix) || (defined(sun) && defined(SVR4)) || defined(ISC) || defined(sony_news) || defined (__CYGWIN__)
+ seteuid_is_broken(0);
+ #else
+ seteuid(0);
+@@ -293,123 +293,12 @@ dnl    ****  FIFO tests  ****
+ dnl
+ 
+ AC_CHECKING(fifos)
+-AC_TRY_RUN([
+-#include <sys/types.h>
+-#include <sys/stat.h>
+-#include <fcntl.h>
+-
+-#ifndef O_NONBLOCK
+-#define O_NONBLOCK O_NDELAY
+-#endif
+-#ifndef S_IFIFO
+-#define S_IFIFO 0010000
+-#endif
+-
+-char *fin = "/tmp/conftest$$";
+-
+-main()
+-{
+-  struct stat stb;
+-#ifdef FD_SET
+-  fd_set f;
+-#else
+-  int f;
+-#endif
+-
+-  (void)alarm(5);
+-#ifdef POSIX
+-  if (mkfifo(fin, 0777))
+-#else
+-  if (mknod(fin, S_IFIFO|0777, 0))
+-#endif
+-    exit(1);
+-  if (stat(fin, &stb) || (stb.st_mode & S_IFIFO) != S_IFIFO)
+-    exit(1);
+-  close(0);
+-#ifdef __386BSD__
+-  /*
+-   * The next test fails under 386BSD, but screen works using fifos.
+-   * Fifos in O_RDWR mode are only used for the BROKEN_PIPE case and for
+-   * the select() configuration test.
+-   */
+-  exit(0);
+-#endif
+-  if (open(fin, O_RDONLY | O_NONBLOCK))
+-    exit(1);
+-  if (fork() == 0)
+-    {
+-      close(0);
+-      if (open(fin, O_WRONLY | O_NONBLOCK))
+-	exit(1);
+-      close(0);
+-      if (open(fin, O_WRONLY | O_NONBLOCK))
+-	exit(1);
+-      if (write(0, "TEST", 4) == -1)
+-	exit(1);
+-      exit(0);
+-    }
+-#ifdef FD_SET
+-  FD_SET(0, &f);
+-#else
+-  f = 1;
+-#endif
+-  if (select(1, &f, 0, 0, 0) == -1)
+-    exit(1);
+-  exit(0);
+-}
+-], AC_NOTE(- your fifos are usable) fifo=1,
+-AC_NOTE(- your fifos are not usable))
+-rm -f /tmp/conftest*
++AC_NOTE(- your fifos are usable) fifo=1
+ 
+ if test -n "$fifo"; then
+ AC_CHECKING(for broken fifo implementation)
+-AC_TRY_RUN([
+-#include <sys/types.h>
+-#include <fcntl.h>
+-#include <sys/time.h>
+-#include <sys/stat.h>
+-
+-#ifndef O_NONBLOCK
+-#define O_NONBLOCK O_NDELAY
+-#endif
+-#ifndef S_IFIFO
+-#define S_IFIFO 0010000
+-#endif
+-
+-char *fin = "/tmp/conftest$$";
+-
+-main()
+-{
+-  struct timeval tv;
+-#ifdef FD_SET
+-  fd_set f;
+-#else
+-  int f;
+-#endif
+-
+-#ifdef POSIX
+-  if (mkfifo(fin, 0600))
+-#else
+-  if (mknod(fin, S_IFIFO|0600, 0))
+-#endif
+-    exit(1);
+-  close(0);
+-  if (open(fin, O_RDONLY|O_NONBLOCK))
+-    exit(1);
+-#ifdef FD_SET
+-  FD_SET(0, &f);
+-#else
+-  f = 1;
+-#endif
+-  tv.tv_sec = 1;
+-  tv.tv_usec = 0;
+-  if (select(1, &f, 0, 0, &tv))
+-    exit(1);
+-  exit(0);
+-}
+-], AC_NOTE(- your implementation is ok), 
+-AC_NOTE(- you have a broken implementation) AC_DEFINE(BROKEN_PIPE) fifobr=1)
+-rm -f /tmp/conftest*
++dnl AC_NOTE(- your implementation is ok)
++AC_NOTE(- you have a broken implementation) AC_DEFINE(BROKEN_PIPE) fifobr=1
+ fi
+ 
+ dnl
+@@ -561,7 +450,7 @@ main()
+   int f;
+ #endif
+ 
+-#ifdef __FreeBSD__
++#if __FreeBSD__ || __CYGWIN__
+ /* From Andrew A. Chernov (ache@astral.msk.su):
+  * opening RDWR fifo fails in BSD 4.4, but select return values are
+  * right.
+@@ -882,7 +771,7 @@ fi
+ 
+ if test -z "$load" ; then
+ AC_EGREP_CPP(yes,
+-[#if defined(NeXT) || defined(apollo) || defined(linux)
++[#if defined(NeXT) || defined(apollo) || defined(linux) || defined (__CYGWIN__)
+   yes;
+ #endif
+ ], load=1)
+--- origsrc/screen-4.0.3/display.c	2003-12-05 22:45:41.000000000 +0900
++++ src/screen-4.0.3/display.c	2009-12-29 21:57:28.859375000 +0900
+@@ -94,6 +94,9 @@ extern int real_uid, real_gid;
+ /*
+  * tputs needs this to calculate the padding
+  */
++#if defined(__CYGWIN__) && !defined(NCURSES_STATIC)
++__declspec(dllimport)
++#endif
+ #ifndef NEED_OSPEED
+ extern
+ #endif /* NEED_OSPEED */
+@@ -2782,7 +2785,14 @@ int from, to, y;
+ #ifdef DW_CHARS
+       if (dw_right(ml, x, D_encoding))
+ 	{
+-	  x--;
++	  if (x>0)
++	    {
++	      x--;
++	    }
++	  else
++	    {
++	      x++;
++	    }
+ 	  debug1("DisplayLine on right side of dw char- x now %d\n", x);
+ 	  GotoPos(x, y);
+ 	}
+--- origsrc/screen-4.0.3/doc/screen.1	2003-12-05 22:51:57.000000000 +0900
++++ src/screen-4.0.3/doc/screen.1	2009-12-29 21:57:28.890625000 +0900
+@@ -1388,6 +1388,17 @@ can use this to adjust an already placed
+ .ti -2n
+ All keys not described here exit copy mode.
+ .in -4n
++.sp 
++.ne 3
++.B copyaltscreen
++.PP
++Enter copy/scrollback mode on the "alternate screen". This allows
++you to view the contents of the "alternate screen" after the program
++using it has finished, and copy text from it and its history into the
++paste buffer. The controls available in this mode are the same as
++for the `copy' command.
++This command requires both the `altscreen' and the `keepaltscreen'
++settings to be set to `on'.
+ .sp
+ .ne 3
+ .B copy_reg
+@@ -2037,6 +2048,13 @@ For system information use the \*Qtime\*
+ No longer exists, use \*Qpaste\*U instead.
+ .sp
+ .ne 3
++.BR "keepaltscreen on" | off
++.PP
++If set to on, the contents of the "alternate screen" are kept when leaving
++"alternate screen" mode. This is required in order to use the `copyaltscreen'
++command. Initial setting is `off'.
++.sp
++.ne 3
+ .B kill
+ .PP
+ Kill current window.
+--- origsrc/screen-4.0.3/doc/screen.texinfo	2003-12-05 22:51:46.000000000 +0900
++++ src/screen-4.0.3/doc/screen.texinfo	2009-12-29 21:57:28.968750000 +0900
+@@ -878,6 +878,8 @@ Selects compaction of trailing empty lin
+ Grab or ungrab console output.  @xref{Console}.
+ @item copy
+ Enter copy mode.  @xref{Copy}.
++@item copyaltscreen
++Enter copy mode on the alternate screen.  @xref{Copy}.
+ @item copy_reg [@var{key}]
+ Removed. Use @code{paste} instead.  @xref{Registers}.
+ @item crlf @var{state}
+@@ -984,6 +986,8 @@ Ignore character case in searches.  @xre
+ Display window settings.  @xref{Info}.
+ @item ins_reg [@var{key}]
+ Removed, use @code{paste} instead.  @xref{Registers}.
++@item keepaltscreen @var{state}
++Enable support for copying from the "alternate screen".  @xref{Copy}.
+ @item kill
+ Destroy the current window.  @xref{Kill}.
+ @item lastmsg
+@@ -2833,6 +2837,24 @@ current window and its history into the 
+ outlined below.
+ @end deffn
+ 
++@deffn Command keepaltscreen state
++(none)@*
++If set to on, the contents of the "alternate screen" are kept when leaving
++"alternate screen" mode.  This is required in order to use the @code{copyaltscreen}
++command.  Initial setting is @samp{off}.
++@end deffn
++
++@deffn Command copyaltscreen
++(none)@*
++Enter copy/scrollback mode on the "alternate screen". This allows
++you to view the contents of the "alternate screen" after the program
++using it has finished, and copy text from it and its history into the
++paste buffer.  The controls available in this mode are the same as
++for the @code{copy} command, outlined below.
++This command requires both the @code{altscreen} and the @code{keepaltscreen}
++settings to be set to @samp{on}.
++@end deffn
++
+ @menu
+ * Line Termination::            End copied lines with CR/LF
+ * Scrollback::                  Set the size of the scrollback buffer
+--- origsrc/screen-4.0.3/encoding.c	2006-10-23 21:58:14.000000000 +0900
++++ src/screen-4.0.3/encoding.c	2009-12-29 21:57:29.000000000 +0900
+@@ -35,6 +35,10 @@ extern struct layer *flayer;
+ 
+ extern char *screenencodings;
+ 
++#ifdef DW_CHARS
++extern int cjkwidth;
++#endif
++
+ static int  encmatch __P((char *, char *));
+ # ifdef UTF8
+ static int   recode_char __P((int, int, int));
+@@ -845,22 +849,107 @@ int encoding;
+ }
+ 
+ #ifdef DW_CHARS
++struct interval {
++  int first;
++  int last;
++};
++
++/* auxiliary function for binary search in interval table */
++static int bisearch(int ucs, const struct interval *table, int max) {
++  int min = 0;
++  int mid;
++
++  if (ucs < table[0].first || ucs > table[max].last)
++    return 0;
++  while (max >= min) {
++    mid = (min + max) / 2;
++    if (ucs > table[mid].last)
++      min = mid + 1;
++    else if (ucs < table[mid].first)
++      max = mid - 1;
++    else
++      return 1;
++  }
++
++  return 0;
++}
++
+ int
+ utf8_isdouble(c)
+ int c;
+ {
+-  return
+-    (c >= 0x1100 &&
+-     (c <= 0x115f ||                    /* Hangul Jamo init. consonants */
+-      (c >= 0x2e80 && c <= 0xa4cf && (c & ~0x0011) != 0x300a &&
+-       c != 0x303f) ||                  /* CJK ... Yi */
+-      (c >= 0xac00 && c <= 0xd7a3) || /* Hangul Syllables */
+-      (c >= 0xdf00 && c <= 0xdfff) || /* dw combining sequence */
+-      (c >= 0xf900 && c <= 0xfaff) || /* CJK Compatibility Ideographs */
+-      (c >= 0xfe30 && c <= 0xfe6f) || /* CJK Compatibility Forms */
+-      (c >= 0xff00 && c <= 0xff5f) || /* Fullwidth Forms */
+-      (c >= 0xffe0 && c <= 0xffe6) ||
+-      (c >= 0x20000 && c <= 0x2ffff)));
++  /* sorted list of non-overlapping intervals of East Asian Ambiguous
++   * characters, generated by "uniset +WIDTH-A -cat=Me -cat=Mn -cat=Cf c" */
++  static const struct interval ambiguous[] = {
++    { 0x00A1, 0x00A1 }, { 0x00A4, 0x00A4 }, { 0x00A7, 0x00A8 },
++    { 0x00AA, 0x00AA }, { 0x00AE, 0x00AE }, { 0x00B0, 0x00B4 },
++    { 0x00B6, 0x00BA }, { 0x00BC, 0x00BF }, { 0x00C6, 0x00C6 },
++    { 0x00D0, 0x00D0 }, { 0x00D7, 0x00D8 }, { 0x00DE, 0x00E1 },
++    { 0x00E6, 0x00E6 }, { 0x00E8, 0x00EA }, { 0x00EC, 0x00ED },
++    { 0x00F0, 0x00F0 }, { 0x00F2, 0x00F3 }, { 0x00F7, 0x00FA },
++    { 0x00FC, 0x00FC }, { 0x00FE, 0x00FE }, { 0x0101, 0x0101 },
++    { 0x0111, 0x0111 }, { 0x0113, 0x0113 }, { 0x011B, 0x011B },
++    { 0x0126, 0x0127 }, { 0x012B, 0x012B }, { 0x0131, 0x0133 },
++    { 0x0138, 0x0138 }, { 0x013F, 0x0142 }, { 0x0144, 0x0144 },
++    { 0x0148, 0x014B }, { 0x014D, 0x014D }, { 0x0152, 0x0153 },
++    { 0x0166, 0x0167 }, { 0x016B, 0x016B }, { 0x01CE, 0x01CE },
++    { 0x01D0, 0x01D0 }, { 0x01D2, 0x01D2 }, { 0x01D4, 0x01D4 },
++    { 0x01D6, 0x01D6 }, { 0x01D8, 0x01D8 }, { 0x01DA, 0x01DA },
++    { 0x01DC, 0x01DC }, { 0x0251, 0x0251 }, { 0x0261, 0x0261 },
++    { 0x02C4, 0x02C4 }, { 0x02C7, 0x02C7 }, { 0x02C9, 0x02CB },
++    { 0x02CD, 0x02CD }, { 0x02D0, 0x02D0 }, { 0x02D8, 0x02DB },
++    { 0x02DD, 0x02DD }, { 0x02DF, 0x02DF }, { 0x0391, 0x03A1 },
++    { 0x03A3, 0x03A9 }, { 0x03B1, 0x03C1 }, { 0x03C3, 0x03C9 },
++    { 0x0401, 0x0401 }, { 0x0410, 0x044F }, { 0x0451, 0x0451 },
++    { 0x2010, 0x2010 }, { 0x2013, 0x2016 }, { 0x2018, 0x2019 },
++    { 0x201C, 0x201D }, { 0x2020, 0x2022 }, { 0x2024, 0x2027 },
++    { 0x2030, 0x2030 }, { 0x2032, 0x2033 }, { 0x2035, 0x2035 },
++    { 0x203B, 0x203B }, { 0x203E, 0x203E }, { 0x2074, 0x2074 },
++    { 0x207F, 0x207F }, { 0x2081, 0x2084 }, { 0x20AC, 0x20AC },
++    { 0x2103, 0x2103 }, { 0x2105, 0x2105 }, { 0x2109, 0x2109 },
++    { 0x2113, 0x2113 }, { 0x2116, 0x2116 }, { 0x2121, 0x2122 },
++    { 0x2126, 0x2126 }, { 0x212B, 0x212B }, { 0x2153, 0x2154 },
++    { 0x215B, 0x215E }, { 0x2160, 0x216B }, { 0x2170, 0x2179 },
++    { 0x2190, 0x2199 }, { 0x21B8, 0x21B9 }, { 0x21D2, 0x21D2 },
++    { 0x21D4, 0x21D4 }, { 0x21E7, 0x21E7 }, { 0x2200, 0x2200 },
++    { 0x2202, 0x2203 }, { 0x2207, 0x2208 }, { 0x220B, 0x220B },
++    { 0x220F, 0x220F }, { 0x2211, 0x2211 }, { 0x2215, 0x2215 },
++    { 0x221A, 0x221A }, { 0x221D, 0x2220 }, { 0x2223, 0x2223 },
++    { 0x2225, 0x2225 }, { 0x2227, 0x222C }, { 0x222E, 0x222E },
++    { 0x2234, 0x2237 }, { 0x223C, 0x223D }, { 0x2248, 0x2248 },
++    { 0x224C, 0x224C }, { 0x2252, 0x2252 }, { 0x2260, 0x2261 },
++    { 0x2264, 0x2267 }, { 0x226A, 0x226B }, { 0x226E, 0x226F },
++    { 0x2282, 0x2283 }, { 0x2286, 0x2287 }, { 0x2295, 0x2295 },
++    { 0x2299, 0x2299 }, { 0x22A5, 0x22A5 }, { 0x22BF, 0x22BF },
++    { 0x2312, 0x2312 }, { 0x2460, 0x24E9 }, { 0x24EB, 0x254B },
++    { 0x2550, 0x2573 }, { 0x2580, 0x258F }, { 0x2592, 0x2595 },
++    { 0x25A0, 0x25A1 }, { 0x25A3, 0x25A9 }, { 0x25B2, 0x25B3 },
++    { 0x25B6, 0x25B7 }, { 0x25BC, 0x25BD }, { 0x25C0, 0x25C1 },
++    { 0x25C6, 0x25C8 }, { 0x25CB, 0x25CB }, { 0x25CE, 0x25D1 },
++    { 0x25E2, 0x25E5 }, { 0x25EF, 0x25EF }, { 0x2605, 0x2606 },
++    { 0x2609, 0x2609 }, { 0x260E, 0x260F }, { 0x2614, 0x2615 },
++    { 0x261C, 0x261C }, { 0x261E, 0x261E }, { 0x2640, 0x2640 },
++    { 0x2642, 0x2642 }, { 0x2660, 0x2661 }, { 0x2663, 0x2665 },
++    { 0x2667, 0x266A }, { 0x266C, 0x266D }, { 0x266F, 0x266F },
++    { 0x273D, 0x273D }, { 0x2776, 0x277F }, { 0xE000, 0xF8FF },
++    { 0xFFFD, 0xFFFD }, { 0xF0000, 0xFFFFD }, { 0x100000, 0x10FFFD }
++  };
++
++  return ((c >= 0x1100 &&
++           (c <= 0x115f ||                    /* Hangul Jamo init. consonants */
++            c == 0x2329 || c == 0x232a ||
++            (c >= 0x2e80 && c <= 0xa4cf &&
++             c != 0x303f) ||                  /* CJK ... Yi */
++            (c >= 0xac00 && c <= 0xd7a3) || /* Hangul Syllables */
++            (c >= 0xf900 && c <= 0xfaff) || /* CJK Compatibility Ideographs */
++            (c >= 0xfe30 && c <= 0xfe6f) || /* CJK Compatibility Forms */
++            (c >= 0xff00 && c <= 0xff60) || /* Fullwidth Forms */
++            (c >= 0xffe0 && c <= 0xffe6) ||
++            (c >= 0x20000 && c <= 0x2fffd) ||
++            (c >= 0x30000 && c <= 0x3fffd))) ||
++          (cjkwidth &&
++           bisearch(c, ambiguous,
++	            sizeof(ambiguous) / sizeof(struct interval) - 1)));
+ }
+ #endif
+ 
+@@ -1154,12 +1243,13 @@ int *statep;
+     {
+       if (!*statep)
+ 	{
+-	  if ((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xef))
++	  if ((0x81 <= c && c <= 0x9f) || (0xe0 <= c && c <= 0xfc))
+ 	    {
+ 	      *statep = c;
+ 	      return -1;
+ 	    }
+-	  return c | (KANA << 16);
++	  if (c >= 0x80) return c | (KANA << 16);
++	  else return c;
+ 	}
+       t = c;
+       c = *statep;
+@@ -1324,7 +1414,7 @@ int *fontp;
+ 	  if (bp)
+ 	    {
+ 	      *bp++ = 0x8e;
+-	      *bp++ = c;
++	      *bp++ = c | 0x80;
+ 	    }
+ 	  return 2;
+ 	}
+--- origsrc/screen-4.0.3/etc/etcscreenrc	2003-12-05 22:46:13.000000000 +0900
++++ src/screen-4.0.3/etc/etcscreenrc	2009-12-29 21:57:29.031250000 +0900
+@@ -9,6 +9,7 @@
+ #startup_message off
+ 
+ #defflow on # will force screen to process ^S/^Q
++defflow off	# leave this off, so we can save in *emacs
+ 
+ deflogin on
+ #autodetach off
+@@ -65,6 +66,9 @@ terminfo xterm|fptwist hs@:cs=\E[%i%p1%d
+ termcap xterm 'is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l'
+ terminfo xterm 'is=\E[r\E[m\E[2J\E[H\E[?7h\E[?1;4;6l'
+ 
++# Set the hardstatus prop on gui terms to set the titlebar/icon title
++termcapinfo xterm*|rxvt*|kterm*|Eterm*|cygwin hs:ts=\E]0;:fs=\007:ds=\E]0;\007
++
+ #
+ # Do not use xterms alternate window buffer. 
+ # This one would not add lines to the scrollback buffer.
+--- origsrc/screen-4.0.3/etc/screenrc	2006-10-23 22:06:32.000000000 +0900
++++ src/screen-4.0.3/etc/screenrc	2009-12-29 21:57:29.046875000 +0900
+@@ -37,6 +37,11 @@ defscrollback 1000
+ 
+ # enable support for the "alternate screen" capability in all windows
+ # altscreen on
++#
++# keep the contents of the alternate screen around, and bind a key to
++# entering copy mode on the alternate screen
++# keepaltscreen on
++# bind ^A copyaltscreen
+ 
+ ################
+ #
+--- origsrc/screen-4.0.3/extern.h	2003-08-22 21:27:57.000000000 +0900
++++ src/screen-4.0.3/extern.h	2009-12-29 21:57:29.093750000 +0900
+@@ -100,7 +100,7 @@ extern int   SttyMode __P((struct mode *
+ 
+ /* mark.c */
+ extern int   GetHistory __P((void));
+-extern void  MarkRoutine __P((void));
++extern void  MarkRoutine __P((int));
+ extern void  revto_line __P((int, int, int));
+ extern void  revto __P((int, int));
+ extern int   InMark __P((void));
+@@ -146,7 +146,9 @@ extern void  CloseDevice __P((struct win
+ #ifdef ZMODEM
+ extern void  zmodem_abort __P((struct win *, struct display *));
+ #endif
++#if !defined(__CYGWIN__)
+ extern void  execvpe __P((char *, char **, char **));
++#endif
+ 
+ /* utmp.c */
+ #ifdef UTMPOK
+@@ -316,8 +318,8 @@ extern char *xrealloc __P((char *, int))
+ extern void  ResizeLayersToCanvases __P((void));
+ extern void  ResizeLayer __P((struct layer *, int, int, struct display *));
+ extern int   MayResizeLayer __P((struct layer *));
+-extern void  FreeAltScreen __P((struct win *));
+ extern void  EnterAltScreen __P((struct win *));
++extern void  SwitchAltScreen __P((struct win *));
+ extern void  LeaveAltScreen __P((struct win *));
+ 
+ /* sched.c */
+@@ -490,3 +492,19 @@ extern int   PrepareEncodedChar __P((int
+ # endif
+ #endif
+ extern int   EncodeChar __P((char *, int, int, int *));
++
++#ifdef CYGWIN_FILEMODE
++extern int screen_stat __P((char *, struct stat *));
++extern int screen_chmod __P((char *, mode_t));
++# ifdef NAMEDPIPE
++extern int screen_mkfifo __P((char *, mode_t));
++# endif
++extern int screen_unlink __P((char *));
++#else /* CYGWIN_FILEMODE */
++# define screen_stat(path, st) stat(path, st)
++# define screen_chmod(path, mode) chmod(path, mode)
++# ifdef NAMEDPIPE
++#  define screen_mkfifo(path, mode) mkfifo(path, mode)
++# endif
++# define screen_unlink(path) unlink(path)
++#endif /* CYGWIN_FILEMODE */
+--- origsrc/screen-4.0.3/loadav.c	2003-09-08 23:25:51.000000000 +0900
++++ src/screen-4.0.3/loadav.c	2009-12-29 21:57:29.109375000 +0900
+@@ -53,7 +53,7 @@ static int loadok;
+ 
+ /***************************************************************/
+ 
+-#if defined(linux) && !defined(LOADAV_DONE)
++#if (defined(linux) || defined (__CYGWIN__)) && !defined(LOADAV_DONE)
+ #define LOADAV_DONE
+ /*
+  * This is the easy way. It relies in /proc being mounted.
+@@ -107,7 +107,7 @@ GetLoadav()
+     }
+   return i;
+ }
+-#endif /* linux */
++#endif /* linux || __CYGWIN__ */
+ 
+ /***************************************************************/
+ 
+--- origsrc/screen-4.0.3/mark.c	2003-09-08 23:26:00.000000000 +0900
++++ src/screen-4.0.3/mark.c	2009-12-29 21:57:29.140625000 +0900
+@@ -49,6 +49,7 @@ static int  MarkScrollDownDisplay __P((i
+ static int  MarkScrollUpDisplay __P((int));
+ 
+ static void MarkProcess __P((char **, int *));
++static void MarkExit __P((void));
+ static void MarkAbort __P((void));
+ static void MarkRedisplayLine __P((int, int, int, int));
+ static int  MarkRewrite __P((int, int, int, struct mchar *, int));
+@@ -168,7 +169,7 @@ int *xp, *yp, flags, num;
+       if (x >= xx || x < 0)
+ 	q = 0;
+       else if (flags & NW_BIG)
+-        q = ml->image[x] == ' ';
++        q = ml->image[x] != ' ';
+       else
+         q = is_letter(ml->image[x]);
+       if (oq >= 0 && oq != q)
+@@ -430,7 +431,8 @@ GetHistory()	/* return value 1 if copybu
+ 
+ 
+ void
+-MarkRoutine()
++MarkRoutine(altscreen)
++int altscreen;
+ {
+   int x, y;
+ 
+@@ -439,12 +441,25 @@ MarkRoutine()
+   debug2("MarkRoutine called: fore nr %d, display %s\n",
+          fore->w_number, D_usertty);
+ 
++  if (altscreen)
++    {
++      SwitchAltScreen(fore);
++      Activate(-1);
++    }
+   if (InitOverlayPage(sizeof(*markdata), &MarkLf, 1))
+-    return;
++    {
++      if (altscreen)
++	{
++	  SwitchAltScreen(fore);
++	  Activate(-1);
++	}
++      return;
++    }
+   flayer->l_encoding = fore->w_encoding;
+   markdata = (struct markdata *)flayer->l_data;
+   markdata->md_user = D_user;	/* XXX: Correct? */
+   markdata->md_window = fore;
++  markdata->md_altscreen = altscreen;
+   markdata->second = 0;
+   markdata->rep_cnt = 0;
+   markdata->append_mode = 0;
+@@ -794,6 +809,9 @@ int *inlenp;
+ 	case 'n':
+ 	  Search(0);
+ 	  break;
++	case 'N':
++	  Search(2);
++	  break;
+ 	case 'y':
+ 	case 'Y':
+ 	  if (markdata->second == 0)
+@@ -922,7 +940,7 @@ int *inlenp;
+ 		{
+ 		  LAY_CALL_UP(LRefreshAll(flayer, 0));
+ 		}
+-	      ExitOverlayPage();
++	      MarkExit();
+ 	      if (append_mode)
+ 		LMsg(0, "Appended %d characters to buffer",
+ 		    newcopylen);
+@@ -1109,6 +1127,23 @@ int tx, ty, line;
+ }
+ 
+ static void
++MarkExit()
++{
++  int altscreen;
++
++  markdata = (struct markdata *)flayer->l_data;
++  altscreen = markdata->md_altscreen;
++
++  ExitOverlayPage();
++
++  if (altscreen)
++    {
++      SwitchAltScreen(fore);
++      Activate(-1);
++    }
++}
++
++static void
+ MarkAbort()
+ {
+   int yend, redisp;
+@@ -1131,7 +1166,7 @@ MarkAbort()
+     {
+       rem(markdata->x1, markdata->y1, markdata->cx, markdata->cy, redisp, (char *)0, yend);
+     }
+-  ExitOverlayPage();
++  MarkExit();
+ }
+ 
+ 
+--- origsrc/screen-4.0.3/mark.h	2002-01-09 00:42:30.000000000 +0900
++++ src/screen-4.0.3/mark.h	2009-12-29 21:57:29.156250000 +0900
+@@ -26,6 +26,7 @@ struct markdata
+ {
+   struct win *md_window;/* pointer to window we are working on */
+   struct acluser *md_user;	/* The user who brought us up */
++  int	md_altscreen;	/* are we marking the alternate screen? */
+   int	cx, cy;		/* cursor Position in WIN coords*/
+   int	x1, y1;		/* first mark in WIN coords */
+   int	second;		/* first mark dropped flag */
+--- origsrc/screen-4.0.3/misc.c	2003-12-05 22:45:41.000000000 +0900
++++ src/screen-4.0.3/misc.c	2009-12-29 21:57:29.187500000 +0900
+@@ -613,11 +613,11 @@ char *value;
+    */
+ # endif /* NEEDSETENV */
+ #else /* USESETENV */
+-# if defined(linux) || defined(__convex__) || (BSD >= 199103)
++# if defined(linux) || defined(__convex__) || (BSD >= 199103) || defined (__CYGWIN__)
+   setenv(var, value, 1);
+ # else
+   setenv(var, value);
+-# endif /* linux || convex || BSD >= 199103 */
++# endif /* linux || convex || BSD >= 199103 || __CYGWIN__ */
+ #endif /* USESETENV */
+ }
+ 
+@@ -632,6 +632,9 @@ register int delay;
+ int (*outc) __P((int));
+ {
+   int pad;
++#if defined(__CYGWIN__) && !defined(NCURSES_STATIC)
++__declspec(dllimport)
++#endif
+   extern short ospeed;
+   static short osp2pad[] = {
+     0,2000,1333,909,743,666,500,333,166,83,55,41,20,10,5,2,1,1
+--- origsrc/screen-4.0.3/os.h	2002-01-09 00:42:33.000000000 +0900
++++ src/screen-4.0.3/os.h	2009-12-29 21:57:29.375000000 +0900
+@@ -32,9 +32,9 @@
+ # define hpux
+ #endif
+ 
+-#if defined(__bsdi__) || defined(__386BSD__) || defined(_CX_UX) || defined(hpux) || defined(_IBMR2) || defined(linux)
++#if defined(__bsdi__) || defined(__386BSD__) || defined(_CX_UX) || defined(hpux) || defined(_IBMR2) || defined(linux) || defined (__CYGWIN__)
+ # include <signal.h>
+-#endif /* __bsdi__ || __386BSD__ || _CX_UX || hpux || _IBMR2 || linux */
++#endif /* __bsdi__ || __386BSD__ || _CX_UX || hpux || _IBMR2 || linux || __CYGWIN__ */
+ 
+ #ifdef ISC
+ # ifdef ENAMETOOLONG
+@@ -260,7 +260,7 @@ extern int errno;
+ #endif
+ 
+ #if defined(UTMPOK) || defined(BUGGYGETLOGIN)
+-# if defined(SVR4) && !defined(DGUX) && !defined(__hpux) && !defined(linux)
++# if defined(SVR4) && !defined(DGUX) && !defined(__hpux) && !defined(linux) && !defined (__CYGWIN__)
+ #  include <utmpx.h>
+ #  define UTMPFILE	UTMPX_FILE
+ #  define utmp		utmpx
+@@ -411,7 +411,7 @@ extern int errno;
+ #endif
+ 
+ /* Geeeee, reverse it? */
+-#if defined(SVR4) || (defined(SYSV) && defined(ISC)) || defined(_AIX) || defined(linux) || defined(ultrix) || defined(__386BSD__) || defined(__bsdi__) || defined(POSIX) || defined(NeXT)
++#if defined(SVR4) || (defined(SYSV) && defined(ISC)) || defined(_AIX) || defined(linux) || defined(ultrix) || defined(__386BSD__) || defined(__bsdi__) || defined(POSIX) || defined(NeXT) || defined (__CYGWIN__)
+ # define SIGHASARG
+ #endif
+ 
+--- origsrc/screen-4.0.3/osdef.sh	2001-06-19 02:08:15.000000000 +0900
++++ src/screen-4.0.3/osdef.sh	2009-12-29 21:57:29.390625000 +0900
+@@ -24,7 +24,7 @@ cat << EOF > osdef0.c
+ #ifndef sun
+ #include <sys/ioctl.h>
+ #endif
+-#ifdef linux
++#if defined(linux) || defined (__CYGWIN__)
+ #include <string.h>
+ #include <stdlib.h>
+ #endif
+--- origsrc/screen-4.0.3/process.c	2003-09-18 21:53:54.000000000 +0900
++++ src/screen-4.0.3/process.c	2009-12-29 21:57:29.437500000 +0900
+@@ -57,7 +57,7 @@ extern int log_flush, logtstamp_on, logt
+ extern char *VisualBellString;
+ extern int VBellWait, MsgWait, MsgMinWait, SilenceWait;
+ extern char SockPath[], *SockName;
+-extern int TtyMode, auto_detach, use_altscreen;
++extern int TtyMode, auto_detach, use_altscreen, keep_altscreen;
+ extern int iflag, maxwin;
+ extern int use_hardstatus, visual_bell;
+ #ifdef COLOR
+@@ -103,6 +103,9 @@ extern int VerboseCreate;
+ #ifdef UTF8
+ extern char *screenencodings;
+ #endif
++#ifdef DW_CHARS
++extern int cjkwidth;
++#endif
+ 
+ static int  CheckArgNum __P((int, char **));
+ static void ClearAction __P((struct action *));
+@@ -1494,6 +1497,7 @@ int key;
+ 	      break;
+ 	    }
+ 	  args += 2;
++	  argl += 2;
+ 	}
+ #endif
+       /* 
+@@ -1557,6 +1561,7 @@ int key;
+ 	      break;
+ 	    }
+ 	  args += 2;
++	  argl += 2;
+ 	  argc -= 2;
+ 	}
+ #endif
+@@ -2085,7 +2090,7 @@ int key;
+ 	  Msg(0, "Must be on a window layer");
+ 	  break;
+ 	}
+-      MarkRoutine();
++      MarkRoutine(0);
+       break;
+     case RC_HISTORY:
+       {
+@@ -3419,6 +3424,7 @@ int key;
+ 	    {
+ 	      WinSwitchEncoding(fore, n);
+ 	      ResetCharsets(fore);
++	      RedisplayDisplays(0);
+ 	    }
+ 	  else if (i && display)
+ 	    D_encoding  = n;
+@@ -3732,6 +3738,35 @@ int key;
+       if (msgok)
+         Msg(0, "Will %sdo alternate screen switching", use_altscreen ? "" : "not ");
+       break;
++    case RC_KEEPALTSCREEN:
++      (void)ParseSwitch(act, &keep_altscreen);
++      if (msgok)
++        Msg(0, "Will %skeep contents of alternate screen when switching", keep_altscreen ? "" : "not ");
++      break;
++#ifdef COPY_PASTE
++    case RC_COPYALTSCREEN:
++      if (flayer->l_layfn != &WinLf)
++	{
++	  Msg(0, "Must be on a window layer");
++	}
++      else if (!use_altscreen)
++	{
++	  Msg(0, "altscreen not set");
++	}
++      else if (!keep_altscreen)
++	{
++	  Msg(0, "keepaltscreen not set");
++	}
++      else if (!D_fore->w_alt_mlines)
++	{
++	  Msg(0, "No alternate screen");
++	}
++      else
++	{
++	  MarkRoutine(1);
++	}
++      break;
++#endif
+     case RC_MAXWIN:
+       if (ParseNum(act, &n))
+ 	break;
+@@ -3821,6 +3856,15 @@ int key;
+ 	    Msg(0, "idle off");
+ 	}
+       break;
++#ifdef DW_CHARS
++    case RC_CJKWIDTH:
++      if(ParseSwitch(act, &cjkwidth) == 0)
++      {
++        if(msgok)
++          Msg(0, "Treat ambiguous width characters as %s width", cjkwidth ? "full" : "half");
++      }
++      break;
++#endif
+     default:
+ #ifdef HAVE_BRAILLE
+       /* key == -2: input from braille keybord, msgok always 0 */
+--- origsrc/screen-4.0.3/pty.c	2003-09-08 23:26:18.000000000 +0900
++++ src/screen-4.0.3/pty.c	2009-12-29 21:57:29.500000000 +0900
+@@ -34,7 +34,7 @@
+ #endif
+ 
+ /* for solaris 2.1, Unixware (SVR4.2) and possibly others */
+-#ifdef HAVE_SVR4_PTYS
++#if defined(HAVE_SVR4_PTYS) && !defined(__CYGWIN__)
+ # include <sys/stropts.h>
+ #endif
+ 
+@@ -131,7 +131,7 @@ int f;
+ {
+   if (f < 0)
+     return;
+-#if defined(I_PUSH) && defined(HAVE_SVR4_PTYS) && !defined(sgi) && !defined(linux) && !defined(__osf__) && !defined(M_UNIX)
++#if defined(I_PUSH) && defined(HAVE_SVR4_PTYS) && !defined(sgi) && !defined(linux) && !defined(__osf__) && !defined(M_UNIX) && !defined (__CYGWIN__)
+   if (ioctl(f, I_PUSH, "ptem"))
+     Panic(errno, "InitPTY: cannot I_PUSH ptem");
+   if (ioctl(f, I_PUSH, "ldterm"))
+@@ -249,13 +249,13 @@ char **ttyn;
+   register int f;
+   char *m, *ptsname();
+   int unlockpt __P((int)), grantpt __P((int));
+-#if defined(HAVE_GETPT) && defined(linux)
++#if defined(HAVE_GETPT) && (defined(linux) || defined (__CYGWIN__))
+   int getpt __P((void));
+ #endif
+   sigret_t (*sigcld)__P(SIGPROTOARG);
+ 
+   strcpy(PtyName, "/dev/ptmx");
+-#if defined(HAVE_GETPT) && defined(linux)
++#if defined(HAVE_GETPT) && (defined(linux) || defined (__CYGWIN__))
+   if ((f = getpt()) == -1)
+ #else
+   if ((f = open(PtyName, O_RDWR | O_NOCTTY)) == -1)
+--- origsrc/screen-4.0.3/resize.c	2003-09-08 23:26:31.000000000 +0900
++++ src/screen-4.0.3/resize.c	2009-12-29 21:57:29.593750000 +0900
+@@ -52,6 +52,7 @@ extern struct mline mline_blank, mline_n
+ extern struct win *windows;
+ extern int Z0width, Z1width;
+ extern int captionalways;
++extern int keep_altscreen;
+ 
+ #if defined(TIOCGWINSZ) || defined(TIOCSWINSZ)
+ struct winsize glwz;
+@@ -682,6 +683,17 @@ int wi, he, hi;
+   if (wi == 0)
+     he = hi = 0;
+ 
++  if (wi > 1000)
++    {
++      Msg(0, "Window width too large, truncated");
++      wi = 1000;
++    }
++  if (he > 1000)
++    {
++      Msg(0, "Window height too large, truncated");
++      he = 1000;
++    }
++
+   if (p->w_width == wi && p->w_height == he && p->w_histheight == hi)
+     {
+       debug("ChangeWindowSize: No change.\n");
+@@ -993,7 +1005,11 @@ int wi, he, hi;
+ 
+   /* signal new size to window */
+ #ifdef TIOCSWINSZ
++#ifndef __CYGWIN__
+   if (wi && (p->w_width != wi || p->w_height != he) && p->w_ptyfd >= 0 && p->w_pid)
++#else
++  if (wi && (p->w_width != wi || p->w_height != he) && p->w_ptyfd >= 0)
++#endif
+     {
+       glwz.ws_col = wi;
+       glwz.ws_row = he;
+@@ -1093,12 +1109,20 @@ struct win *p;
+ }
+ 
+ void
+-LeaveAltScreen(p)
++SwitchAltScreen(p)
+ struct win *p;
+ {
+   if (!p->w_alt_mlines)
+     return;
+   SwapAltScreen(p);
+   ChangeWindowSize(p, p->w_alt_width, p->w_alt_height, p->w_alt_histheight);
+-  FreeAltScreen(p);
++}
++
++void
++LeaveAltScreen(p)
++struct win *p;
++{
++  SwitchAltScreen(p);
++  if (!keep_altscreen)
++    FreeAltScreen(p);
+ }
+--- origsrc/screen-4.0.3/screen.c	2003-09-08 23:26:41.000000000 +0900
++++ src/screen-4.0.3/screen.c	2009-12-29 21:57:29.625000000 +0900
+@@ -221,6 +221,10 @@ char *preselect = NULL;		/* only used in
+ char *screenencodings;
+ #endif
+ 
++#ifdef DW_CHARS
++int cjkwidth;
++#endif
++
+ #ifdef NETHACK
+ int nethackflag = 0;
+ #endif
+@@ -468,6 +472,9 @@ char **av;
+   InitBuiltinTabs();
+   screenencodings = SaveStr(SCREENENCODINGS);
+ #endif
++#ifdef DW_CHARS
++  cjkwidth = 0;
++#endif
+   nwin = nwin_undef;
+   nwin_options = nwin_undef;
+   strcpy(screenterm, "screen");
+@@ -762,6 +769,19 @@ char **av;
+       debug1("environment says encoding=%d\n", nwin_options.encoding);
+ #endif
+     }
++# ifdef DW_CHARS
++  {
++    char *s;
++    if((s = getenv("LC_ALL")) || (s = getenv("LC_CTYPE")) ||
++       (s = getenv("LANG")))
++    {
++      if(!strncmp(s, "zh_", 3) || !strncmp(s, "ja_", 3) || !strncmp(s, "ko_", 3))
++      {
++        cjkwidth = 1;
++      }
++    }
++  }
++#endif
+ #endif
+   if (SockMatch && strlen(SockMatch) >= MAXSTR)
+     Panic(0, "Ridiculously long socketname - try again.");
+@@ -890,7 +910,7 @@ char **av;
+   if (!detached && !lsflag && !cmdflag && !(dflag && !mflag && !rflag && !xflag))
+     {
+       /* ttyname implies isatty */
+-      if (!(attach_tty = ttyname(0)))
++      if (!(attach_tty = strdup(ttyname(0))))
+         Panic(0, "Must be connected to a terminal.");
+       if (strlen(attach_tty) >= MAXPATHLEN)
+ 	Panic(0, "TtyName too long - sorry.");
+@@ -992,8 +1012,10 @@ char **av;
+ 	      n = (eff_uid == 0 && (real_uid || (st.st_mode & 0775) != 0775)) ? 0755 :
+ 	          (eff_gid == (int)st.st_gid && eff_gid != real_gid) ? 0775 :
+ 		  0777;
++#if !defined(__CYGWIN__)
+ 	      if (((int)st.st_mode & 0777) != n)
+ 		Panic(0, "Directory '%s' must have mode %03o.", SockDir, n);
++#endif
+ 	    }
+ 	  sprintf(SockPath, "%s/S-%s", SockDir, LoginName);
+ 	  if (access(SockPath, F_OK))
+@@ -1023,8 +1045,10 @@ char **av;
+       if ((int)st.st_uid != real_uid)
+ 	Panic(0, "You are not the owner of %s.", SockPath);
+     }
++#if !defined(__CYGWIN__)
+   if ((st.st_mode & 0777) != 0700)
+     Panic(0, "Directory %s must have mode 700.", SockPath);
++#endif
+   if (SockMatch && index(SockMatch, '/'))
+     Panic(0, "Bad session name '%s'", SockMatch);
+   SockName = SockPath + strlen(SockPath) + 1;
+@@ -1070,7 +1094,7 @@ char **av;
+       char *sty = 0;
+ 
+       /* attach_tty is not mandatory */
+-      if ((attach_tty = ttyname(0)) == 0)
++      if ((attach_tty = strdup(ttyname(0))) == 0)
+         attach_tty = "";
+       if (strlen(attach_tty) >= MAXPATHLEN)
+ 	Panic(0, "TtyName too long - sorry.");
+@@ -1418,7 +1442,7 @@ SigChldHandler()
+       signal(SIGCHLD, SigChld);
+ #endif
+     }
+-  if (stat(SockPath, &st) == -1)
++  if (screen_stat(SockPath, &st) == -1)
+     {
+       debug1("SigChldHandler: Yuck! cannot stat '%s'\n", SockPath);
+       if (!RecoverSocket())
+@@ -1637,7 +1661,7 @@ int i;
+       xseteuid(real_uid);
+       xsetegid(real_gid);
+ #endif
+-      (void) unlink(SockPath);
++      (void) screen_unlink(SockPath);
+ #ifdef USE_SETEUID
+       xseteuid(eff_uid);
+       xsetegid(eff_gid);
+@@ -1675,7 +1699,7 @@ int e;
+       debug1("we unlink(%s)\n", SockPath);
+       setgid(real_gid);
+       setuid(real_uid);
+-      (void) unlink(SockPath);
++      (void) screen_unlink(SockPath);
+     }
+   exit(e);
+ }
+@@ -2564,6 +2588,18 @@ int rec;
+ 	    }
+ 	  p += strlen(p) - 1;
+ 	  break;
++#ifdef ENCODINGS
++	case 'e':
++	  *p = 0;
++	  D_encoding = nwin_options.encoding > 0 ? nwin_options.encoding : 0;
++	  if (win && win->w_encoding)
++	    {
++	      *p++ = ' ';
++	      strcpy(p, EncodingName(win->w_encoding));
++	    }
++	  p += strlen(p) - 1;
++	  break;
++#endif
+ 	case '{':
+           {
+ 	    char rbuf[128];
+--- origsrc/screen-4.0.3/search.c	2003-09-08 23:26:45.000000000 +0900
++++ src/screen-4.0.3/search.c	2009-12-29 21:57:29.656250000 +0900
+@@ -50,13 +50,23 @@ Search(dir)
+ int dir;
+ {
+   struct markdata *markdata;
+-  if (dir == 0)
++  if (dir == 0 || dir == 2)
+     {
+       markdata = (struct markdata *)flayer->l_data;
+-      if (markdata->isdir > 0)
+-	searchend(0, 0, NULL);
+-      else if (markdata->isdir < 0)
+-	backsearchend(0, 0, NULL);
++      if (markdata->isdir > 0) {
++	if (dir == 0) {
++	  searchend(0, 0, NULL);
++	} else {
++	  backsearchend(0, 0, NULL);
++	}
++      }
++      else if (markdata->isdir < 0) {
++	if (dir == 0) {
++	  backsearchend(0, 0, NULL);
++	} else {
++	  searchend(0, 0, NULL);
++	}
++      }
+       else
+ 	LMsg(0, "No previous pattern");
+     }
+@@ -77,9 +87,10 @@ char *data;	/* dummy */
+ 
+   markdata = (struct markdata *)flayer->l_data;
+   p = markdata->md_window;
+-  markdata->isdir = 1;
+-  if (len)
++  if (len) {
++    markdata->isdir = 1;
+     strcpy(markdata->isstr, buf);
++  }
+   sx = markdata->cx + 1;
+   ex = flayer->l_width - 1;
+   for (y = markdata->cy; y < p->w_histheight + flayer->l_height; y++, sx = 0)
+@@ -106,9 +117,10 @@ char *data;	/* dummy */
+   struct markdata *markdata;
+ 
+   markdata = (struct markdata *)flayer->l_data;
+-  markdata->isdir = -1;
+-  if (len)
++  if (len) {
++    markdata->isdir = -1;
+     strcpy(markdata->isstr, buf);
++  }
+   ex = markdata->cx - 1;
+   for (y = markdata->cy; y >= 0; y--, ex = flayer->l_width - 1)
+     {
+@@ -255,6 +267,7 @@ char *data;	/* dummy */
+       pos = markdata->isstartpos;
+       /*FALLTHROUGH*/
+     case '\033':	/* ESC */
++    case '\r':	/* ESC */
+       *p = 0;
+       break;
+     case '\013':	/* CTRL-K */
+--- origsrc/screen-4.0.3/socket.c	2003-09-08 23:26:50.000000000 +0900
++++ src/screen-4.0.3/socket.c	2009-12-29 21:57:29.703125000 +0900
+@@ -181,7 +181,7 @@ char *match;
+       errno = 0;
+       debug2("uid = %d, gid = %d\n", getuid(), getgid());
+       debug2("euid = %d, egid = %d\n", geteuid(), getegid());
+-      if (stat(SockPath, &st))
++      if (screen_stat(SockPath, &st))
+ 	{
+ 	  debug1("errno = %d\n", errno);
+ 	  continue;
+@@ -260,7 +260,7 @@ char *match;
+ 	  sent->mode = -1;
+ 	  if (wipeflag)
+ 	    {
+-	      if (unlink(SockPath) == 0)
++	      if (screen_unlink(SockPath) == 0)
+ 		{
+ 		  sent->mode = -2;
+ 		  nwipe++;
+@@ -416,7 +416,7 @@ MakeServerSocket()
+ 	  eexit(11);
+ 	}
+       Msg(0, "There is already a screen running on %s.", Filename(SockPath));
+-      if (stat(SockPath, &st) == -1)
++      if (screen_stat(SockPath, &st) == -1)
+ 	Panic(errno, "stat");
+       if ((int)st.st_uid != real_uid)
+ 	Panic(0, "Unfortunatelly you are not its owner.");
+@@ -442,8 +442,8 @@ MakeServerSocket()
+ # else /* !USE_SETEUID */
+   if (UserContext() > 0)
+     {
+-      (void) unlink(SockPath);
+-      UserReturn(mkfifo(SockPath, SOCKMODE));
++      (void) screen_unlink(SockPath);
++      UserReturn(screen_mkfifo(SockPath, SOCKMODE));
+     }
+   if (UserStatus())
+     Panic(0, "mkfifo %s failed", SockPath);
+@@ -508,7 +508,7 @@ MakeServerSocket()
+ 	  eexit(11);
+ 	}
+       Msg(0, "There is already a screen running on %s.", Filename(SockPath));
+-      if (stat(SockPath, &st) == -1)
++      if (screen_stat(SockPath, &st) == -1)
+ 	Panic(errno, "stat");
+       if (st.st_uid != real_uid)
+ 	Panic(0, "Unfortunatelly you are not its owner.");
+@@ -523,7 +523,7 @@ MakeServerSocket()
+   if ((s = socket(AF_UNIX, SOCK_STREAM, 0)) == -1)
+     Panic(errno, "reopen socket");
+ #endif
+-  (void) unlink(SockPath);
++  (void) screen_unlink(SockPath);
+   if (bind(s, (struct sockaddr *) & a, strlen(SockPath) + 2) == -1)
+     Panic(errno, "bind (%s)", SockPath);
+ #ifdef SOCK_NOT_IN_FS
+@@ -534,7 +534,7 @@ MakeServerSocket()
+       close(f);
+     }
+ #else
+-  chmod(SockPath, SOCKMODE);
++  screen_chmod(SockPath, SOCKMODE);
+ # ifndef USE_SETEUID
+   chown(SockPath, real_uid, real_gid);
+ # endif
+@@ -908,7 +908,11 @@ ReceiveMsg()
+ 	  Msg(0, "Attach attempt with bad pid(%d)!", m.m.attach.apid);
+           break;
+ 	}
++#ifndef O_NOCTTY
+       if ((i = secopen(m.m_tty, O_RDWR | O_NONBLOCK, 0)) < 0)
++#else /* O_NOCTTY */
++      if ((i = secopen(m.m_tty, O_RDWR | O_NONBLOCK | O_NOCTTY, 0)) < 0)
++#endif
+ 	{
+ 	  Msg(errno, "Attach: Could not open %s!", m.m_tty);
+ 	  Kill(m.m.attach.apid, SIG_BYE);
+@@ -1067,7 +1071,7 @@ chsock()
+       if (UserContext() <= 0)
+         return UserStatus();
+     }
+-  r = chmod(SockPath, SOCKMODE);
++  r = screen_chmod(SockPath, SOCKMODE);
+   /* 
+    * Sockets usually reside in the /tmp/ area, where sysadmin scripts
+    * may be happy to remove old files. We manually prevent the socket
+@@ -1090,11 +1094,11 @@ RecoverSocket()
+   if ((int)geteuid() != real_uid)
+     {
+       if (UserContext() > 0)
+-	UserReturn(unlink(SockPath));
++	UserReturn(screen_unlink(SockPath));
+       (void)UserStatus();
+     }
+   else
+-    (void) unlink(SockPath);
++    (void) screen_unlink(SockPath);
+ 
+   if ((ServerSocket = MakeServerSocket()) < 0)
+     return 0;
+@@ -1424,3 +1428,160 @@ struct msg *mp;
+   EffectiveAclUser = 0;
+ #endif
+ }
++
++#ifdef CYGWIN_FILEMODE
++/* On cygwin (without ntea/ntsec), the mode of the UNIX domain
++ * socket is always either 755 or 655. Unfortunately, screen
++ * saves the socket state as the file mode.
++ *
++ * Therefore, we emulate the file mode, creating a special
++ * key file. This is ugly and possibly unsecure hack, but not
++ * critical on single-user system.
++ *
++ * If you found any bug, mail me:
++ *   AIDA Shinra <aida_s@mx12.freecom.ne.jp>
++ */
++
++static char *GetModeKeyPath __P((char *));
++static int CreateModeKeyFile __P((char *, mode_t));
++static int ReadModeKeyFile __P((char *, mode_t *));
++static char modekey_format[] = "$$ screen: socket mode=0%o $$\n";
++
++int
++screen_stat(path, st)
++char *path;
++struct stat *st;
++{
++  mode_t modetmp;
++
++  if (stat(SockPath, st))
++    return -1;
++  if (!ReadModeKeyFile(path, &modetmp))
++    st->st_mode = (st->st_mode & ~07777) | modetmp;
++  errno = 0;
++  return 0;
++}
++
++int
++screen_chmod(path, mode)
++char *path;
++mode_t mode;
++{
++  if (chmod(path, mode))
++    return -1;
++  CreateModeKeyFile(path, mode);
++  errno = 0;
++  return 0;
++}
++
++#ifdef NAMEDPIPE
++int
++screen_mkfifo(path, mode)
++char *path;
++mode_t mode;
++{
++  if (mkfifo(path, mode))
++    return -1;
++  CreateModeKeyFile(path, mode);
++  errno = 0;
++  return 0;
++}
++#endif
++
++int
++screen_unlink(path)
++char *path;
++{
++  char *modekey_path;
++  
++  if (unlink(path))
++    return -1;
++  if ((modekey_path = GetModeKeyPath(path)) == NULL)
++    return -1;
++  unlink(modekey_path);
++  free(modekey_path);
++  errno = 0;
++  return 0;
++}
++
++static char *
++GetModeKeyPath(path)
++char *path;
++{
++  char *keypath;
++  char *base;
++
++  keypath = malloc(strlen(path) + 7);
++  if (keypath == NULL) {
++    Panic (0, strnomem);
++    return NULL;
++  }
++  base = strrchr(path, '/');
++  if (base == NULL)
++    base = path;
++  else
++    base++;
++  strncpy(keypath, path, base-path);
++  sprintf(keypath+(base-path), ".%s.mode", base);
++  return keypath;
++}
++
++static int
++CreateModeKeyFile(path, mode)
++char *path;
++mode_t mode;
++{
++  int err = 0;
++  char *modekey_path;
++  FILE *keyfile;
++
++  if ((modekey_path = GetModeKeyPath(path)) == NULL)
++    return -1;
++  if ((keyfile = fopen(modekey_path, "w")) == NULL) {
++    err = errno;
++  } else {
++    errno = 0;
++    fprintf(keyfile, modekey_format, (unsigned int)mode);
++    if (errno)
++      err = errno;
++    if (fclose(keyfile))
++      err = errno;
++# ifndef USE_SETEUID
++    if (chown(modekey_path, getuid(), getgid()))
++      err = errno;
++# endif
++  }
++  free(modekey_path);
++  errno = err;
++  return (err) ? -1 : 0;
++}
++
++static int
++ReadModeKeyFile(path, modep)
++char *path;
++mode_t *modep;
++{
++  int err = 0;
++  char *modekey_path;
++  FILE *keyfile;
++  unsigned int mode_u;
++
++  if ((modekey_path = GetModeKeyPath(path)) == NULL)
++    return -1;
++
++  if ((keyfile = fopen(modekey_path, "r")) == NULL) {
++    err = errno;
++  } else {
++    if (fscanf(keyfile, modekey_format, &mode_u) != 1)
++      err=errno;
++    if (fclose(keyfile))
++      err=errno;
++  }
++  free(modekey_path);
++  errno = err;
++  if (err)
++    return -1;
++  *modep = (mode_t)mode_u;
++  return 0;
++}
++#endif /* CYGWIN_FILEMODE */
+--- origsrc/screen-4.0.3/utf8encodings/02.uue	1970-01-01 09:00:00.000000000 +0900
++++ src/screen-4.0.3/utf8encodings/02.uue	2009-12-29 21:57:29.750000000 +0900
+@@ -0,0 +1,691 @@
++begin 644 02
++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
++M)5F*1R9?S4<GBHU'*&_A1REYL$<J>6)'*UOG1RR$<4<M<RM'+G&Q1R]>=$<P
++M7_5',6-[1S)DFD<S<<-'-'R81S5.0T<V7OQ'-TY+1SA7W$<Y5J)'.F"I1SMO
++MPT<\?0U'/8#]1SZ!,T<_@;]'0(^R1T&)ET="AJ1'0UWT1T1BBD=%9*U'1HF'
++M1T=G=T=(;.)'26T^1TIT-D=+>#1'3%I&1TU_=4=.@JU'3YFL1U!/\T=17L-'
++M4F+=1U-CDD=495='56=O1U9VPT=7<DQ'6(#,1UF`ND=:CRE'6Y%-1UQ0#4==
++M5_E'7EJ21U]HA4=@:7-'87%D1V)R_4=CC+='9%CR1V6,X$=FEFI'9Y`91VB'
++M?T=I>>1':G?G1VN$*4=L3R]';5)E1VY36D=O8LU'<&?/1W%LRD=R=GU'<WN4
++M1W1\E4=U@C9'=H6$1W>/ZT=X9MU'>6\@1WIR!D=[?AM'?(.K1WV9P4=^GJ9(
++M(5']2")[L4@C>')()'NX2"6`AT@F>TA()VKH2"A>84@I@(Q(*G512"MU8$@L
++M46M(+9)B2"YNC$@O=GI(,)&72#&:ZD@R3Q!(,W]P2#1BG$@U>T](-I6E2#><
++MZ4@X5GI(.5A92#J&Y$@[EKQ(/$\T2#U2)$@^4TI(/U/-2$!3VTA!7@9(0F0L
++M2$-ED4A$9W](16P^2$9L3DA'<DA(2'*O2$ES[4A*=51(2WY!2$R"+$A-A>E(
++M3HRI2$][Q$A0D<9(47%I2%*8$DA3F.](5&,]2%5F:4A6=6I(5W;D2%AXT$A9
++MA4-(6H;N2%M3*DA<4U%(750F2%Y9@TA?7H=(8%]\2&%@LDAB8DE(8V)Y2&1B
++MJTAE99!(9FO42&=LS$AH=;)(:7:N2&IXD4AK>=A(;'W+2&U_=TAN@*5(;XBK
++M2'"*N4AQC+M(<I!_2'.77DATF-M(=6H+2'9\.$AW4)E(>%P^2'E?KDAZ9X=(
++M>VO82'QT-4A]=PE(?G^.22&?.TDB9\I)(WH72213.4DE=8M))IKM22=?9DDH
++M@9U)*8/Q22J`F$DK7SQ)+%_%22UU8DDN>T9)+Y`\23!H9TDQ6>M),EJ;23-]
++M$$DT=GY)-8LL239/]4DW7VI).&H923EL-TDZ;P)).W3B23QY:$D]B&A)/HI5
++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
++M75!-<VL$371OZTUUA<U-=H8M37>)ITUX4BE->50/37I<94U[9TY-?&BH37UT
++M!DU^=(-.(77B3B*(STXCB.%.))',3B66XDXFEGA.)U^+3BASATXI>LM.*H1.
++M3BMCH$XL=65.+5*)3BYM04XO;IQ.,'0)3C%U64XR>&M.,WR23C26ADXU>MQ.
++M-I^-3C=/MDXX86Y..67%3CJ&7$X[3H9./$ZN3CU0VDX^3B%./U',3D!;[DY!
++M99E.0FB!3D-MO$Y$<Q].179"3D9WK4Y'>AQ.2'SG3DF";TY*BM).2Y!\3DR1
++MSTY-EG5.3I@83D]2FTY0?=%.45`K3E)3F$Y39Y=.5&W+3E5QT$Y6=#-.5X'H
++M3EB/*DY9EJ-.6IQ73EN>GTY<=&!.75A!3EYMF4Y??2].8)A>3F%.Y$YB3S9.
++M8T^+3F11MTYE4K%.9EVZ3F=@'$YH<[).:7D\3FJ"TTYKDC1.;):W3FV6]DYN
++MEPI.;YZ73G"?8DYQ9J9.<FMT3G-2%TYT4J-.=7#(3G:(PDYW7LE.>&!+3GEA
++MD$YZ;R-.>W%)3GQ\/DY]??1.?H!O3R&$[D\BD"-/(Y,L3R140D\EFV]/)FK3
++M3R=PB4\HC,)/*8WO3RJ7,D\K4K1/+%I!3RU>RD\N7P1/+V<73S!I?$\Q:91/
++M,FUJ3S-O#T\T<F)/-7+\3S9[[4\W@`%/.(!^3SF'2T\ZD,Y/.U%M3SR>DT\]
++M>81//H"+3S^3,D]`BM9/05`M3T)4C$]#BG%/1&MJ3T6,Q$]&@0=/1V#13TAG
++MH$])G?)/2DZ93TM.F$],G!!/38IK3TZ%P4]/A6A/4&D`3U%N?D]2>)=/4X%5
++M4"%?#%`B3A!0(TX54"1.*E`E3C%0)DXV4"=./%`H3C]0*4Y"4"I.5E`K3EA0
++M+$Z"4"U.A5`NC&M0+TZ*4#""$E`Q7PU0,DZ.4#-.GE`T3I]0-4Z@4#9.HE`W
++M3K!0.$ZS4#E.ME`Z3LY0.T[-4#Q.Q%`]3L90/D["4#].UU!`3MY004[M4$).
++MWU!#3O=01$\)4$5/6E!&3S!01T];4$A/75!)3U=02D]'4$M/=E!,3XA034^/
++M4$Y/F%!/3WM04$]I4%%/<%!23Y%04T]O4%1/AE!53Y905E$84%=/U%!83]]0
++M64_.4%I/V%!;3]M07$_14%U/VE!>3]!07T_D4&!/Y5!A4!I08E`H4&-0%%!D
++M4"I095`E4&90!5!G3QQ0:$_V4&E0(5!J4"E0:U`L4&Q/_E!M3^]0;E`14&]0
++M!E!P4$-0<5!'4')G`U!S4%50=%!04'502%!V4%I0=U!64'A0;%!Y4'A0>E"`
++M4'M0FE!\4(50?5"T4'Y0LE$A4,E1(E#*42-0LU$D4,)1)5#64290WE$G4.51
++M*%#M42E0XU$J4.Y1*U#Y42Q0]5$M40E1+E$!42]1`E$P4191,5$543)1%%$S
++M41I1-%$A4351.E$V43=1-U$\43A1.U$Y43]1.E%`43M14E$\44Q1/5%443Y1
++M8E$_>OA10%%I44%1:E%"46Y10U&`4411@E%%5MA11E&,44=1B5%(48]125&1
++M44I1DU%+49513%&644U1I%%.4:913U&B45!1J5%14:I14E&K45-1LU%44;%1
++M55&R4591L%%74;516%&]45E1Q5%:4<E16U';45Q1X%%=AE517E'I45]1[5%@
++M4?!185'U46)1_E%C4@119%(+4652%%%F4@Y19U(G46A2*E%I4BY1:E(S46M2
++M.5%L4D]1;5)$46Y22U%O4DQ1<%)>47%25%%R4FI1<U)T4712:5%U4G-1=E)_
++M47=2?5%X4HU1>5*447I2DE%[4G%1?%*(47U2D5%^CZA2(8^G4B)2K%(C4JU2
++M)%*\4B52M5(F4L%2)U+-4BA2UU(I4MY2*E+C4BM2YE(LF.U2+5+@4BY2\U(O
++M4O52,%+X4C%2^5(R4P92,U,(4C1U.%(U4PU2-E,04C=3#U(X4Q52.5,:4CI3
++M(U([4R]2/%,Q4CU3,U(^4SA2/U-`4D!31E)!4T520DX74D-325)$4TU215'6
++M4D937E)'4VE22%-N4DE9&%)*4WM22U-W4DQ3@E)-4Y923E.@4D]3IE)04Z52
++M45.N4E)3L%)34[925%/#4E5\$E)6EME25U/?4EAF_%)9<>Y26E/N4EM3Z%)<
++M4^U275/Z4EY4`5)?5#U28%1`4F%4+%)B5"U28U0\4F14+E)E5#929E0I4F=4
++M'5)H5$Y2:52/4FI4=5)K5(Y2;%1?4FU4<5)N5'=2;U1P4G!4DE)Q5'M2<E2`
++M4G-4=E)T5(12=5204G94AE)W5,=2>%2B4GE4N%)Z5*52>U2L4GQ4Q%)]5,A2
++M?E2H4R%4JU,B5,)3(U2D4R14OE,E5+Q3)E384R=4Y5,H5.93*54/4RI5%%,K
++M5/U3+%3N4RU4[5,N5/I3+U3B4S!5.5,Q54!3,E5C4S-53%,T52Y3-55<4S95
++M15,W5593.%574SE5.%,Z53-3.U5=4SQ5F5,]58!3/E2O4S]5BE-`59]3055[
++M4T)5?E-#59A31%6>4T55KE-&57Q31U6#4TA5J5-)58=32E6H4TM5VE-,5<53
++M357?4TY5Q%-/5=Q34%7D4U%5U%-25A134U7W4U16%E-55?Y35E7]4U=6&U-8
++M5?E3659.4UI64%-;<=]37%8T4UU6-E->5C)37U8X4V!6:U-A5F138E8O4V-6
++M;%-D5FI395:&4V96@%-G5HI3:%:@4VE6E%-J5H]3:U:E4VQ6KE-M5K93;E:T
++M4V]6PE-P5KQ3<5;!4W)6PU-S5L!3=%;(4W56SE-V5M%3=U;34WA6UU-Y5NY3
++M>E;Y4WM7`%-\5O]3?5<$4WY7"50A5PA4(E<+5"-7#50D5Q-4)5<85"97%E0G
++M5<=4*%<<5"E7)E0J5S=4*U<X5"Q73E0M5SM4+E=`5"]73U0P5VE4,5?`5#)7
++MB%0S5V%4-%=_5#57B50V5Y-4-U>@5#A7LU0Y5Z14.E>J5#M7L%0\5\-4/5?&
++M5#Y7U%0_5])40%?35$%8"E1"5]940U?C5$18"U1%6!E41E@=5$=8<E1(6"%4
++M25AB5$I82U1+6'!43&O`5$U84E1.6#U43UAY5%!8A5116+E44EB?5%-8JU14
++M6+I455C>5%98NU176+A46%BN5%E8Q51:6--46UC15%Q8UU1=6-E47EC85%]8
++MY51@6-Q485CD5&)8WU1C6.]49%CZ5&58^51F6/M49UC\5&A8_51I60)4:ED*
++M5&M9$%1L61M4;6BF5&Y9)51O62Q4<%DM5'%9,E1R63A4<UD^5'1ZTE1U6554
++M=EE05'=93E1X65I4>5E85'I98E1[66!4?%EG5'U9;%1^66E5(5EX52)9@54C
++M69U5)$]>525/JU4F6:-5)UFR52A9QE4I6>A5*EG<52M9C54L6=E5+5G:52Y:
++M)54O6A]5,%H153%:'%4R6@E5,UH:531:0%4U6FQ5-EI)53=:-54X6C95.5IB
++M53I::E4[6II5/%J\53U:OE4^6LM5/UK"54!:O55!6N-50EK754-:YE5$6NE5
++M15K6549:^E5'6OM52%L,54E;"U5*6Q952ULR54Q:T%5-6RI53ELV54];/E50
++M6T-545M%55);0%536U%55%M5555;6E566UM55UME55A;:5596W!56EMS55M;
++M=55<6WA5766(55Y;>E5?6X!58%N#56%;IE5B6[A58UO#561;QU5E6\E59EO4
++M56=;T%5H6^15:5OF56I;XE5K6]Y5;%OE56U;ZU5N6_!5;UOV57!;\U5Q7`55
++M<EP'57-<"%5T7`U5=5P3579<(%5W7")5>%PH57E<.%5Z7#E5>UQ!57Q<1E5]
++M7$Y5?EQ35B%<4%8B7$]6(UMQ5B1<;%8E7&Y6)DYB5B=<=E8H7'E6*5R,5BI<
++MD58K7)16+%F;5BU<JU8N7+M6+URV5C!<O%8Q7+=6,ES%5C-<OE8T7,=6-5S9
++M5C9<Z58W7/U6.%SZ5CE<[58Z78Q6.USJ5CQ="U8]7156/ET75C]=7%9`71]6
++M05T;5D)=$59#71161%TB5D5=&E9&71E61UT85DA=3%9)75)62EU.5DM=2U9,
++M76Q635US5DY==E9/78=64%V$5E%=@E927:)64UV=5E1=K%957:Y65EV]5E==
++MD%987;=665V\5EI=R59;7<U67%W35EU=TE9>7=967UW;5F!=ZU9A7?)68EWU
++M5F->"U9D7AI695X95F9>$59G7AM6:%XV5FE>-U9J7D16:UY#5FQ>0%9M7DY6
++M;EY75F]>5%9P7E]6<5YB5G)>9%9S7D=6=%YU5G5>=E9V7GI6=YZ\5GA>?U9Y
++M7J!6>E[!5GM>PE9\7LA6?5[05GY>SU<A7M97(E[C5R->W5<D7MI7)5[;5R9>
++MXE<G7N%7*%[H5RE>Z5<J7NQ7*U[Q5RQ>\U<M7O!7+E[T5R]>^%<P7OY7,5\#
++M5S)?"5<S7UU7-%]<5S5?"U<V7Q%7-U\65SA?*5<Y7RU7.E\X5SM?05<\7TA7
++M/5],5SY?3E<_7R]70%]15T%?5E="7U=70U]95T1?85=%7VU71E]S5T=?=U=(
++M7X-725^"5TI??U=+7XI73%^(5TU?D5=.7X=73U^>5U!?F5=17YA74E^@5U-?
++MJ%=47ZU755^\5U9?UE=77_M76%_D5UE?^%=:7_%76U_=5UQ@LU==7_]77F`A
++M5U]@8%=@8!E786`05V)@*5=C8`Y79&`Q5V5@&U=F8!579V`K5VA@)E=I8`]7
++M:F`Z5VM@6E=L8$%7;6!J5VY@=U=O8%]7<&!*5W%@1E=R8$U7<V!C5W1@0U=U
++M8&17=F!"5W=@;%=X8&M7>6!95WI@@5=[8(U7?&#G5WU@@U=^8)I8(6"$6")@
++MFU@C8)98)&"76"5@DE@F8*=8)V"+6"A@X5@I8+A8*F#@6"M@TU@L8+18+5_P
++M6"Y@O5@O8,98,&"U6#%@V%@R84U8,V$56#1A!E@U8/98-F#W6#=A`%@X8/18
++M.6#Z6#IA`U@[82%8/&#[6#U@\5@^80U8/V$.6$!A1UA!83Y80F$H6$-A)UA$
++M84I816$_6$9A/%A'82Q82&$T6$EA/5A*84)82V%$6$QA<UA-87=83F%86$]A
++M65A085I846%K6%)A=%A386]85&%E6%5A<5A685]85V%=6%AA4UA987586F&9
++M6%MAEEA<88=876&L6%YAE%A?89I88&&*6&%AD5AB8:M88V&N6&1AS%AE8<I8
++M9F')6&=A]UAH8<A8:6'#6&IAQEAK8;I8;&'+6&U_>5AN8<U8;V'F6'!AXUAQ
++M8?98<F'Z6'-A]%AT8?]8=6']6'9A_%AW8?Y8>&(`6'EB"%AZ8@E8>V(-6'QB
++M#%A]8A18?F(;62%B'EDB8B%9(V(J621B+EDE8C!9)F(R62=B,UDH8D%9*6).
++M62IB7EDK8F-9+&);62UB8%DN8FA9+V)\63!B@EDQ8HE9,F)^63-BDEDT8I-9
++M-6*6639BU%DW8H-9.&*463EBUUDZ8M%9.V*[63QBSUD]8O]9/F+&63]DU%E`
++M8LA906+<64)BS%E#8LI91&+"645BQUE&8IM91V+)64AC#%E)8NY92F+Q64MC
++M)UE,8P)936,(64YB[UE/8O594&-065%C/EE28TU94V0<651C3UE58Y995F..
++M65=C@%E88ZM966-V65ICHUE;8X]97&.)65UCGUE>8[597V-K66!C:5EA8[Y9
++M8F/I66-CP%ED8\9996/C669CR5EG8])9:&/V66ECQ%EJ9!99:V0T66QD!EEM
++M9!-9;F0F66]D-EEP91U9<60767)D*%ES9`]9=&1G675D;UEV9'99=V1.67AE
++M*EEY9)59>F2367MDI5E\9*E9?62(67YDO%HA9-I:(F326B-DQ5HD9,=:)62[
++M6B9DV%HG9,):*&3Q6BEDYUHJ@@E:*V3@6BQDX5HM8JQ:+F3C6B]D[UHP92Q:
++M,63V6C)D]%HS9/):-&3Z6C5E`%HV9/U:-V486CAE'%HY905:.F4D6CME(UH\
++M92M:/64T6CYE-5H_93=:0&4V6D%E.%I"=4M:0V5(6D1E5EI%955:1F5-6D=E
++M6%I(95Y:265=6DIE<EI+97A:3&6"6DUE@UI.BXI:3V6;6E!EGUI19:M:4F6W
++M6E-EPUI49<9:567!6E9EQ%I79<Q:6&726EEEVUI:9=E:6V7@6EQEX5I=9?%:
++M7F=R6E]F"EI@9@-:867[6F)G<UIC9C5:9&8V6F5F-%IF9AQ:9V9/6FAF1%II
++M9DE::F9!6FMF7EIL9EU:;69D6FYF9UIO9FA:<&9?6G%F8EIR9G!:<V:#6G1F
++MB%IU9HY:=F:)6G=FA%IX9IA:>6:=6GIFP5I[9KE:?&;)6GUFOEI^9KQ;(6;$
++M6R)FN%LC9M9;)&;:6R5FX%LF9C];)V;F6RAFZ5LI9O!;*F;U6RMF]ULL9P];
++M+6<66RYG'ELO9R9;,&<G6S&7.%LR9RY;,V<_6S1G-ELU9T%;-F<X6S=G-ULX
++M9T9;.6=>6SIG8%L[9UE;/&=C6SUG9%L^9XE;/V=P6T!GJ5M!9WQ;0F=J6T-G
++MC%M$9XM;16>F6T9GH5M'9X5;2&>W6TEG[UM*9[1;2V?L6TQGLUM-9^E;3F>X
++M6T]GY%M09]Y;46?=6U)GXEM39^Y;5&>Y6U5GSEM69\9;5V?G6UAJG%M9:!Y;
++M6FA&6UMH*5M<:$!;76A-6UYH,EM?:$Y;8&BS6V%H*UMB:%E;8VAC6V1H=UME
++M:'];9FB?6V=HCUMH:*U;:6B46VIHG5MK:)M;;&B#6VUJKEMN:+E;;VAT6W!H
++MM5MQ:*!;<FBZ6W-I#UMT:(U;=6A^6W9I`5MW:,I;>&D(6WEHV%MZ:2);>VDF
++M6WQHX5M]:0Q;?FC-7"%HU%PB:.=<(VC57"1I-EPE:1)<)FD$7"=HUUPH:.-<
++M*6DE7"IH^5PK:.!<+&CO7"UI*%PN:2I<+VD:7#!I(UPQ:2%<,FC&7#-I>5PT
++M:7=<-6E<7#9I>%PW:6M<.&E47#EI?EPZ:6Y<.VDY7#QI=%P]:3U</FE97#]I
++M,%Q`:6%<06E>7$)I75Q#:8%<1&EJ7$5ILEQ&::Y<1VG07$AIOUQ):<%<2FG3
++M7$MIOEQ,:<Y<35OH7$YIREQ/:=U<4&F[7%%IPUQ2::=<4VHN7%1ID5Q5::!<
++M5FF<7%=IE5Q8:;1<66G>7%IIZ%Q;:@)<7&H;7%UI_UQ>:PI<7VGY7&!I\EQA
++M:>=<8FH%7&-IL5QD:AY<96GM7&9J%%QG:>M<:&H*7&EJ$EQJ:L%<:VHC7&QJ
++M$UQM:D1<;FH,7&]J<EQP:C9<<6IX7')J1UQS:F)<=&I97'5J9EQV:DA<=VHX
++M7'AJ(EQY:I!<>FJ-7'MJH%Q\:H1<?6JB7'YJHUTA:I==(H8772-JNUTD:L-=
++M)6K"729JN%TG:K-=*&JL72EJWETJ:M%=*VK?72QJJETM:MI=+FKJ72]J^UTP
++M:P5=,88673)J^ETS:Q)=-&L6736;,5TV:Q]=-VLX73AK-UTY=MQ=.FLY73N8
++M[ET\:T==/6M#73YK25T_:U!=0&M974%K5%U":UM=0VM?741K85U%:WA=1FMY
++M74=K?UU(:X!=26N$74IK@UU+:XU=3&N874UKE5U.:YY=3VND75!KJEU1:ZM=
++M4FNO75-KLEU4:[%=56NS759KMUU7:[Q=6&O&75EKRUU::]-=6VO?75QK[%U=
++M:^M=7FOS75]K[UU@GKY=86P(76)L$UUC;!1=9&P;765L)%UF;"-=9VQ>76AL
++M55UI;&)=:FQJ76ML@EUL;(U=;6R:76YL@5UO;)M=<&Q^77%L:%UR;'-=<VR2
++M771LD%UU;,1==FSQ77=LTUUX;+U=>6S777ILQ5U[;-U=?&RN77ULL5U^;+Y>
++M(6RZ7B)LVUXC;.]>)&S97B5LZEXF;1]>)XA-7BAM-EXI;2M>*FT]7BMM.%XL
++M;1E>+6TU7BYM,UXO;1)>,&T,7C%M8UXR;9->,VUD7C1M6EXU;7E>-FU97C=M
++MCEXX;95>.6_D7CIMA5X[;?E>/&X57CUN"EX^;;5>/VW'7D!MYEY!;;A>0FW&
++M7D-M[%Y$;=Y>16W,7D9MZ%Y';=)>2&W%7DEM^EY*;=E>2VWD7DQMU5Y-;>I>
++M3FWN7D]N+5Y0;FY>46XN7E)N&5Y3;G)>5&Y?7E5N/EY6;B->5VYK7EAN*UY9
++M;G9>6FY-7EMN'UY<;D->76XZ7EYN3EY?;B1>8&[_7F%N'5YB;CA>8VZ"7F1N
++MJEYE;IA>9F[)7F=NMUYH;M->:6Z]7FINKUYK;L1>;&ZR7FUNU%YN;M5>;VZ/
++M7G!NI5YQ;L)><FZ?7G-O05YT;Q%>=7!,7G9N[%YW;OA>>&[^7GEO/UYZ;O)>
++M>V\Q7GQN[UY];S)>?F[,7R%O/E\B;Q-?(V[W7R1OAE\E;WI?)F]X7R=O@5\H
++M;X!?*6]O7RIO6U\K;_-?+&]M7RUO@E\N;WQ?+V]87S!OCE\Q;Y%?,F_"7S-O
++M9E\T;[-?-6^C7S9OH5\W;Z1?.&^Y7SEOQE\Z;ZI?.V_?7SQOU5\];^Q?/F_4
++M7S]OV%]`;_%?06_N7T)OVU]#<`E?1'`+7T5O^E]&<!%?1W`!7TAP#U]);_Y?
++M2G`;7TMP&E],;W1?37`=7TYP&%]/<!]?4'`P7U%P/E]2<#)?4W!17U1P8U]5
++M<)E?5G"27U=PKU]8</%?67"L7UIPN%];<+-?7'"N7UUPWU]><,M?7W#=7V!P
++MV5]A<0E?8G#]7V-Q'%]D<1E?97%E7V9Q55]G<8A?:'%F7VEQ8E]J<4Q?:W%6
++M7VQQ;%]M<8]?;G'[7V]QA%]P<95?<7&H7W)QK%]S<==?='&Y7W5QOE]V<=)?
++M=W')7WAQU%]Y<<Y?>G'@7WMQ[%]\<>=??7'U7WYQ_&`A<?E@(G'_8"-R#6`D
++M<A!@)7(;8"9R*&`G<BU@*'(L8"ER,&`J<C)@*W([8"QR/&`M<C]@+G)`8"]R
++M1F`P<DM@,7)88#)R=&`S<GY@-'*"8#5R@6`V<H=@-W*28#AREF`Y<J)@.G*G
++M8#MRN6`\<K)@/7+#8#YRQF`_<L1@0'+.8$%RTF!"<N)@0W+@8$1RX6!%<OE@
++M1G+W8$=0#V!(<Q=@27,*8$IS'&!+<Q9@3',=8$US-&!.<R]@3W,I8%!S)6!1
++M<SY@4G-.8%-S3V!4GMA@57-78%9S:F!7<VA@6'-P8%ES>&!:<W5@6W-[8%QS
++M>F!=<\A@7G.S8%]SSF!@<[M@87/`8&)SY6!C<^Y@9'/>8&5THF!F=`5@9W1O
++M8&AT)6!I<_A@:G0R8&MT.F!L=%5@;70_8&YT7V!O=%E@<'1!8'%T7&!R=&E@
++M<W1P8'1T8V!U=&I@=G1V8'=T?F!X=(M@>72>8'ITIV![=,I@?'3/8'UTU&!^
++M<_%A(73@82)TXV$C=.=A)'3I825T[F$F=/)A)W3P82AT\6$I=/AA*G3W82MU
++M!&$L=0-A+74%82YU#&$O=0YA,'4-83%U%6$R=1-A,W4>831U)F$U=2QA-G4\
++M83=U1&$X=4UA.75*83IU26$[=5MA/'5&83UU6F$^=6EA/W5D84!U9V%!=6MA
++M0G5M84-U>&%$=79A176&849UAV%'=71A2'6*84EUB6%*=8)A2W6484QUFF%-
++M=9UA3G6E84]UHV%0=<)A476S85)UPV%3=;5A5'6]855UN&%6=;QA5W6Q85AU
++MS6%9=<IA6G7285MUV6%<=>-A777>85YU_F%?=?]A8'7\86%V`6%B=?!A8W7Z
++M861U\F%E=?-A9G8+86=V#6%H=@EA:78?86IV)V%K=B!A;'8A86UV(F%N=B1A
++M;W8T87!V,&%Q=CMA<G9'87-V2&%T=D9A=79<879V6&%W=F%A>'9B87EV:&%Z
++M=FEA>W9J87QV9V%]=FQA?G9P8B%V<F(B=G9B(W9X8B1V?&(E=H!B)G:#8B=V
++MB&(H=HMB*7:.8BIVEF(K=I-B+':98BUVFF(N=K!B+W:T8C!VN&(Q=KEB,G:Z
++M8C-VPF(T=LUB-7;68C9VTF(W=MYB.';A8CEVY6(Z=N=B.W;J8CR&+V(]=OMB
++M/G<(8C]W!V)`=P1B07<I8D)W)&)#=QYB1'<E8D5W)F)&=QMB1W<W8DAW.&))
++M=T=B2G=:8DMW:&),=VMB37=;8DYW96)/=W]B4'=^8E%W>6)2=XYB4W>+8E1W
++MD6)5=Z!B5G>>8E=WL&)8=[9B67>Y8EIWOV);=[QB7'>]8EUWNV)>=\=B7W?-
++M8F!WUV)A=]IB8G?<8F-WXV)D=^YB97?\8F9X#&)G>!)B:'DF8FEX(&)J>2IB
++M:WA%8FQXCF)M>'1B;GB&8F]X?&)P>)IB<7B,8G)XHV)S>+5B='BJ8G5XKV)V
++M>-%B=WC&8GAXRV)Y>-1B>GB^8GMXO&)\>,5B?7C*8GYX[&,A>.=C(GC:8R-X
++M_6,D>/1C)7D'8R9Y$F,G>1%C*'D98REY+&,J>2MC*WE`8RQY8&,M>5=C+GE?
++M8R]Y6F,P>55C,7E38S)Y>F,S>7]C-'F*8S5YG6,V>:=C-Y]+8SAYJF,Y>:YC
++M.GFS8SMYN6,\>;IC/7G)8SYYU6,_>>=C0'GL8T%YX6-">>-C0WH(8T1Z#6-%
++M>AAC1GH98T=Z(&-(>A]C27F`8TIZ,6-+>CMC3'H^8TUZ-V-.>D-C3WI78U!Z
++M26-1>F%C4GIB8U-Z:6-4GYUC57IP8U9Z>6-7>GUC6'J(8UEZEV-:>I5C6WJ8
++M8UQZEF-=>JEC7GK(8U]ZL&-@>K9C87K%8V)ZQ&-C>K]C9)"#8V5ZQV-F>LIC
++M9WK-8VAZSV-I>M5C:GK38VMZV6-L>MIC;7K=8VYZX6-O>N)C<'KF8W%Z[6-R
++M>O!C<WL"8W1[#V-U>PIC=GL&8W=[,V-X>QAC>7L98WI['F-[>S5C?'LH8WU[
++M-F-^>U!D(7MZ9")[!&0C>TUD)'L+9"5[3&0F>T5D)WMU9"A[960I>W1D*GMG
++M9"M[<&0L>W%D+7ML9"Y[;F0O>YUD,'N89#%[GV0R>XUD,WN<9#1[FF0U>XMD
++M-GN29#=[CV0X>UUD.7N99#I[RV0[>\%D/'O,9#U[SV0^>[1D/WO&9$![W61!
++M>^ED0GP19$-\%&1$>^9D17OE9$9\8&1'?`!D2'P'9$E\$V1*>_-D2WOW9$Q\
++M%V1-?`UD3GOV9$]\(V10?"=D47PJ9%)\'V13?#=D5'PK9%5\/616?$QD5WQ#
++M9%A\5&19?$]D6GQ`9%M\4&1<?%AD77Q?9%Y\9&1??%9D8'QE9&%\;&1B?'5D
++M8WR#9&1\D&1E?*1D9GRM9&=\HF1H?*MD:7RA9&I\J&1K?+-D;'RR9&U\L61N
++M?*YD;WRY9'!\O61Q?,!D<GS%9'-\PF1T?-AD=7S29'9\W&1W?.)D>)L[9'E\
++M[V1Z?/)D>WST9'Q\]F1]?/ID?GT&92%]`F4B?1QE(WT5921]"F4E?45E)GU+
++M92=]+F4H?3)E*7T_92I]-64K?49E+'US92U]5F4N?4YE+WUR93!]:&4Q?6YE
++M,GU/93-]8V4T?9-E-7V)939]6V4W?8]E.'U]93E]FV4Z?;IE.WVN93Q]HV4]
++M?;5E/GW'93]]O65`?:ME07X]94)]HF5#?:]E1'W<945]N&5&?9]E1WVP94A]
++MV&5)?=UE2GWD94M]WF5,??ME37WR94Y]X65/?@5E4'X*95%^(V52?B%E4WX2
++M951^,655?A]E5GX)95=^"V58?B)E67Y&95I^9F5;?CME7'XU95U^.65>?D-E
++M7WXW96!^,F5A?CIE8GYG96-^765D?E9E97Y>969^665G?EIE:'YY96E^:F5J
++M?FEE:WY\96Q^>V5M?H-E;GW596]^?65PCZYE<7Y_97)^B&5S?HEE='Z,975^
++MDF5V?I!E=WZ397A^E&5Y?I9E>GZ.97M^FV5\?IQE?7\X97Y_.F8A?T5F(G],
++M9B-_368D?TYF)7]09B9_468G?U5F*']49BE_6&8J?U]F*W]@9BQ_:&8M?VEF
++M+G]G9B]_>&8P?X)F,7^&9C)_@V8S?XAF-'^'9C5_C&8V?Y1F-W^>9CA_G68Y
++M?YIF.G^C9CM_KV8\?[)F/7^Y9CY_KF8_?[9F0'^X9D&+<69"?\5F0W_&9D1_
++MRF9%?]5F1G_49D=_X69(?^9F27_I9DI_\V9+?_EF3)C<9DV`!F9.@`1F3X`+
++M9E"`$F91@!AF4H`99E.`'&94@"%F58`H9E:`/V97@#MF6(!*9EF`1F9:@%)F
++M6X!89ER`6F9=@%]F7H!B9E^`:&9@@'-F88!R9F*`<&9C@'9F9(!Y9F6`?69F
++M@']F9X"$9FB`AF9I@(5F:H";9FN`DV9L@)IF;8"M9FY1D&9O@*QF<(#;9G&`
++MY69R@-EF<X#=9G2`Q&9U@-IF=H#69G>!"69X@.]F>8#Q9GJ!&V9[@2EF?($C
++M9GV!+V9^@4MG(9:+9R*!1F<C@3YG)(%39R6!46<F@/QG)X%Q9RB!;F<I@65G
++M*H%F9RN!=&<L@8-G+8&(9RZ!BF<O@8!G,(&"9S&!H&<R@95G,X&D9S2!HV<U
++M@5]G-H&39S>!J6<X@;!G.8&U9SJ!OF<[@;AG/(&]9SV!P&<^@<)G/X&Z9T"!
++MR6=!@<UG0H'19T.!V6=$@=AG18'(9T:!VF='@=]G2('@9TF!YV=*@?IG2X'[
++M9TR!_F=-@@%G3H("9T^"!6=0@@=G48(*9U*"#6=3@A!G5((69U6"*6=6@BMG
++M5X(X9UB",V=9@D!G6H)99UN"6&=<@EUG78):9UZ"7V=?@F1G8()B9V&":&=B
++M@FIG8X)K9V2"+F=E@G%G9H)W9V>">&=H@GYG:8*-9VJ"DF=K@JMG;(*?9VV"
++MNV=N@JQG;X+A9W""XV=Q@M]G<H+29W."]&=T@O-G=8+Z9W:#DV=W@P-G>(+[
++M9WF"^6=Z@MYG>X,&9WR"W&=]@PEG?H+9:"&#-6@B@S1H(X,6:"2#,F@E@S%H
++M)H-`:">#.6@H@U!H*8-%:"J#+V@K@RMH+(,7:"V#&&@N@X5H+X.::#"#JF@Q
++M@Y]H,H.B:#.#EF@T@R-H-8..:#:#AV@W@XIH.(-\:#F#M6@Z@W-H.X-U:#R#
++MH&@]@XEH/H.H:#^#]&A`A!-H08/K:$*#SFA#@_UH1(0#:$6#V&A&A`MH1X/!
++M:$B#]VA)A`=H2H/@:$N#\FA,A`UH380B:$Z$(&A/@[UH4(0X:%&%!FA2@_MH
++M4X1M:%2$*FA5A#QH5H5::%>$A&A8A'=H681K:%J$K6A;A&YH7(2":%V$:6A>
++MA$9H7X0L:&"$;VAAA'EH8H0U:&.$RFADA&)H982Y:&:$OVAGA)]H:(39:&F$
++MS6AJA+MH:X3::&R$T&AMA,%H;H3&:&^$UFAPA*%H<84A:'*$_VASA/1H=(47
++M:'6%&&AVA2QH=X4?:'B%%6AYA11H>H3\:'N%0&A\A6-H?858:'Z%2&DAA4%I
++M(H8":2.%2VDDA55I)86`:2:%I&DGA8AI*(61:2F%BFDJA:AI*X5M:2R%E&DM
++MA9MI+H7J:2^%AVDPA9QI,85W:3*%?FDSA9!I-(7):36%NFDVA<]I-X6Y:3B%
++MT&DYA=5I.H7=:3N%Y6D\A=QI/87Y:3Z&"FD_AA-I0(8+:4&%_FE"A?II0X8&
++M:42&(FE%AAII1H8P:4>&/VE(ADUI24Y5:4J&5&E+AE]I3(9G:4V&<6E.AI-I
++M3X:C:5"&J6E1AJII4H:+:5.&C&E4AK9I58:O:5:&Q&E7AL9I6(:P:5F&R6E:
++MB"-I6X:K:5R&U&E=AMYI7H;I:5^&[&E@AM]I88;;:6*&[VECAQ)I9(<&:66'
++M"&EFAP!I9X<#:6B&^VEIAQ%I:H<):6N'#6ELAOEI;8<*:6Z'-&EOAS]I<(<W
++M:7&'.VERAR5I<X<I:72'&FEUAV!I=H=?:7>'>&EXATQI>8=.:7J'=&E[AU=I
++M?(=H:7V';FE^AUEJ(8=3:B*'8VHCAVIJ)(@%:B6'HFHFAY]J)X>":BB'KVHI
++MA\MJ*H>]:BN'P&HLA]!J+9;6:BZ'JVHOA\1J,(>S:C&'QVHRA\9J,X>[:C2'
++M[VHUA_)J-H?@:C>(#VHXB`UJ.8?^:CJ']FH[A_=J/(@.:CV'TFH^B!%J/X@6
++M:D"(%6I!B")J0H@A:D.(,6I$B#9J18@Y:D:()VI'B#MJ2(A$:DF(0FI*B%)J
++M2XA9:DR(7FI-B&)J3HAK:D^(@6I0B'YJ48B>:E*(=6I3B'UJ5(BU:E6(<FI6
++MB()J5XB7:EB(DFI9B*YJ6HB9:EN(HFI<B(UJ78BD:EZ(L&I?B+]J8(BQ:F&(
++MPVIBB,1J8XC4:F2(V&IEB-EJ9HC=:F>(^6IHB0)J:8C\:FJ(]&IKB.AJ;(CR
++M:FV)!&INB0QJ;XD*:G")$VIQB4-J<HD>:G.))6ITB2IJ=8DK:G:)06IWB41J
++M>(D[:GF)-FIZB3AJ>XE,:GR)'6I]B6!J?HE>:R&)9FLBB61K(XEM:R2):FLE
++MB6]K)HET:R>)=VLHB7YK*8F#:RJ)B&LKB8IK+(F3:RV)F&LNB:%K+XFI:S")
++MIFLQB:QK,HFO:S.)LFLTB;IK-8F]:S:)OVLWB<!K.(G::SF)W&LZB=UK.XGG
++M:SR)]&L]B?AK/HH#:S^*%FM`BA!K08H,:T**&VM#BAUK1(HE:T6*-FM&BD%K
++M1XI;:TB*4FM)BD9K2HI(:TN*?&M,BFUK38IL:TZ*8FM/BH5K4(J":U&*A&M2
++MBJAK4XJA:U2*D6M5BJ5K5HJF:U>*FFM8BJ-K68K$:UJ*S6M;BL)K7(K::UV*
++MZVM>BO-K7XKG:V"*Y&MABO%K8HL4:V.*X&MDBN)K98KW:V:*WFMGBMMK:(L,
++M:VF+!VMJBQIK:XKA:VR+%FMMBQ!K;HL7:V^+(&MPBS-K<9>K:W*+)FMSBRMK
++M=(L^:W6+*&MVBT%K=XM,:WB+3VMYBTYK>HM):WN+5FM\BUMK?8M::WZ+:VPA
++MBU]L(HML;".+;VPDBW1L)8M];":+@&PGBXQL*(N.;"F+DFPJBY-L*XN6;"R+
++MF6PMBYIL+HPZ;"^,06PPC#]L,8Q(;#*,3&PSC$YL-(Q0;#6,56PVC&)L-XQL
++M;#B,>&PYC'IL.HR";#N,B6P\C(5L/8R*;#Z,C6P_C(YL0(R4;$&,?&Q"C)AL
++M0V(=;$2,K6Q%C*IL1HR];$>,LFQ(C+-L28RN;$J,MFQ+C,AL3(S!;$V,Y&Q.
++MC.-L3XS:;%",_6Q1C/IL4HS[;%.-!&Q4C05L58T*;%:-!VQ7C0]L6(T-;%F-
++M$&Q:GTYL6XT3;%R,S6Q=C11L7HT6;%^-9VQ@C6UL88UQ;&*-<VQCC8%L9(V9
++M;&6-PFQFC;YL9XVZ;&B-SVQIC=IL:HW6;&N-S&QLC=ML;8W+;&Z-ZFQOC>ML
++M<(W?;'&-XVQRC?QL<XX(;'2."6QUC?]L=HX=;'>.'FQXCA!L>8X?;'J.0FQ[
++MCC5L?(XP;'V.-&Q^CDIM(8Y';2*.26TCCDQM)(Y0;26.2&TFCEEM)XYD;2B.
++M8&TICBIM*HYC;2N.56TLCG9M+8YR;2Z.?&TOCH%M,(Z';3&.A6TRCH1M,XZ+
++M;32.BFTUCI-M-HZ1;3>.E&TXCIEM.8ZJ;3J.H6T[CJQM/(ZP;3V.QFT^CK%M
++M/XZ^;4".Q6U!CLAM0H[+;4..VVU$CN-M18[\;4:.^VU'CNMM2([^;4F/"FU*
++MCP5M2X\5;4R/$FU-CQEM3H\3;4^/'&U0CQ]M48\;;5*/#&U3CR9M5(\S;56/
++M.VU6CSEM5X]%;5B/0FU9CSYM6H],;5N/26U<CT9M78].;5Z/5VU?CUQM8(]B
++M;6&/8VUBCV1M8X^<;62/GVUECZ-M9H^M;6>/KVUHC[=M:8_:;6J/Y6UKC^)M
++M;(_J;6V/[VUND(=M;X_T;7"0!6UQC_EM<H_Z;7.0$6UTD!5M=9`A;7:0#6UW
++MD!YM>)`6;7F0"VUZD"=M>Y`V;7R0-6U]D#EM?H_X;B&03VXBD%!N(Y!1;B20
++M4FXED`YN)I!);B>0/FXHD%9N*9!8;BJ07FXKD&AN+)!O;BV0=FXNEJAN+Y!R
++M;C"0@FXQD'UN,I"!;C.0@&XTD(IN-9");C:0CVXWD*AN.)"O;CF0L6XZD+5N
++M.Y#B;CR0Y&X]8DAN/I#;;C^1`FY`D1)N09$9;D*1,FY#D3!N1)%*;D615FY&
++MD5AN1Y%C;DB196Y)D6EN2I%S;DN1<FY,D8MN39&);DZ1@FY/D:)N4)&K;E&1
++MKVY2D:IN4Y&U;E21M&Y5D;IN5I'`;E>1P6Y8D<EN69'+;EJ1T&Y;D=9N7)'?
++M;EV1X6Y>D=MN7Y'\;F"1]6YAD?9N8I(>;F.1_VYDDA1N99(L;F:2%6YGDA%N
++M:))>;FF25VYJDD5N:Y));FR29&YMDDAN;I*5;F^2/VYPDDMN<9)0;G*2G&YS
++MDI9N=)*3;G62FVYVDEIN=Y+/;GB2N6YYDK=N>I+I;GN3#VY\DOIN?9-$;GZ3
++M+F\ADQEO(I,B;R.3&F\DDR-O)9,Z;R:3-6\GDSMO*)-<;RF38&\JDWQO*Y-N
++M;RR35F\MD[!O+I.L;R^3K6\PDY1O,9.Y;S*3UF\SD]=O-)/H;S63Y6\VD]AO
++M-Y/#;SB3W6\YD]!O.I/(;SN3Y&\\E!IO/904;SZ4$V\_E`-O0)0';T&4$&]"
++ME#9O0Y0K;T24-6]%E"%O1I0Z;T>406](E%)O291$;TJ46V]+E&!O3)1B;TV4
++M7F].E&IO3Y(I;U"4<&]1E'5O4I1W;U.4?6]4E%IO591\;U:4?F]7E(%O6)1_
++M;UF5@F]:E8=O6Y6*;UR5E&]=E99O7I68;U^5F6]@E:!O896H;V*5IV]CE:UO
++M9)6\;V65NV]FE;EO9Y6^;VB5RF]I;_9O:I7#;VN5S6]LE<QO;975;VZ5U&]O
++ME=9O<)7<;W&5X6]RE>5O<Y7B;W26(6]UEBAO=I8N;W>6+V]XED)O>99,;WJ6
++M3V][EDMO?)9W;WV67&]^EEYP(99=<"*67W`CEF9P))9R<"66;'`FEHUP)Y:8
++M<"B6E7`IEI=P*I:J<"N6IW`LEK%P+9:R<"Z6L'`OEK1P,):V<#&6N'`REKEP
++M,Y;.<#26RW`UELEP-I;-<#>)37`XEMQP.9<-<#J6U7`[EOEP/)<$<#V7!G`^
++MEPAP/Y<3<$"7#G!!EQ%P0I</<$.7%G!$EQEP19<D<$:7*G!'ES!P2)<Y<$F7
++M/7!*ESYP2Y=$<$R71G!-ETAP3I="<$^727!0EUQP49=@<%*79'!3EV9P5)=H
++M<%52TG!6EVMP5Y=Q<%B7>7!9EX5P6I=\<%N7@7!<EWIP79>&<%Z7BW!?EX]P
++M8)>0<&&7G'!BEZAP8Y>F<&27HW!EE[-P9I>T<&>7PW!HE\9P:9?(<&J7RW!K
++ME]QP;)?M<&V?3W!NE_)P;WK?<'"7]G!QE_5P<I@/<'.8#'!TF#AP=9@D<':8
++M(7!WF#=P>)@]<'F81G!ZF$]P>YA+<'R8:W!]F&]P?IAP<2&8<7$BF'1Q(YAS
++M<228JG$EF*]Q)IBQ<2>8MG$HF,1Q*9C#<2J8QG$KF.EQ+)CK<2V9`W$NF0EQ
++M+YD2<3"9%'$QF1AQ,IDA<3.9'7$TF1YQ-9DD<3:9('$WF2QQ.)DN<3F9/7$Z
++MF3YQ.YE"<3R927$]F45Q/IE0<3^92W%`F5%Q09E2<4*93'%#F55Q1)F7<469
++MF'%&F:5Q1YFM<4B9KG%)F;QQ2IG?<4N9VW%,F=UQ39G8<4Z9T7%/F>UQ4)GN
++M<5&9\7%2F?)Q4YG[<529^'%5F@%Q5IH/<5>:!7%8F>)Q69H9<5J:*W%;FC=Q
++M7)I%<5V:0G%>FD!Q7YI#<6":/G%AFE5Q8II-<6.:6W%DFE=Q99I?<6::8G%G
++MFF5Q:)ID<6F::7%JFFMQ:YIJ<6R:K7%MFK!Q;IJ\<6^:P'%PFL]Q<9K1<7*:
++MTW%SFM1Q=)K><76:WW%VFN)Q=YKC<7B:YG%YFN]Q>IKK<7N:[G%\FO1Q?9KQ
++M<7Z:]W(AFOMR(IL&<B.;&'(DFQIR)9L?<B:;(G(GFR-R*)LE<BF;)W(JFRAR
++M*YLI<BR;*G(MFRYR+ILO<B^;,G(PFT1R,9M#<C*;3W(SFTUR-)M.<C6;47(V
++MFUAR-YMT<CB;DW(YFX-R.IN1<CN;EG(\FY=R/9N?<CZ;H'(_FZAR0)NT<D&;
++MP')"F\IR0YNY<D2;QG)%F\]R1IO1<D>;TG)(F^-R29OB<DJ;Y')+F]1R3)OA
++M<DV<.G).F_)R3YOQ<E";\')1G!5R4IP4<E.<"7)4G!-R59P,<E:<!G)7G`AR
++M6)P2<EF<"G):G`1R6YPN<ER<&W)=G"5R7IPD<E^<(7)@G#!R89Q'<F*<,G)C
++MG$9R9)P^<F6<6G)FG&!R9YQG<FB<=G)IG'AR:ISG<FN<[')LG/!R;9T)<FZ=
++M"')OG.MR<)T#<G&=!G)RG2IR<YTF<G2=KW)UG2-R=IT?<G>=1')XG15R>9T2
++M<GJ=07)[G3]R?)T^<GV=1G)^G4AS(9U=<R*=7G,CG61S))U1<R6=4',FG5ES
++M)YUR<RB=B7,IG8=S*IVK<RN=;W,LG7IS+9V:<RZ=I',OG:ES,)VR<S&=Q',R
++MG<%S,YV[<S2=N',UG;IS-IW&<S>=SW,XG<)S.9W9<SJ=TW,[G?AS/)WF<SV=
++M[7,^G>]S/YW]<T">&G-!GAMS0IX><T.>=7-$GGES19Y]<T:>@7-'GHAS2)Z+
++M<TF>C'-*GI)S2YZ5<TR>D7--GIUS3IZE<T^>J7-0GKAS49ZJ<U*>K7-3EV%S
++M5)[,<U6>SG-6GL]S5Y[0<UB>U'-9GMQS6I[><UN>W7-<GN!S79[E<UZ>Z'-?
++MGN]S8)[T<V&>]G-BGO=S8Y[Y<V2>^W-EGOQS9I[]<V>?!W-HGPAS:7:W<VJ?
++M%7-KGR%S;)\L<VV?/G-NGTIS;Y]2<W"?5'-QGV-S<I]?<W.?8'-TGV%S=9]F
++M<W:?9W-WGVQS>)]J<WF?=W-ZGW)S>Y]V<WR?E7-]GYQS?I^@="%8+W0B:<=T
++M(Y!9="1T9'0E4=QT)G&9DR$A<),B(7&3(R%RDR0A<Y,E(723)B%UDR<A=I,H
++M(7>3*2%XDRHA>9,K(6"3+"%ADRTA8I,N(6.3+R%DDS`A99,Q(6:3,B%GDS,A
++M:),T(6F3-?_BDS;_Y),W_P>3./\"DSDR,9,Z(1:3.R$ADSPB-9,]?HJ3/HD<
++MDS^32)-`DHB3083<DT)/R9-#<+N31&8QDT5HR)-&DOF31V;[DTA?19-)3BB3
++M2D[ADTM._)-,3P"334\#DTY/.9-/3U:34$^2DU%/BI-23YJ34T^4DU1/S9-5
++M4$"35E`BDU=/_Y-84!Z365!&DUI0<)-;4$*37%"4DUU0])->4-B37U%*DV!1
++M9)-A49V38E&^DV-1[)-D4A6395*<DV92II-G4L"3:%+;DVE3`)-J4P>3:U,D
++MDVQ3<I-M4Y.3;E.RDV]3W9-P^@Z3<52<DW)4BI-S5*F3=%3_DW55AI-V5UF3
++M=U=EDWA7K)-Y5\B3>E?'DWOZ#Y-\^A"3?5B>DWY8LI0A60N4(EE3E"-96Y0D
++M65V4)5ECE"99I)0G6;J4*%M6E"E;P)0J=2^4*UO8E"Q;[)0M7!Z4+ERFE"]<
++MNI0P7/64,5TGE#)=4Y0S^A&4-%U"E#5=;90V7;B4-UVYE#A=T)0Y7R&4.E\T
++ME#M?9Y0\7[>4/5_>E#Y@790_8(640&"*E$%@WI1"8-640V$@E$1@\I1%81&4
++M1F$WE$=A,)1(89B426(3E$IBII1+8_643&1@E$UDG91.9,Z43V5.E%!F`)11
++M9A644F8[E%-F"9149BZ4568>E%9F))179F646&97E%EF691:^A*46V9SE%QF
++MF91=9J"47F:RE%]FOY1@9OJ486<.E&+Y*91C9V:49&>[E&5H4I1F9\"49V@!
++ME&AH1)1I:,^4:OH3E&MI:)1L^A24;6F8E&YIXI1O:C"4<&IKE'%J1I1R:G.4
++M<VI^E'1JXI1U:N24=FO6E'=L/Y1X;%R4>6R&E'IL;Y1[;-J4?&T$E'UMAY1^
++M;6^5(6V6E2)MK)4C;<^5)&WXE25M\I4F;?R5)VXYE2AN7)4I;B>5*FX\E2MN
++MOY4L;XB5+6^UE2YO]94O<`65,'`'E3%P*)4R<(65,W"KE31Q#Y4U<025-G%<
++ME3=Q1I4X<4>5.?H5E3IQP94[<?Z5/'*QE3UROI4^<R25/_H6E4!S=Y5!<[V5
++M0G/)E4-SUI5$<^.517/2E49T!Y5'<_652'0FE4ET*I5*="F52W0NE4QT8I5-
++M=(F53G2?E4]U`950=6^547:"E5)VG)53=IZ55':;E55VII56^A>55W=&E5A2
++MKY59>"&56GA.E5MX9)5<>'J577DPE5[Z&)5?^AF58/H:E6%YE)5B^AN58WF;
++ME61ZT95E>N>59OH<E6=ZZY5H>YZ5:?H=E6I]2)5K?5R5;'VWE6U]H)5N?=:5
++M;WY2E7!_1Y5Q?Z&5<OH>E7.#`95T@V*5=8-_E7:#QY5W@_:5>(1(E7F$M)5Z
++MA5.5>X59E7R%:Y5]^A^5?H6PEB'Z()8B^B&6(X@'EB2(]98EBA*6)HHWEB>*
++M>98HBJ>6*8J^EBJ*WY8K^B*6+(KVEBV+4Y8NBW^6+XSPEC",])8QC1*6,HUV
++MEC/Z(Y8TCL^6-?HDEC;Z)98WD&>6.)#>ECGZ)I8ZD166.Y$GECR1VI8]D=>6
++M/I'>EC^1[99`D>Z609'DED*1Y99#D@:61)(0ED62"I9&DCJ61Y)`EDB2/)9)
++MDDZ62I)9EDN2499,DCF639)GEDZ2IY9/DG>64))XEE&2YY92DM>64Y+9EE22
++MT)95^B>65I+5EE>2X)98DM.669,EEEJ3(99;DON67/HHEEV3'I9>DO^67Y,=
++MEF"3`I9ADW"68I-7EF.3I)9DD\:699/>EF:3^)9GE#&6:)1%EFF42)9JE9*6
++M:_G<EFSZ*99MEIV6;I:OEF^7,Y9PESN6<9=#EG*7399SET^6=)=1EG67599V
++MF%>6=YAEEGCZ*I9Y^BN6>IDGEGOZ+)9\F9Z6?9I.EGZ:V9<AFMR7(IMUER.;
++M<I<DFX^7)9NQER:;NY<GG`"7*)UPERF=:Y<J^BV7*YX9ERR>T7DA?HIY(HD<
++M>2.32'DDDHAY)83<>29/R7DG<+MY*&8Q>2EHR'DJDOEY*V;[>2Q?17DM3BAY
++M+D[A>2]._'DP3P!Y,4\#>3)/.7DS3U9Y-$^2>35/BGDV3YIY-T^4>3A/S7DY
++M4$!Y.E`B>3M/_WD\4!YY/5!&>3Y0<'D_4$)Y0%"4>4%0]'E"4-AY0U%*>411
++M9'E%49UY1E&^>4=1['E(4A5Y25*<>4I2IGE+4L!Y3%+;>4U3`'E.4P=Y3U,D
++M>5!3<GE14Y-Y4E.R>5-3W7E4^@YY552<>594BGE75*EY6%3_>5E5AGE:5UEY
++M6U=E>5Q7K'E=5\AY7E?'>5_Z#WE@^A!Y85B>>6)8LGEC60MY9%E3>6596WEF
++M65UY9UEC>6A9I'EI6;IY:EM6>6M;P'EL=2]Y;5O8>6Y;['EO7!YY<%RF>7%<
++MNGER7/5Y<UTG>71=4WEU^A%Y=EU">7==;7EX7;AY>5VY>7I=T'E[7R%Y?%\T
++M>7U?9WE^7[=Z(5_>>B)@77HC8(5Z)&"*>B5@WGHF8-5Z)V$@>BA@\GHI81%Z
++M*F$W>BMA,'HL89AZ+6(3>BYBIGHO8_5Z,&1@>C%DG7HR9,YZ,V5.>C1F`'HU
++M9A5Z-F8[>C=F"7HX9BYZ.68>>CIF)'H[9F5Z/&97>CUF67H^^A)Z/V9S>D!F
++MF7I!9J!Z0F:R>D-FOWI$9OIZ16<.>D;Y*7I'9V9Z2&>[>DEH4GI*9\!Z2V@!
++M>DQH1'I-:,]Z3OH3>D]I:'I0^A1Z46F8>E)IXGI3:C!Z5&IK>E5J1GI6:G-Z
++M5VI^>EAJXGI9:N1Z6FO6>EML/WI<;%QZ76R&>EYL;WI?;-IZ8&T$>F%MAWIB
++M;6]Z8VV6>F1MK'IE;<]Z9FWX>F=M\GIH;?QZ:6XY>FIN7'IK;B=Z;&X\>FUN
++MOWIN;XAZ;V^U>G!O]7IQ<`5Z<G`'>G-P*'IT<(5Z=7"K>G9Q#WIW<01Z>'%<
++M>GEQ1GIZ<4=Z>_H5>GQQP7I]<?YZ?G*Q>R%ROGLB<R1[(_H6>R1S=WLE<[U[
++M)G/)>R=SUGLH<^-[*7/2>RIT!WLK<_5[+'0F>RUT*GLN="E[+W0N>S!T8GLQ
++M=(E[,G2?>S-U`7LT=6][-7:">S9VG'LW=IY[.':;>SEVIGLZ^A=[.W=&>SQ2
++MKWL]>"%[/GA.>S]X9'M`>'I[07DP>T+Z&'M#^AE[1/H:>T5YE'M&^AM[1WF;
++M>TAZT7M)>N=[2OH<>TMZZWM,>YY[3?H=>TY]2'M/?5Q[4'VW>U%]H'M2?=9[
++M4WY2>U1_1WM5?Z%[5OH>>U>#`7M8@V)[68-_>UJ#QWM;@_9[7(1(>UV$M'M>
++MA5-[7X59>V"%:WMA^A][8H6P>V/Z('MD^B%[98@'>V:(]7MGBA)[:(HW>VF*
++M>7MJBJ=[:XJ^>VR*WWMM^B)[;HKV>V^+4WMPBW][<8SP>W*,]'MSC1)[=(UV
++M>W7Z(WMVCL][=_HD>WCZ)7MYD&=[>I#>>WOZ)GM\D15[?9$G>WZ1VGPAD==\
++M(I'>?".1[7PDD>Y\)9'D?":1Y7PGD@9\*)(0?"F2"GPJDCI\*Y)`?"R2/'PM
++MDDY\+I)9?"^247PPDCE\,9)G?#*2IWPSDG=\-))X?#62YWPVDM=\-Y+9?#B2
++MT'PY^B=\.I+5?#N2X'P\DM-\/9,E?#Z3(7P_DOM\0/HH?$&3'GQ"DO]\0Y,=
++M?$23`GQ%DW!\1I-7?$>3I'Q(D\9\29/>?$J3^'Q+E#%\3)1%?$V42'Q.E9)\
++M3_G<?%#Z*7Q1EIU\4I:O?%.7,WQ4ESM\59=#?%:737Q7ET]\6)=1?%F757Q:
++MF%=\6YAE?%SZ*GQ=^BM\7IDG?%_Z+'Q@F9Y\89I.?&*:V7QCFMQ\9)MU?&6;
++M<GQFFX]\9YNQ?&B;NWQIG`!\:IUP?&N=:WQL^BU\;9X9?&Z>T7QQ(7!\<B%Q
++M?',A<GQT(7-\=2%T?'8A=7QW(79\>"%W?'DA>'QZ(7E\>__B?'S_Y'Q]_P=\
++#?O\"
++`
++end
+--- origsrc/screen-4.0.3/utmp.c	2003-09-08 23:27:17.000000000 +0900
++++ src/screen-4.0.3/utmp.c	2009-12-29 21:57:29.781250000 +0900
+@@ -89,7 +89,7 @@ static void endutent __P((void));
+ static int  initutmp __P((void));
+ static void setutent __P((void));
+ #endif
+-#if defined(linux) && defined(GETUTENT)
++#if (defined(linux) || defined (__CYGWIN__)) && defined(GETUTENT)
+ static struct utmp *xpututline __P((struct utmp *utmp));
+ # define pututline xpututline
+ #endif
+@@ -589,7 +589,7 @@ makedead(u)
+ struct utmp *u;
+ {
+   u->ut_type = DEAD_PROCESS;
+-#if !defined(linux) || defined(EMPTY)
++#if (!defined(linux) && !defined (__CYGWIN__)) || defined(EMPTY)
+   u->ut_exit.e_termination = 0;
+   u->ut_exit.e_exit = 0;
+ #endif
+@@ -607,7 +607,7 @@ int pid;
+   u->ut_type = USER_PROCESS;
+   strncpy(u->ut_user, user, sizeof(u->ut_user));
+   /* Now the tricky part... guess ut_id */
+-#if defined(sgi) || defined(linux)
++#if defined(sgi) || defined(linux) || defined (__CYGWIN__)
+   strncpy(u->ut_id, line + 3, sizeof(u->ut_id));
+ #else /* sgi */
+ # ifdef _IBMR2
+@@ -858,7 +858,7 @@ getlogin()
+ }
+ # endif /* BUGGYGETLOGIN */
+ 
+-#if defined(linux) && defined(GETUTENT)
++#if (defined(linux) || defined (__CYGWIN__)) && defined(GETUTENT)
+ # undef pututline
+ 
+ /* aargh, linux' pututline returns void! */
+--- origsrc/screen-4.0.3/window.c	2003-12-05 22:45:41.000000000 +0900
++++ src/screen-4.0.3/window.c	2009-12-29 21:57:29.812500000 +0900
+@@ -928,6 +928,9 @@ struct win *wp;
+   RemoveUtmp(wp);
+ #endif
+   CloseDevice(wp);
++  /* signal the child process to exit */
++  /* FIXME: is this right if wp->w_pwin? */
++  Kill(wp->w_pid, SIG_BYE);
+ 
+   if (wp == console_window)
+     {
+@@ -1387,6 +1390,7 @@ char **args, *ttyn;
+   return pid;
+ }
+ 
++#if !defined(__CYGWIN__)
+ void
+ execvpe(prog, args, env)
+ char *prog, **args, **env;
+@@ -1432,6 +1436,7 @@ char *prog, **args, **env;
+   if (eaccess)
+     errno = EACCES;
+ }
++#endif
+ 
+ #ifdef PSEUDOS
+ 

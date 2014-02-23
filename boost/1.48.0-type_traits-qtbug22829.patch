@@ -1,0 +1,14 @@
+--- origsrc/boost_1_48_0/boost/type_traits/has_operator.hpp	2011-10-09 17:28:33.000000000 -0500
++++ src/boost_1_48_0/boost/type_traits/has_operator.hpp	2012-01-02 03:42:14.736036300 -0600
+@@ -6,6 +6,11 @@
+ //
+ //  See http://www.boost.org/libs/type_traits for most recent version including documentation.
+ 
++/* https://bugreports.qt.nokia.com/browse/QTBUG-22829 */
++#ifdef Q_MOC_RUN
++#define BOOST_TT_HAS_OPERATOR_HPP_INCLUDED
++#endif
++
+ #ifndef BOOST_TT_HAS_OPERATOR_HPP_INCLUDED
+ #define BOOST_TT_HAS_OPERATOR_HPP_INCLUDED
+ 

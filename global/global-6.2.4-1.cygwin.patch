@@ -1,0 +1,103 @@
+--- origsrc/global-6.2.4/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/global-6.2.4/CYGWIN-PATCHES/README	2012-10-05 00:50:31.117806000 +0900
+@@ -0,0 +1,90 @@
++global
++------------------------------------------
++GNU GLOBAL source code tagging system:
++GNU GLOBAL is a software which makes your hack and review efficient 
++by adding indexes to your software souce code.
++
++Runtime requirements:
++  ctags
++  cygwin
++
++Build requirements:
++  cygwin
++  cygport-usrlocal
++  gcc
++  binutils
++  autoconf2.5
++  automake1.10
++
++Canonical homepage:
++  http://www.tamacom.com/global.html
++
++Canonical download:
++  http://tamacom.com/global/global-5.9.tar.gz
++
++License:
++  GNU GPLv3, BOKIN model
++
++Language:
++  C
++
++------------------------------------
++
++Build instructions:
++  unpack global-6.2.4-1-src.tar.bz2
++    if you use setup to install this src package, it will be
++	 unpacked under /usr/src automatically
++  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
++  cd /usr/src
++  cygport global-6.2.4-1.cygport all
++
++This will create:
++  /usr/src/global-6.2.4-1.tar.bz2
++  /usr/src/global-6.2.4-1-src.tar.bz2
++
++Or use 'cygport global-6.2.4-1.cygport prep' to get a patched source directory
++
++To find out the files included in the binary distribution, you can
++use "cygcheck -l global".
++
++------------------
++
++Port Notes:
++
++----------  global-6.2.4-1 -- 2010/06/08 -----------
++Routine update to 6.2.4.
++- Remove no longer necessary patches.
++
++----------  global-5.9-1 -- 2010/06/08 -----------
++Routine update to 5.9.
++
++----------  global-5.8-1 -- 2010/02/07 -----------
++Routine update to 5.8.
++
++----------  global-5.7.7-1 -- 2009/12/31 -----------
++Routine update to 5.7.7.
++- Immigrate to Cygwin 1.7.
++
++----------  global-5.7.5-1 -- 2009/03/15 -----------
++Routine update to 5.7.5.
++
++----------  global-5.7.3-1 -- 2008/11/02 -----------
++Routine update to 5.7.3.
++
++----------  global-5.7.2-1 -- 2008/10/13 -----------
++Routine update to 5.7.2.
++
++----------  global-5.7.1-1 -- 2008/04/28 -----------
++Routine update to 5.7.1.
++
++----------  global-5.6.2-1 -- 2007/10/27 -----------
++Just update to 5.6.2.
++
++----------  global-5.6.1-1 -- 2007/08/15 -----------
++Initial cygport release
++
++For more information about this package, see the upstream documentation in
++/usr/share/doc/global-5.9.
++
++This private port maintained by: Yak! <yak_ex@mx.scn.tv>
++Please address all questions to the above address, NOT to the Cygwin mailing list.
+--- origsrc/global-6.2.4/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/global-6.2.4/CYGWIN-PATCHES/setup.hint	2012-10-05 00:50:31.126806900 +0900
+@@ -0,0 +1,7 @@
++@ global
++sdesc: "A source code tag system"
++ldesc: "GNU GLOBAL is a source code tag system that works the same way across diverse environments. You can locate a specified object in the source files and move there easily. It is useful for hacking a large project containing many subdirectories, many #ifdef and many main() functions. It is similar to ctags or etags but is different from them at the point of independence of any editor."
++category: Devel
++requires: cygwin ctags
++curr: 6.2.4-1
++prev: 5.9-1

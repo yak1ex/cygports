@@ -1,0 +1,118 @@
+--- origsrc/ocamlode-0.6/META	2010-01-30 06:39:59.000000000 +0900
++++ src/ocamlode-0.6/META	1970-01-01 09:00:00.000000000 +0900
+@@ -1,7 +0,0 @@
+-name="ocamlode"
+-version="0.6"
+-description="OCaml bindings for the Open Dynamics Engine (ODE)."
+-requires=""
+-archive(byte) = "ode.cma"
+-archive(native) = "ode.cmxa"
+-linkopts = "-cclib \"`ode-config --libs`\""
+--- origsrc/ocamlode-0.6/META.in	1970-01-01 09:00:00.000000000 +0900
++++ src/ocamlode-0.6/META.in	2010-01-30 06:39:59.000000000 +0900
+@@ -0,0 +1,7 @@
++name="ocamlode"
++version="0.6"
++description="OCaml bindings for the Open Dynamics Engine (ODE)."
++requires=""
++archive(byte) = "ode.cma"
++archive(native) = "ode.cmxa"
++linkopts = "-cclib \"`ode-config --libs`\""
+--- origsrc/ocamlode-0.6/Makefile	2010-01-30 06:39:59.000000000 +0900
++++ src/ocamlode-0.6/Makefile	2010-08-16 22:44:37.890625000 +0900
+@@ -42,35 +42,38 @@ MICRO_VERSION := ODE_VERSION_MICRO=$(ODE
+ 
+ ode_c.o: ode_c.c 
+ #        ode_version.h
+-	$(OCAMLC) -c -pp 'cpp -D$(MAJOR_VERSION) -D$(MINOR_VERSION) -D$(MICRO_VERSION)' $<
++	$(OCAMLC) -c -ccopt '-D$(MAJOR_VERSION) -D$(MINOR_VERSION) -D$(MICRO_VERSION)' -ccopt "`ode-config --cflags`" $<
+ 
+ # still another way to get the proper version macros
+ #	$(OCAMLC) -c -pp 'cpp $(shell sh ode_version.sh)' $<
+ 
+-dll_mlode_stubs.so: ode_c.o
+-	ocamlmklib -o  _mlode_stubs  $<  \
++dll_mlode_stubs.so ode.cma ode.cmxa: ode_c.o ode.ml
++	ocamlmklib -oc _mlode_stubs -o ode $^  \
+ 	    `ode-config --libs`
+ 
+-ode.mli: ode.ml
+-	$(OCAMLC) -i $< > $@
++#ode.mli: ode.ml
++#	$(OCAMLC) -i $< > $@
+ 
+-ode.cmi: ode.mli
+-	$(OCAMLC) -c $<
++#ode.cmi: ode.mli
++#	$(OCAMLC) -c $<
+ 
+-ode.cmo: ode.ml ode.cmi
+-	$(OCAMLC) -c $<
++#ode.cmo: ode.ml ode.cmi
++#	$(OCAMLC) -c $<
+ 
+-ode.cma:  ode.cmo  dll_mlode_stubs.so
+-	$(OCAMLC) -a  -custom  -o $@  $<  \
+-	    -dllib dll_mlode_stubs.so
+-
+-ode.cmx: ode.ml ode.cmi
+-	$(OCAMLOPT) -c $<
+-
+-ode.cmxa ode.a:  ode.cmx  dll_mlode_stubs.so
+-	$(OCAMLOPT) -a  -o $@  $<  \
+-	    -cclib -l_mlode_stubs \
+-	    -cclib "`ode-config --libs`"
++#ode.cma:  ode.cmo  dll_mlode_stubs.so
++#	$(OCAMLC) -a  -custom  -o $@  $<  \
++#	    -dllib dll_mlode_stubs.so
++
++#ode.cmx: ode.ml ode.cmi
++#	$(OCAMLOPT) -c $<
++
++#ode.cmxa ode.a:  ode.cmx  dll_mlode_stubs.so
++#	$(OCAMLOPT) -a  -o $@  $<  \
++#	    -cclib -l_mlode_stubs \
++#	    -cclib "`ode-config --libs`"
++
++META: META.in
++	sed -e 's,linkopts.*=.*,linkopts = "$(shell ode-config --libs | xargs -n 1 echo -cclib)",' $< > $@
+ 
+ doc: ode.ml ode.cmi
+ 	if [ ! -d doc ]; then mkdir doc ; fi
+@@ -127,10 +130,11 @@ uninstall:
+ # findlib install 
+ 
+ install_findlib:  $(DIST_FILES)  $(SO_DIST_FILES) META
+-	ocamlfind install ode $^
++	ocamlfind install $(OCAMLFIND_INSTFLAGS) ode $(DIST_FILES) META -dll $(SO_DIST_FILES)
++
+ 
+ uninstall_findlib:  $(DIST_FILES)  $(SO_DIST_FILES) META
+-	ocamlfind remove ode
++	ocamlfind remove $(OCAMLFIND_INSTFLAGS) ode
+ 
+ # tar-ball
+ 
+@@ -138,7 +142,7 @@ VERSION=0.6
+ R_DIR=ocamlode-$(VERSION)
+ TARBALL=$(R_DIR).tar.gz
+ 
+-DIST_FILES := ode.ml  ode_c.c  Makefile  Makefile.orig \
++R_DIST_FILES := ode.ml  ode_c.c  Makefile  Makefile.orig \
+               katamari.ml  katamari.sh \
+               README.txt  CHANGES.txt  META  _style.css  simple.ml
+ 
+@@ -158,11 +162,11 @@ LICENSE_LGPL.txt:
+ 	wget http://www.gnu.org/licenses/lgpl.txt
+ 	mv lgpl.txt $@
+ 
+-$(R_DIR): LICENSE_GPL.txt LICENSE_LGPL.txt  $(DIST_FILES)
++$(R_DIR): LICENSE_GPL.txt LICENSE_LGPL.txt  $(R_DIST_FILES)
+ 	mkdir -p $(R_DIR)
+ 	mv -f LICENSE_GPL.txt  $(R_DIR)/
+ 	mv -f LICENSE_LGPL.txt $(R_DIR)/
+-	cp -f  $(DIST_FILES)   $(R_DIR)/
++	cp -f  $(R_DIST_FILES)   $(R_DIR)/
+ 	cp -f  $(DEMO_FILES)   $(R_DIR)/
+ 	cp -f  ask_version.ml  $(R_DIR)/
+ 	cp -f  ode_version.ml  $(R_DIR)/

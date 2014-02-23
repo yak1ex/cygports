@@ -1,0 +1,20 @@
+inherit usrlocal
+inherit yak-ocaml
+inherit initial
+
+DESCRIPTION='OCaml bindings to the ODE drawstuff'
+LDESCRIPTION='OCaml bindings to the ODE drawstuff'
+LANGUAGE='C and OCaml'
+SRC_URI="http://yak3.myhome.cx:8080/junks/dist/${P}.tar.bz2"
+
+src_compile() {
+    lndirs
+    cd ${B}
+    cygmake
+}
+
+src_install() {
+    ocamlmakefile_install
+    __myprepetc && __myprepman
+    prep_initial_cygwin_doc
+}

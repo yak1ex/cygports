@@ -1,0 +1,89 @@
+inherit python
+inherit usrlocal
+
+DESCRIPTION="Boost C++ libraries"
+HOMEPAGE="http://www.boost.org/"
+SRC_URI="mirror://sourceforge/boost/${PN}_${PV//./_}.tar.bz2"
+SRC_DIR="${PN}_${PV//./_}"
+
+PATCH_URI="
+	boost-1.48.0-foreach.patch
+	1.40.0-cstdint-cygwin.patch
+	1.48.0-asio-cygwin.patch
+	1.48.0-asio-MSG_EOR.patch
+	1.52.0-context-cygwin.patch
+	1.52.0-filesystem-cygwin.patch
+	1.40.0-iostreams-cygwin.patch
+	1.52.0-math-cygwin.patch
+	1.46.1-python-cygwin.patch
+	1.40.0-regex-cygwin.patch
+	1.46.1-system-cygwin.patch
+	1.48.0-type_traits-qtbug22829.patch
+	1.43.0-jam-toolkit.patch
+"
+
+case ${PV} in
+	*.0)	dll_v=${PV%.0} ;;
+	*)	dll_v=${PV} ;;
+esac
+
+PKG_NAMES="${PN} libboost${dll_v} libboost_python${dll_v} libboost-devel"
+PKG_HINTS="boost lib python devel"
+libboost_devel_CONTENTS="${prefix_}/include/ ${prefix_}/lib/ usr/share/doc/"
+declare libboost${dll_v//./_}_CONTENTS="--exclude=*python* ${prefix_}/bin/*-${dll_v//./_}.dll"
+declare libboost_python${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python-*"
+
+DIFF_EXCLUDES="boostbook html *.test"
+
+src_compile() {
+	lndirs
+
+	export BOOST_ROOT=${B}
+
+	cd ${B}
+	${B}/bootstrap.sh \
+		--prefix=${prefix} \
+		--with-icu=/usr \
+		--with-python=${PYTHON} \
+		--with-toolset=gcc \
+		|| error "configure failed"
+
+	cat > user-config.jam <<-_EOF
+	# Compiler configuration
+	using gcc : $(${CXX} -dumpversion) : $(/usr/bin/which ${CXX}) : <cxxflags>"${CXXFLAGS}" <linkflags>"${LDFLAGS}" ;
+	_EOF
+
+	./bjam.exe \
+		-sICU_PATH=/usr \
+		--prefix=${prefix} \
+		--layout=versioned \
+		--user-config=user-config.jam \
+		--without-mpi \
+		release \
+		threading=multi link=shared,static \
+		${MAKEOPTS} \
+		|| true
+}
+
+src_install() {
+	cd ${B}
+	mydobin $(find bin.v2/libs -name '*.dll')
+	mydolib $(find bin.v2/libs -name '*.a')
+
+	dodir ${prefix}/include
+	cp -r ${S}/boost ${D}${prefix}/include/
+
+	# Unit test DLLs broken on Cygwin; results in _WinMain@16 linker errors
+#	rm -f ${D}${prefix}/bin/cygboost_{prg_exec_monitor,unit_test}*.dll \
+#	      ${D}${prefix}/lib/libboost_{prg_exec_monitor,unit_test}*.dll.a
+
+	pushd ${D}${prefix}/lib
+	for lib in libboost_*
+	do
+		vext=${dll_v//./_}
+		mv ${lib} ${lib/-${vext}}
+	done
+	popd
+
+	dodoc README LICENSE_1_0.txt
+}

@@ -1,0 +1,66 @@
+--- origsrc/syck-0.55/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/syck-0.55/CYGWIN-PATCHES/README	2010-01-01 14:44:44.904750000 +0900
+@@ -0,0 +1,53 @@
++syck
++------------------------------------------------------------------------
++Syck is the Simple YAML Cobble-Yourself-Up-a-Parser Kit.
++A swift, staunch C extension for many agile languages: Ruby, Python, PHP, OCaml.
++
++Runtime requirements:
++
++Build requirements:
++
++
++Canonical homepage:
++  http://rubyforge.org/projects/syck/
++
++Canonical download:
++  http://files.rubyforge.mmmultiworks.com/syck/syck-0.55.tar.gz
++
++License:
++  BSD License
++
++Language:
++  C
++
++------------------------------------------------------------------------
++
++Build instructions:
++  unpack syck-0.55-2-src.tar.bz2
++    if you use setup to install this src package, it will be
++	 unpacked under /usr/src automatically
++  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
++  cd /usr/src
++  cygport syck-0.55-2.cygport all
++
++This will create:
++  syck-0.55-2.tar.bz2
++  syck-0.55-2-src.tar.bz2
++
++Or use 'cygport syck-0.55-2.cygport prep' to get a patched source directory
++
++To find out the files included in the binary distribution, you can
++use "cygcheck -l syck".
++
++------------------------------------------------------------------------
++
++Port Notes:
++
++----------  syck-0.55-2 -- 2010/01/01 ----------------------------
++Initial release.
++
++For more information about this package, see the upstream documentation in
++/usr/share/doc/syck-0.55-2.
++
++This private port maintained by: Yak! <yak_ex@mx.scn.tv>
++Please address all questions to the above address, NOT to the Cygwin mailing list.
+--- origsrc/syck-0.55/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/syck-0.55/CYGWIN-PATCHES/setup.hint	2010-01-01 14:44:45.154750000 +0900
+@@ -0,0 +1,7 @@
++@ syck
++sdesc: "Syck is the Simple YAML Cobble-Yourself-Up-a-Parser Kit"
++ldesc: "Syck is the Simple YAML Cobble-Yourself-Up-a-Parser Kit.
++A swift, staunch C extension for many agile languages: Ruby, Python, PHP, OCaml."
++category: Libs Text
++requires: 
++curr: 0.55-2

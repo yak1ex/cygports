@@ -1,0 +1,76 @@
+--- origsrc/findlib-1.2.5/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/findlib-1.2.5/CYGWIN-PATCHES/README	2010-08-14 13:51:54.258125000 +0900
+@@ -0,0 +1,59 @@
++findlib
++------------------------------------------------------------------------
++Findlib is a library manager for Objective Caml. 
++It provides a convention how to store libraries, and a file 
++format (META) to describe the properties of libraries. 
++There is also a tool (ocamlfind) for interpreting the META 
++files, so that it is very easy to use libraries in programs 
++and scripts.
++
++Runtime requirements:
++  cygwin
++  libgcc1
++
++Build requirements:
++  ocaml_
++
++Canonical homepage:
++  http://projects.camlcity.org/projects/findlib.html
++
++Canonical download:
++  http://download.camlcity.org/download/findlib-1.2.5.tar.gz
++
++License:
++  MIT license
++
++Language:
++  OCaml
++
++------------------------------------------------------------------------
++
++Build instructions:
++  unpack findlib-1.2.5-1-src.tar.bz2
++    if you use setup to install this src package, it will be
++	 unpacked under /usr/src automatically
++  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
++  cd /usr/src
++  cygport findlib-1.2.5-1.cygport all
++
++This will create:
++  findlib-1.2.5-1.tar.bz2
++  findlib-1.2.5-1-src.tar.bz2
++
++Or use 'cygport findlib-1.2.5-1.cygport prep' to get a patched source directory
++
++To find out the files included in the binary distribution, you can
++use "cygcheck -l findlib".
++
++------------------------------------------------------------------------
++
++Port Notes:
++
++----------  findlib-1.2.5-1 -- 2010/08/13 ----------------------------
++Initial release.
++
++For more information about this package, see the upstream documentation in
++/usr/share/doc/findlib-1.2.5-1.
++
++This private port maintained by: Yak! <yak_ex@mx.scn.tv>
++Please address all questions to the above address, NOT to the Cygwin mailing list.
+--- origsrc/findlib-1.2.5/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/findlib-1.2.5/CYGWIN-PATCHES/setup.hint	2010-08-14 13:51:54.273750000 +0900
+@@ -0,0 +1,11 @@
++@ findlib
++sdesc: "A library manager for Objective Caml"
++ldesc: "Findlib is a library manager for Objective Caml. 
++It provides a convention how to store libraries, and a file 
++format (META) to describe the properties of libraries. 
++There is also a tool (ocamlfind) for interpreting the META 
++files, so that it is very easy to use libraries in programs 
++and scripts."
++category: Devel
++requires: cygwin libgcc1
++curr: 1.2.5-1

@@ -1,0 +1,465 @@
+--- origsrc/graphviz-2.26.3/cmd/lefty/common.h	2009-06-03 10:10:47.000000000 +0900
++++ src/graphviz-2.26.3/cmd/lefty/common.h	2011-04-10 00:39:21.284898400 +0900
+@@ -32,7 +32,7 @@ extern "C" {
+  */
+ #define FEATURE_MINTSIZE 1 
+ #define FEATURE_DOT 1
+-#if defined(WIN32) || defined(MSWIN32)
++#if defined(WIN32) || defined(MSWIN32) || defined(CYGWIN_WIN32)
+ #ifndef FEATURE_WIN32
+ #define FEATURE_WIN32 1
+ #endif
+--- origsrc/graphviz-2.26.3/cmd/lefty/lefty.c	2009-06-03 10:10:48.000000000 +0900
++++ src/graphviz-2.26.3/cmd/lefty/lefty.c	2011-04-10 00:39:21.286898400 +0900
+@@ -210,6 +210,61 @@ eop:
+ 
+ #else
+ 
++#ifdef __CYGWIN__
++static int parse_arg(char *arg, char **argv)
++{
++    enum { NORMAL, DELIMITED, QUOTED, ESCAPED, ESCAPED_QUOTED } state;
++    int num = 0;
++    state = DELIMITED;
++    while(*arg != 0) { 
++        switch(*arg) {
++        case '"':  
++            switch(state) {
++            case NORMAL: state = QUOTED;                                                         break;
++            case DELIMITED:      state = QUOTED;         if(argv) argv[num++] = arg; else ++num; break;
++            case QUOTED:         state = NORMAL;                                                 break;
++            case ESCAPED:        state = NORMAL;                                                 break;
++            case ESCAPED_QUOTED: state = QUOTED;                                                 break;
++            }
++            break;
++        case '\\':
++            switch(state) {
++            case NORMAL:         state = ESCAPED;                                                break;
++            case DELIMITED:      state = ESCAPED;        if(argv) argv[num++] = arg; else ++num; break;
++            case QUOTED:         state = ESCAPED_QUOTED;                                         break;
++            case ESCAPED:        state = NORMAL;                                                 break;
++            case ESCAPED_QUOTED: state = QUOTED;                                                 break;
++            }
++            break;
++        case ' ':
++        case '\t':
++        case '\r':
++        case '\n':
++            switch(state) {
++            case NORMAL:         state = DELIMITED;      if(argv) *arg = 0;                      break;
++            case DELIMITED:      state = DELIMITED;                                              break;
++            case QUOTED:         state = QUOTED;                                                 break;
++            case ESCAPED:        state = NORMAL;                                                 break;
++            case ESCAPED_QUOTED: state = QUOTED;                                                 break;
++            }
++            break;
++        default:
++            switch(state) {
++            case NORMAL:                                                                         break;
++            case DELIMITED:      state = NORMAL;         if(argv) argv[num++] = arg; else ++num; break;
++            case QUOTED:         state = QUOTED;                                                 break;
++            case ESCAPED:        state = NORMAL;                                                 break;
++            case ESCAPED_QUOTED: state = QUOTED;                                                 break;
++            }
++            break;
++        }
++        ++arg;
++    }
++    if(argv) argv[num] = 0;
++    return num;
++}
++#endif
++
+ HINSTANCE hinstance, hprevinstance;
+ 
+ int APIENTRY WinMain (
+@@ -217,6 +272,10 @@ int APIENTRY WinMain (
+ ) {
+     Tobj co;
+     Psrc_t src;
++#ifdef __CYGWIN__
++    char **__argv, *buf;
++    int __argc;
++#endif
+ 
+     hinstance = hInstance;
+     hprevinstance = hPrevInstance;
+@@ -234,6 +293,12 @@ int APIENTRY WinMain (
+     Eshowbody = 1;
+     Eshowcalls = 1;
+ 
++#ifdef __CYGWIN__
++    buf = strdup(GetCommandLine());
++    __argc = parse_arg(buf, NULL);
++    __argv = malloc(sizeof(char*) * (__argc + 1));
++    parse_arg(buf, __argv);
++#endif
+     processstr (leftyoptions);
+     __argv++, __argc--;
+     processargs (__argc, __argv);
+--- origsrc/graphviz-2.26.3/config/config_perl.pl	2008-07-14 21:54:04.000000000 +0900
++++ src/graphviz-2.26.3/config/config_perl.pl	2011-04-10 00:39:21.288898400 +0900
+@@ -4,6 +4,7 @@ if ($ARGV[0] eq "PERL_LIBS") {
+ 	$archlib = $Config{archlib};
+ 	$libperl = $Config{libperl};
+ 	$libperl =~ s/lib([^\.]+).*/$1/;
++	$libperl =~ s/cyg([^\d\.]+).*/$1/;
+ 	print "-L$archlib/CORE -l$libperl";
+ }
+ if ($ARGV[0] eq "PERL_INCLUDES") {
+--- origsrc/graphviz-2.26.3/configure.ac	2010-01-27 01:00:29.000000000 +0900
++++ src/graphviz-2.26.3/configure.ac	2011-04-10 00:39:21.292898400 +0900
+@@ -175,7 +175,12 @@ AC_SUBST(EXTRA_SMYRNA_LDFLAGS)
+ AC_DEFINE_UNQUOTED(DEFAULT_FONTPATH,"$DEFAULT_FONTPATH",[Path to TrueType fonts.])
+ AC_DEFINE_UNQUOTED(PATHSEPARATOR,"$PATHSEPARATOR",[Path separator character.])
+ AC_DEFINE_UNQUOTED(NO_POSTSCRIPT_ALIAS,$NO_POSTSCRIPT_ALIAS,[Postscript fontnames.])
+-AM_CONDITIONAL(WITH_WIN32, [test "x$UWIN" = "xyes" -o "x$CYGWIN" = "xyes" -o "x$MINGW32" = "xyes"])
++AC_ARG_WITH(win32, [AC_HELP_STRING([--without-win32], [Disable win32 window system])], [], [with_win32=yes])
++AM_CONDITIONAL(WITH_WIN32, [test "x$with_win32" = "xyes" -a \( "x$UWIN" = "xyes" -o "x$CYGWIN" = "xyes" -o "x$MINGW32" = "xyes" \)])
++if test "x$with_win32" = "xyes" -a "x$CYGWIN" = "xyes"; then
++    CFLAGS="${CFLAGS} -DCYGWIN_WIN32"
++    CXXFLAGS="${CXXFLAGS} -DCYGWIN_WIN32"
++fi
+ AM_CONDITIONAL(WITH_DARWIN9, [test "x$DARWIN9" = "xyes"])
+ 
+ DEFAULT_DPI=96
+@@ -1440,7 +1445,7 @@ if test "x$enable_tcl" != "xyes"; then
+ fi
+ 
+ if test "x$use_tcl" = "x"; then
+-  TCL_VERSION_FOUND=`echo 'puts [[info tclversion]]' | $TCLSH`
++  TCL_VERSION_FOUND=`echo 'puts [[info tclversion]]' | $TCLSH | tr -d "\015"`
+ 
+   # can't assume ksh on all architectures
+   # TCLSH_EXEC_PREFIX=${TCLSH%%/bin/tclsh.*}
+--- origsrc/graphviz-2.26.3/lib/common/globals.c	2009-06-03 10:10:52.000000000 +0900
++++ src/graphviz-2.26.3/lib/common/globals.c	2011-04-10 00:39:21.294898400 +0900
+@@ -18,8 +18,9 @@
+ #include "config.h"
+ #endif
+ 
+-#define EXTERN
+ #include "types.h"
++#define EXTERN __declspec(dllexport)
++#define extern __declspec(dllexport)
+ #include "globals.h"
+ 
+ /* Default layout values, possibly set via command line; -1 indicates unset */
+--- origsrc/graphviz-2.26.3/lib/common/timing.c	2009-06-03 10:10:52.000000000 +0900
++++ src/graphviz-2.26.3/lib/common/timing.c	2011-04-10 00:39:21.295898400 +0900
+@@ -45,11 +45,13 @@ typedef clock_t mytime_t;
+ 
+ static mytime_t T;
+ 
++__declspec(dllexport)
+ void start_timer(void)
+ {
+     GET_TIME(T);
+ }
+ 
++__declspec(dllexport)
+ double elapsed_sec(void)
+ {
+     mytime_t S;
+--- origsrc/graphviz-2.26.3/lib/gvc/gvcext.h	2009-07-09 00:14:20.000000000 +0900
++++ src/graphviz-2.26.3/lib/gvc/gvcext.h	2011-04-10 00:39:21.297898400 +0900
+@@ -76,14 +76,15 @@ __declspec(dllexport) lt_symlist_t lt_pr
+ /*end visual studio*/
+ 
+ 
+-#ifndef WIN32_DLL
+-#if defined(GVDLL)
++#if !defined(WIN32_DLL)
++#if defined(GVDLL) && !defined(__CYGWIN__)
+ 	__declspec(dllexport) lt_symlist_t lt_preloaded_symbols[];
+ #else
++#ifndef lt_preloaded_symbols
+ 	extern lt_symlist_t lt_preloaded_symbols[];
+ #endif
+ #endif
+-
++#endif
+ 
+ #ifdef __cplusplus
+ }
+--- origsrc/graphviz-2.26.3/lib/gvpr/compile.c	2009-11-23 04:10:33.000000000 +0900
++++ src/graphviz-2.26.3/lib/gvpr/compile.c	2011-04-10 00:39:21.300898400 +0900
+@@ -77,7 +77,7 @@ static int ioflush(void *chan)
+ 
+ static Agiodisc_t gprIoDisc = { iofread, ioputstr, ioflush };
+ 
+-#ifdef WIN32
++#if defined(WIN32) || defined(__CYGWIN__)
+ static Agdisc_t gprDisc = { 0, 0, &gprIoDisc };
+ #else
+ static Agdisc_t gprDisc = { &AgMemDisc, &AgIdDisc, &gprIoDisc };
+@@ -2457,7 +2457,7 @@ Agraph_t *readG(Sfio_t * fp)
+ {
+     Agraph_t *g;
+ 
+-#ifdef WIN32
++#if defined(WIN32) || defined(__CYGWIN__)
+     gprDisc.mem = &AgMemDisc;
+     gprDisc.id = &AgIdDisc;
+ #endif
+--- origsrc/graphviz-2.26.3/lib/gvpr/gvpr.c	2009-11-06 04:33:49.000000000 +0900
++++ src/graphviz-2.26.3/lib/gvpr/gvpr.c	2011-04-10 00:39:21.302898400 +0900
+@@ -840,6 +840,9 @@ gverrorf (Expr_t *handle, Exdisc_t *disc
+  *  - supply input edge during traversal
+  *  - do automatic cast for array indices if type is known
+  */
++#ifdef __CYGWIN__
++__declspec(dllexport)
++#endif
+ int gvpr (int argc, char *argv[], gvpropts * uopts)
+ {
+     Sfdisc_t errdisc;
+--- origsrc/graphviz-2.26.3/m4/argz.m4	2010-01-27 01:00:58.000000000 +0900
++++ src/graphviz-2.26.3/m4/argz.m4	2011-04-10 00:41:11.769203200 +0900
+@@ -66,7 +66,7 @@ AS_IF([test -z "$ARGZ_H"],
+ 	   ;; #(
+ 	 *) lt_cv_sys_argz_works=yes ;;
+ 	 esac]])
+-     AS_IF([test $lt_cv_sys_argz_works = yes],
++     AS_IF([test "$lt_cv_sys_argz_works" = yes],
+         [AC_DEFINE([HAVE_WORKING_ARGZ], 1,
+                    [This value is set to 1 to indicate that the system argz facility works])],
+         [ARGZ_H=argz.h
+--- origsrc/graphviz-2.26.3/m4/ltdl.m4	2010-01-27 01:00:58.000000000 +0900
++++ src/graphviz-2.26.3/m4/ltdl.m4	2011-04-10 00:41:14.062203200 +0900
+@@ -7,7 +7,7 @@
+ # unlimited permission to copy and/or distribute it, with or without
+ # modifications, as long as this notice is preserved.
+ 
+-# serial 17 LTDL_INIT
++# serial 18 LTDL_INIT
+ 
+ # LT_CONFIG_LTDL_DIR(DIRECTORY, [LTDL-MODE])
+ # ------------------------------------------
+@@ -407,10 +407,16 @@ AC_CHECK_HEADERS([unistd.h dl.h sys/dl.h
+ AC_CHECK_FUNCS([closedir opendir readdir], [], [AC_LIBOBJ([lt__dirent])])
+ AC_CHECK_FUNCS([strlcat strlcpy], [], [AC_LIBOBJ([lt__strl])])
+ 
++m4_pattern_allow([LT_LIBEXT])dnl
+ AC_DEFINE_UNQUOTED([LT_LIBEXT],["$libext"],[The archive extension])
+ 
++name=
++eval "lt_libprefix=\"$libname_spec\""
++m4_pattern_allow([LT_LIBPREFIX])dnl
++AC_DEFINE_UNQUOTED([LT_LIBPREFIX],["$lt_libprefix"],[The archive prefix])
++
+ name=ltdl
+-LTDLOPEN=`eval "\\$ECHO \"$libname_spec\""`
++eval "LTDLOPEN=\"$libname_spec\""
+ AC_SUBST([LTDLOPEN])
+ ])# _LTDL_SETUP
+ 
+@@ -467,7 +473,7 @@ AC_CACHE_CHECK([whether deplibs are load
+   freebsd* | dragonfly*)
+     lt_cv_sys_dlopen_deplibs=yes
+     ;;
+-  gnu* | linux* | k*bsd*-gnu)
++  gnu* | linux* | k*bsd*-gnu | kopensolaris*-gnu)
+     # GNU and its variants, using gnu ld.so (Glibc)
+     lt_cv_sys_dlopen_deplibs=yes
+     ;;
+--- origsrc/graphviz-2.26.3/macosx/build/graphviz.pmdoc/02graphviz.xml	2010-01-27 01:02:11.000000000 +0900
++++ src/graphviz-2.26.3/macosx/build/graphviz.pmdoc/02graphviz.xml	2011-04-10 00:50:59.097898400 +0900
+@@ -1 +1 @@
+-<pkgref spec="1.12" uuid="03F0738B-6325-4254-B837-515A7C080003"><config><identifier>com.att.graphviz.gui.pkg</identifier><version>2.26.3</version><description></description><post-install type="none"/><requireAuthorization/><installFrom relative="true" mod="true" includeRoot="true">Release/Graphviz.app</installFrom><installTo relocatable="true">/Applications</installTo><flags><followSymbolicLinks/></flags><packageStore type="internal"></packageStore><mod>parent</mod><mod>relocatable</mod><mod>version</mod><mod>installFrom.isRelativeType</mod><mod>identifier</mod></config><contents><file-list>02graphviz-contents.xml</file-list><component id="com.att.graphviz" path="/home/gviz/tmp/gviz/graphviz2/macosx/build/Release/Graphviz.app" version="2.26.3"><mod>isRelocatable</mod></component><filter>/CVS$</filter><filter>/\.svn$</filter><filter>/\.cvsignore$</filter><filter>/\.cvspass$</filter><filter>/\.DS_Store$</filter></contents></pkgref>
++<pkgref spec="1.12" uuid="03F0738B-6325-4254-B837-515A7C080003"><config><identifier>com.att.graphviz.gui.pkg</identifier><version>2.26.3</version><description></description><post-install type="none"/><requireAuthorization/><installFrom relative="true" mod="true" includeRoot="true">Release/Graphviz.app</installFrom><installTo relocatable="true">/Applications</installTo><flags><followSymbolicLinks/></flags><packageStore type="internal"></packageStore><mod>parent</mod><mod>relocatable</mod><mod>version</mod><mod>installFrom.isRelativeType</mod><mod>identifier</mod></config><contents><file-list>02graphviz-contents.xml</file-list><component id="com.att.graphviz" path="/var/tmp/graphviz-2.26.3-1/build/macosx/build/Release/Graphviz.app" version="2.26.3"><mod>isRelocatable</mod></component><filter>/CVS$</filter><filter>/\.svn$</filter><filter>/\.cvsignore$</filter><filter>/\.cvspass$</filter><filter>/\.DS_Store$</filter></contents></pkgref>
+--- origsrc/graphviz-2.26.3/plugin/dot_layout/gvplugin_dot_layout.c	2009-06-03 10:10:56.000000000 +0900
++++ src/graphviz-2.26.3/plugin/dot_layout/gvplugin_dot_layout.c	2011-04-10 00:39:21.304898400 +0900
+@@ -15,6 +15,7 @@
+ **********************************************************/
+ 
+ #include "gvplugin.h"
++#include "config.h"
+ 
+ extern gvplugin_installed_t gvlayout_dot_layout[];
+ 
+--- origsrc/graphviz-2.26.3/plugin/neato_layout/gvplugin_neato_layout.c	2009-06-03 10:10:57.000000000 +0900
++++ src/graphviz-2.26.3/plugin/neato_layout/gvplugin_neato_layout.c	2011-04-10 00:39:21.305898400 +0900
+@@ -15,6 +15,7 @@
+ **********************************************************/
+ 
+ #include "gvplugin.h"
++#include "config.h"
+ 
+ extern gvplugin_installed_t gvlayout_neato_types[];
+ 
+--- origsrc/graphviz-2.26.3/tclpkg/gv/Makefile.am	2009-06-12 01:03:37.000000000 +0900
++++ src/graphviz-2.26.3/tclpkg/gv/Makefile.am	2011-04-10 00:39:21.309898400 +0900
+@@ -33,7 +33,7 @@ SHARP_data = gv.cs gvPINVOKE.cs SWIGTYPE
+ nodist_libgv_sharp_la_SOURCES = gv_sharp.cpp $(SHARP_data)
+ libgv_sharp_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_sharp_la_LIBADD = $(BASELIBS) $(SHARP_LIBS) 
+-libgv_sharp_la_LDFLAGS = -module -avoid-version
++libgv_sharp_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_sharp_la_CPPFLAGS = $(BASECPPFLAGS) $(SHARP_INCLUDES)
+ $(SHARP_data): gv_sharp.cpp
+ gv_sharp.cpp: gv.i
+@@ -44,7 +44,7 @@ GUILE_data =
+ nodist_libgv_guile_la_SOURCES = gv_guile.cpp $(GUILE_data)
+ libgv_guile_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_guile_la_LIBADD = $(BASELIBS) $(GUILE_LIBS)
+-libgv_guile_la_LDFLAGS = -module -avoid-version
++libgv_guile_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_guile_la_CPPFLAGS = $(BASECPPFLAGS) $(GUILE_INCLUDES)
+ $(GUILE_data): gv_guile.cpp
+ gv_guile.cpp: gv.i
+@@ -57,7 +57,7 @@ IO_data =
+ nodist_libgv_io_la_SOURCES = gv_io.cpp $(IO_data)
+ libgv_io_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_io_la_LIBADD = $(BASELIBS) $(IO_LIBS)
+-libgv_io_la_LDFLAGS = -module -avoid-version
++libgv_io_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_io_la_CPPFLAGS = $(BASECPPFLAGS) $(IO_INCLUDES)
+ $(IO_data): gv_io.cpp
+ gv_io.cpp: gv.i
+@@ -68,7 +68,7 @@ JAVA_data = gv.java gvJNI.java SWIGTYPE_
+ nodist_libgv_java_la_SOURCES = gv_java.cpp
+ libgv_java_la_SOURCES = $(BASESOURCES)  gv_dummy_init.c
+ libgv_java_la_LIBADD = $(BASELIBS) $(JAVA_LIBS)
+-libgv_java_la_LDFLAGS = -module -avoid-version
++libgv_java_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_java_la_CPPFLAGS = $(BASECPPFLAGS) $(JAVA_INCLUDES)
+ $(JAVA_data): gv_java.cpp
+ gv_java.cpp: gv.i
+@@ -79,7 +79,7 @@ LUA_data =
+ nodist_libgv_lua_la_SOURCES = gv_lua.cpp $(LUA_data)
+ libgv_lua_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_lua_la_LIBADD = $(BASELIBS) $(LUA_LIBS)
+-libgv_lua_la_LDFLAGS = -module -avoid-version
++libgv_lua_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_lua_la_CPPFLAGS = $(BASECPPFLAGS) $(LUA_INCLUDES)
+ $(LUA_data): gv_lua.cpp
+ gv_lua.cpp: gv.i
+@@ -95,7 +95,7 @@ endif
+ nodist_libgv_ocaml_la_SOURCES = gv_ocaml.cpp $(OCAML_data)
+ libgv_ocaml_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_ocaml_la_LIBADD = $(BASELIBS) $(OCAML_LIBS)
+-libgv_ocaml_la_LDFLAGS = -module -avoid-version
++libgv_ocaml_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_ocaml_la_CPPFLAGS = $(BASECPPFLAGS) $(OCAML_INCLUDES)
+ gv.ml gv.mli: gv_ocaml.cpp
+ gv_ocaml.cpp: gv.i
+@@ -125,7 +125,7 @@ PERL_data = gv.pm
+ nodist_libgv_perl_la_SOURCES = gv_perl.cpp $(PERL_data)
+ libgv_perl_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_perl_la_LIBADD = $(BASELIBS) $(PERL_LIBS)
+-libgv_perl_la_LDFLAGS = -module -avoid-version
++libgv_perl_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_perl_la_CPPFLAGS = $(BASECPPFLAGS) $(PERL_INCLUDES)
+ $(PERL_data): gv_perl.cpp
+ gv_perl.cpp: gv.i
+@@ -136,7 +136,7 @@ PHP_data = gv.php
+ nodist_libgv_php_la_SOURCES = gv_php.cpp php_gv.h
+ libgv_php_la_SOURCES = $(BASESOURCES) gv_php_init.c
+ libgv_php_la_LIBADD = $(BASELIBS) $(PHP_LIBS)
+-libgv_php_la_LDFLAGS = -module -avoid-version
++libgv_php_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_php_la_CPPFLAGS = $(BASECPPFLAGS) $(PHP_INCLUDES)
+ gv.php: gv_php.cpp
+ php_gv.h: gv_php.cpp
+@@ -148,7 +148,7 @@ PYTHON_data = gv.py
+ nodist_libgv_python_la_SOURCES = gv_python.cpp $(PYTHON_data)
+ libgv_python_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_python_la_LIBADD = $(BASELIBS) $(PYTHON_LIBS)
+-libgv_python_la_LDFLAGS = -module -avoid-version
++libgv_python_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_python_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON_INCLUDES)
+ $(PYTHON_data): gv_python.cpp
+ gv_python.cpp: gv.i
+@@ -159,7 +159,7 @@ PYTHON23_data = gv.py
+ nodist_libgv_python23_la_SOURCES = gv_python23.cpp $(PYTHON23_data)
+ libgv_python23_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_python23_la_LIBADD = $(BASELIBS) $(PYTHON23_LIBS)
+-libgv_python23_la_LDFLAGS = -module -avoid-version
++libgv_python23_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_python23_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON23_INCLUDES)
+ # $(PYTHON23_data): gv_python.cpp
+ gv_python23.cpp: gv.i
+@@ -170,7 +170,7 @@ PYTHON24_data = gv.py
+ nodist_libgv_python24_la_SOURCES = gv_python24.cpp $(PYTHON24_data)
+ libgv_python24_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_python24_la_LIBADD = $(BASELIBS) $(PYTHON24_LIBS)
+-libgv_python24_la_LDFLAGS = -module -avoid-version
++libgv_python24_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_python24_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON24_INCLUDES)
+ # $(PYTHON_data): gv_python.cpp
+ gv_python24.cpp: gv.i
+@@ -181,7 +181,7 @@ PYTHON25_data = gv.py
+ nodist_libgv_python25_la_SOURCES = gv_python25.cpp $(PYTHON25_data)
+ libgv_python25_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_python25_la_LIBADD = $(BASELIBS) $(PYTHON25_LIBS)
+-libgv_python25_la_LDFLAGS = -module -avoid-version
++libgv_python25_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_python25_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON25_INCLUDES)
+ # $(PYTHON_data): gv_python.cpp
+ gv_python25.cpp: gv.i
+@@ -192,7 +192,7 @@ PYTHON26_data = gv.py
+ nodist_libgv_python26_la_SOURCES = gv_python26.cpp $(PYTHON26_data)
+ libgv_python26_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_python26_la_LIBADD = $(BASELIBS) $(PYTHON26_LIBS)
+-libgv_python26_la_LDFLAGS = -module -avoid-version
++libgv_python26_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_python26_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON26_INCLUDES)
+ # $(PYTHON_data): gv_python.cpp
+ gv_python26.cpp: gv.i
+@@ -203,7 +203,7 @@ R_data =
+ nodist_libgv_R_la_SOURCES = gv_R.cpp $(R_data)
+ libgv_R_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_R_la_LIBADD = $(BASELIBS) $(R_LIBS)
+-libgv_R_la_LDFLAGS = -module -avoid-version
++libgv_R_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_R_la_CPPFLAGS = $(BASECPPFLAGS) $(R_CFLAGS)
+ $(R_data): gv_R.cpp
+ gv_R.cpp: gv.i
+@@ -214,7 +214,7 @@ RUBY_data =
+ nodist_libgv_ruby_la_SOURCES = gv_ruby.cpp $(RUBY_data)
+ libgv_ruby_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
+ libgv_ruby_la_LIBADD = $(BASELIBS) $(RUBY_LIBS)
+-libgv_ruby_la_LDFLAGS = -module -avoid-version
++libgv_ruby_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_ruby_la_CPPFLAGS = $(BASECPPFLAGS) $(RUBY_INCLUDES)
+ $(RUBY_data): gv_ruby.cpp
+ gv_ruby.cpp: gv.i
+@@ -225,7 +225,7 @@ TCL_data =
+ nodist_libgv_tcl_la_SOURCES = gv_tcl.cpp $(TCL_data)
+ libgv_tcl_la_SOURCES = $(BASESOURCES) gv_tcl_init.c
+ libgv_tcl_la_LIBADD = $(top_builddir)/tclpkg/tclstubs/libtclstubs_C.la $(BASELIBS) $(TCL_LIBS)
+-libgv_tcl_la_LDFLAGS = -module -avoid-version
++libgv_tcl_la_LDFLAGS = -module -avoid-version -no-undefined
+ libgv_tcl_la_CPPFLAGS = $(BASECPPFLAGS) $(TCL_INCLUDES)
+ $(TCL_data): gv_tcl.cpp
+ gv_tcl.cpp: gv.i
+--- origsrc/graphviz-2.26.3/windows/build/graphviz.wxs	2010-01-27 01:02:11.000000000 +0900
++++ src/graphviz-2.26.3/windows/build/graphviz.wxs	2011-04-10 00:50:59.638898400 +0900
+@@ -4,7 +4,7 @@
+ 		Id="*"
+ 		Name="Graphviz"
+ 		Language="1033"
+-		Version="2.26.0.0"
++		Version="2.26.."
+ 		Manufacturer="AT&amp;T"
+ 		UpgradeCode="AF1FC8C2-70F0-449C-AF20-B43545CC68D1">
+ 		<!-- Product Id is autogenerated, so every build is a "major upgrade" -->
+@@ -35,7 +35,7 @@
+ 		<Upgrade Id="AF1FC8C2-70F0-449C-AF20-B43545CC68D1">
+ 			<!-- don't install over same or newer versions -->
+ 			<UpgradeVersion
+-				Minimum="2.26.0.0"
++				Minimum="2.26.."
+ 				IncludeMinimum="yes"
+ 				OnlyDetect="yes"
+ 				Language="1033"
+@@ -44,7 +44,7 @@
+ 			<UpgradeVersion
+ 				Minimum="0.0.0.0"
+ 				IncludeMinimum="yes"
+-				Maximum="2.26.0.0"
++				Maximum="2.26.."
+ 				IncludeMaximum="no"
+ 				Language="1033"
+ 				Property="UPGRADEFOUND" />

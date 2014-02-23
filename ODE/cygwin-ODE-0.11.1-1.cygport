@@ -1,0 +1,52 @@
+inherit usrlocal
+inherit initial
+
+DESCRIPTION="Open Dynamics Engine"
+LDESCRIPTION="ODE is an open source, high performance library for simulating rigid body 
+dynamics. It is fully featured, stable, mature and platform independent 
+with an easy to use C/C++ API. It has advanced joint types and integrated 
+collision detection with friction."
+CATEGORY="Devel Libs"
+HOMEPAGE="http://www.ode.org/"
+SRC_URI="mirror://sourceforge/opende/ode-${PV}.zip"
+SRC_DIR=ode-${PV}
+LICENSE="  GNU LGPL verion 2.1 or later, or BSD License"
+LANGUAGE="C/C++"
+
+PKG_NAMES="${PN} ${PN}-demo ${PN}-doc ${PN}-texture ${PN__}libode1"
+PKG_HINTS="devel demo doc texture lib"
+PKG_CONTENTS[0]="${prefix#/}/bin/ode-config ${prefix#/}/include ${prefix#/}/lib ${prefix#/}/share/drawstuff/resource* usr/share/doc/Cygwin/${PN}* usr/share/doc/${PN}"
+PKG_CONTENTS[1]="${prefix#/}/bin/*.exe"
+PKG_CONTENTS[2]="${prefix#/}/share/doc/ode"
+PKG_CONTENTS[3]="${prefix#/}/share/drawstuff/textures"
+PKG_CONTENTS[4]="${prefix#/}/bin/*.dll"
+
+src_compile() {
+    cd ${S}
+    cygautoreconf
+    lndirs
+    cd ${B}/ode/doc
+    doxygen
+    cd ${B}
+    mycygconf --without-x --enable-release --enable-double-precision --enable-shared CFLAGS=-DUSE_OPENGL32 CXXFLAGS=-DUSE_OPENGL32
+    cygmake
+}
+
+src_install() {
+    cd ${B}
+    mycyginstall
+    prep_initial_cygwin_doc
+
+    insinto ${prefix}/lib/drawstuff
+    doins ${B}/drawstuff/src/.libs/resources.o
+    insinto ${prefix}/share/doc/ode
+    doins ${B}/docs/*
+    insinto ${prefix}/share/doc/ode/pix
+    doins ${B}/ode/doc/pix/*
+    insinto ${prefix}/include/drawstuff
+    doins ${B}/include/drawstuff/*
+    insinto ${prefix}/share/drawstuff/textures
+    doins ${B}/drawstuff/textures/*
+    insinto ${prefix}/share/drawstuff
+    doins ${B}/drawstuff/src/resources.rc ${B}/drawstuff/src/resource.h
+}

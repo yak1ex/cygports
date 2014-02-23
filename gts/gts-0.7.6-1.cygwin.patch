@@ -1,0 +1,121 @@
+--- origsrc/gts-0.7.6/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/gts-0.7.6/CYGWIN-PATCHES/README	2010-03-10 07:45:59.572003200 +0900
+@@ -0,0 +1,70 @@
++gts
++------------------------------------------------------------------------
++GTS stands for the GNU Triangulated Surface Library.
++It is an Open Source Free Software Library intended 
++to provide a set of useful functions to deal with 
++3D surfaces meshed with interconnected triangles.
++
++Runtime requirements:
++  cygwin
++  libglib2.0_0
++  libnetpbm10
++
++Build requirements:
++  cygwin
++  cygport-usrlocal
++  gcc
++  binutils
++  autoconf2.5
++  automake1.8
++  libgtk2.0_0
++  libgtk2.0-devel
++  libnetpbm10
++  libnetpbm-devel
++
++Canonical homepage:
++  http://gts.sourceforge.net/
++
++Canonical download:
++  mirror://sourceforge/gts/gts-0.7.6.tar.gz
++
++License:
++  LGPL
++
++Language:
++  C
++
++------------------------------------------------------------------------
++
++Build instructions:
++  unpack gts-0.7.6-1-src.tar.bz2
++    if you use setup to install this src package, it will be
++	 unpacked under /usr/src automatically
++  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
++  cd /usr/src
++  cygport gts-0.7.6-1.cygport all
++
++This will create:
++  gts-0.7.6-1.tar.bz2
++  gts-0.7.6-1-src.tar.bz2
++  gts-doc-0.7.6-1.tar.bz2
++  libgts5-0.7.6-1.tar.bz2
++  libgts-devel-0.7.6-1.tar.bz2
++
++Or use 'cygport gts-0.7.6-1.cygport prep' to get a patched source directory
++
++To find out the files included in the binary distribution, you can
++use "cygcheck -l gts".
++
++------------------------------------------------------------------------
++
++Port Notes:
++
++----------  gts-0.7.6-1 -- 2010/03/10 ----------------------------
++Initial release.
++
++For more information about this package, see the upstream documentation in
++/usr/share/doc/gts-0.7.6-1.
++
++This private port maintained by: Yak! <yak_ex@mx.scn.tv>
++Please address all questions to the above address, NOT to the Cygwin mailing list.
+--- origsrc/gts-0.7.6/CYGWIN-PATCHES/gts-doc.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/gts-0.7.6/CYGWIN-PATCHES/gts-doc.hint	2010-03-10 07:45:59.572003200 +0900
+@@ -0,0 +1,9 @@
++@ gts-doc
++sdesc: "GNU Triangulated Surface Library (HTML document)"
++ldesc: "GTS stands for the GNU Triangulated Surface Library.
++It is an Open Source Free Software Library intended 
++to provide a set of useful functions to deal with 
++3D surfaces meshed with interconnected triangles."
++category: Libs Math
++requires: 
++curr: 0.7.6-1
+--- origsrc/gts-0.7.6/CYGWIN-PATCHES/gts.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/gts-0.7.6/CYGWIN-PATCHES/gts.hint	2010-03-10 07:45:59.572003200 +0900
+@@ -0,0 +1,9 @@
++@ gts
++sdesc: "GNU Triangulated Surface Library (executables)"
++ldesc: "GTS stands for the GNU Triangulated Surface Library.
++It is an Open Source Free Software Library intended 
++to provide a set of useful functions to deal with 
++3D surfaces meshed with interconnected triangles."
++category: Libs Math
++requires: libglib2.0_0 libnetpbm10 libgts5
++curr: 0.7.6-1
+--- origsrc/gts-0.7.6/CYGWIN-PATCHES/libgts-devel.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/gts-0.7.6/CYGWIN-PATCHES/libgts-devel.hint	2010-03-10 07:45:59.587111400 +0900
+@@ -0,0 +1,9 @@
++@ libgts-devel
++sdesc: "GNU Triangulated Surface Library (development)"
++ldesc: "GTS stands for the GNU Triangulated Surface Library.
++It is an Open Source Free Software Library intended 
++to provide a set of useful functions to deal with 
++3D surfaces meshed with interconnected triangles."
++category: Libs Math
++requires: libgts5
++curr: 0.7.6-1
+--- origsrc/gts-0.7.6/CYGWIN-PATCHES/libgts5.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/gts-0.7.6/CYGWIN-PATCHES/libgts5.hint	2010-03-10 07:45:59.587111400 +0900
+@@ -0,0 +1,9 @@
++@ libgts5
++sdesc: "GNU Triangulated Surface Library (runtime)"
++ldesc: "GTS stands for the GNU Triangulated Surface Library.
++It is an Open Source Free Software Library intended 
++to provide a set of useful functions to deal with 
++3D surfaces meshed with interconnected triangles."
++category: Libs Math
++requires: libglib2.0_0 libnetpbm10
++curr: 0.7.6-1

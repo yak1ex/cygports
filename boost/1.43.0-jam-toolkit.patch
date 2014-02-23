@@ -1,0 +1,11 @@
+--- origsrc/boost_1_48_0/boostcpp.jam	2010-05-01 15:29:31.000000000 -0500
++++ src/boost_1_48_0/boostcpp.jam	2010-05-16 20:57:08.507514300 -0500
+@@ -377,7 +377,7 @@ rule tag ( name : type ? : property-set
+         if $(layout) = versioned
+         {
+             result = [ common.format-name
+-                <base> <toolset> <threading> <runtime> -$(BOOST_VERSION_TAG)
++                <base> <threading> <runtime> -$(BOOST_VERSION_TAG)
+                 -$(BUILD_ID)
+                 : $(name) : $(type) : $(property-set) ] ;
+         }        

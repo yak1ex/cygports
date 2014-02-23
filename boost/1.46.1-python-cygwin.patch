@@ -1,0 +1,14 @@
+diff -urN '--exclude=*.orig' origsrc/boost_1_46_1/boost/python/detail/wrap_python.hpp src/boost_1_46_1/boost/python/detail/wrap_python.hpp
+--- origsrc/boost_1_46_1/boost/python/detail/wrap_python.hpp	2010-07-05 07:38:38.000000000 +0900
++++ src/boost_1_46_1/boost/python/detail/wrap_python.hpp	2011-03-14 02:17:24.515625000 +0900
+@@ -82,8 +82,8 @@
+ // Some things we need in order to get Python.h to work with compilers other
+ // than MSVC on Win32
+ //
+-#if defined(_WIN32) || defined(__CYGWIN__)
+-# if defined(__GNUC__) && defined(__CYGWIN__)
++#if defined(_WIN32)
++# if defined(__GNUC__)
+ 
+ #  define SIZEOF_LONG 4
+ 

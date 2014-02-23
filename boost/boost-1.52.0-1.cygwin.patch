@@ -1,0 +1,122 @@
+--- origsrc/boost_1_52_0/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/boost_1_52_0/CYGWIN-PATCHES/README	2012-12-13 23:48:10.472610600 +0900
+@@ -0,0 +1,69 @@
++boost
++------------------------------------------
++Boost provides free peer-reviewed portable C++ source libraries.
++
++We emphasize libraries that work well with the C++ Standard Library. 
++Boost libraries are intended to be widely useful, and usable across a 
++broad spectrum of applications. The Boost license encourages both 
++commercial and non-commercial use.
++
++Runtime requirements:
++  cygwin
++  libbz2_1
++  libgcc1
++  libicu48
++  libstdc++6
++  python
++  zlib0
++
++Build requirements:
++(besides corresponding -devel packages)
++  binutils
++  cygport
++  cygport-usrlocal
++  gcc4-core
++  gcc4-g++
++
++Canonical website:
++  http://www.boost.org/
++
++Canonical download:
++  http://downloads.sourceforge.net/boost/
++
++-------------------------------------------
++
++Build instructions
++  unpack boost-1.52.0-X-src.tar.bz2
++    if you use setup to install this src package, it will be
++	 unpacked under /usr/src automatically
++  cd /usr/src
++  cygport ./boost-1.52.0-X.cygport all
++
++This will create:
++  /usr/src/boost-1.52.0-X-src.tar.bz2
++  /usr/src/libboost1.52-1.52.0-X.tar.bz2
++  /usr/src/libboost-devel-1.52.0-X.tar.bz2
++  /usr/src/libboost_python1.52-1.52.0-X.tar.bz2
++
++-------------------------------------------
++
++Port Notes:
++
++----- version 1.52.0-1 -----
++Version bump.
++
++----- version 1.48.0-1 -----
++Version bump.
++
++----- version 1.47.0-1 -----
++Version bump.
++
++----- version 1.46.1-1 -----
++Version bump.
++
++----- version 1.43.0-1 -----
++Version bump.
++
++----- version 1.40.0-1 -----
++Version bump.
++
+--- origsrc/boost_1_52_0/CYGWIN-PATCHES/boost.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/boost_1_52_0/CYGWIN-PATCHES/boost.hint	2012-12-13 23:48:10.473610700 +0900
+@@ -0,0 +1,8 @@
++category: Libs
++sdesc: "Boost C++ libraries (source)"
++ldesc: "Boost provides free peer-reviewed portable C++ source libraries.
++
++We emphasize libraries that work well with the C++ Standard Library. 
++Boost libraries are intended to be widely useful, and usable across a 
++broad spectrum of applications. The Boost license encourages both 
++commercial and non-commercial use."
+--- origsrc/boost_1_52_0/CYGWIN-PATCHES/devel.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/boost_1_52_0/CYGWIN-PATCHES/devel.hint	2012-12-13 23:48:10.474610800 +0900
+@@ -0,0 +1,10 @@
++category: Libs
++requires: libboost1.48 libboost_python1.48 libbz2-devel libicu-devel libstdc++6-devel python zlib-devel
++external-source: boost
++sdesc: "Boost includes and link libraries"
++ldesc: "Boost provides free peer-reviewed portable C++ source libraries.
++
++We emphasize libraries that work well with the C++ Standard Library. 
++Boost libraries are intended to be widely useful, and usable across a 
++broad spectrum of applications. The Boost license encourages both 
++commercial and non-commercial use."
+--- origsrc/boost_1_52_0/CYGWIN-PATCHES/lib.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/boost_1_52_0/CYGWIN-PATCHES/lib.hint	2012-12-13 23:48:10.475610900 +0900
+@@ -0,0 +1,10 @@
++category: Libs
++requires: libbz2_1 libgcc1 libiconv2 libicu48 libstdc++6 zlib0
++external-source: boost
++sdesc: "Boost runtime libraries (not including Boost.Python)"
++ldesc: "Boost provides free peer-reviewed portable C++ source libraries.
++
++We emphasize libraries that work well with the C++ Standard Library. 
++Boost libraries are intended to be widely useful, and usable across a 
++broad spectrum of applications. The Boost license encourages both 
++commercial and non-commercial use."
+--- origsrc/boost_1_52_0/CYGWIN-PATCHES/python.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/boost_1_52_0/CYGWIN-PATCHES/python.hint	2012-12-13 23:48:10.477611100 +0900
+@@ -0,0 +1,10 @@
++category: Libs Python
++requires: libgcc1 libstdc++6 zlib0 python
++external-source: boost
++sdesc: "Boost.Python runtime library"
++ldesc: "Boost provides free peer-reviewed portable C++ source libraries.
++
++We emphasize libraries that work well with the C++ Standard Library. 
++Boost libraries are intended to be widely useful, and usable across a 
++broad spectrum of applications. The Boost license encourages both 
++commercial and non-commercial use."

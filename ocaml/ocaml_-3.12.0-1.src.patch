@@ -1,0 +1,778 @@
+--- origsrc/ocaml-3.12.0/asmrun/i386.S	2008-08-01 17:04:57.000000000 +0900
++++ src/ocaml-3.12.0/asmrun/i386.S	2010-08-14 02:04:37.040125000 +0900
+@@ -50,6 +50,13 @@
+         popl %edx; popl %ecx; popl %eax; popl %ebp
+ #define PROFILE_C \
+         pushl %ebp; movl %esp, %ebp; call mcount; popl %ebp
++#elif defined(SYS_cygwin)
++#define PROFILE_CAML \
++        pushl %ebp; movl %esp, %ebp; pushl %eax; pushl %ecx; pushl %edx; \
++        call _mcount; \
++        popl %edx; popl %ecx; popl %eax; popl %ebp
++#define PROFILE_C \
++        pushl %ebp; movl %esp, %ebp; call _mcount; popl %ebp
+ #elif defined(SYS_bsd_elf)
+ #define PROFILE_CAML \
+         pushl %ebp; movl %esp, %ebp; pushl %eax; pushl %ecx; pushl %edx; \
+--- origsrc/ocaml-3.12.0/configure	2010-07-28 22:18:22.000000000 +0900
++++ src/ocaml-3.12.0/configure	2010-08-14 02:04:37.071375000 +0900
+@@ -42,6 +42,7 @@ withcurses=yes
+ withsharedlibs=yes
+ gcc_warnings="-Wall"
+ partialld="ld -r"
++graphicsW32_wanted=no
+ 
+ # Try to turn internationalization off, can cause config.guess to malfunction!
+ unset LANG
+@@ -109,6 +110,8 @@ while : ; do
+         dllib="$2"; shift;;
+     -verbose|--verbose)
+         verbose=yes;;
++    -with-graphicsW32)
++        graphicsW32_wanted=yes;;
+     *) echo "Unknown option \"$1\"." 1>&2; exit 2;;
+   esac
+   shift
+@@ -312,7 +315,11 @@ case "$bytecc,$host" in
+         echo "flexlink not found: native shared libraries won't be available"
+         withsharedlibs=no
+       else
+-        iflexdir="-I\"$flexdir\""
++        if test -z "$FLEXDIR"; then
++          iflexdir="-I\"$flexdir\""
++        else
++          iflexdir="-I\"$FLEXDIR\""
++        fi
+         mkexe="$flexlink -exe"
+       fi
+     fi
+@@ -789,6 +796,7 @@ case "$arch,$model,$system" in
+   i386,*,bsd_elf) profiling='prof';;
+   amd64,*,macosx) profiling='prof';;
+   i386,*,macosx) profiling='prof';;
++  i386,*,cygwin) profiling='prof';;
+   sparc,*,solaris)
+     profiling='prof'
+     case "$nativecc" in gcc*) ;; *) cc_profile='-xpg';; esac;;
+@@ -893,6 +901,9 @@ fi
+ # Configuration for the libraries
+ 
+ otherlibraries="unix str num dynlink bigarray"
++if test "$graphicsW32_wanted" = "yes"; then
++  otherlibraries="$otherlibraries win32graph"
++fi
+ 
+ # For the Unix library
+ 
+--- origsrc/ocaml-3.12.0/otherlibs/labltk/support/Makefile	2008-04-22 16:38:07.000000000 +0900
++++ src/ocaml-3.12.0/otherlibs/labltk/support/Makefile	2010-08-14 02:04:37.087000000 +0900
+@@ -17,8 +17,11 @@ CCFLAGS=-I../../../byterun $(TK_DEFS) $(
+ COMPFLAGS=-I $(OTHERS)/win32unix -I $(OTHERS)/unix
+ THFLAGS=-I $(OTHERS)/systhreads -I $(OTHERS)/threads
+ 
++ifeq ($(SYSTEM),cygwin)
++WINLIB=-ldopt $(call SYSLIB,wsock32)
++endif
+ lib$(LIBNAME).$(A): $(COBJS)
+-	$(MKLIB) -o $(LIBNAME) $(COBJS) -ldopt "$(TK_LINK)"
++	$(MKLIB) -o $(LIBNAME) $(COBJS) -ldopt "$(TK_LINK)" $(WINLIB)
+ 
+ PUBMLI=fileevent.mli protocol.mli textvariable.mli timer.mli \
+     rawwidget.mli widget.mli
+--- origsrc/ocaml-3.12.0/otherlibs/win32graph/Makefile	1970-01-01 09:00:00.000000000 +0900
++++ src/ocaml-3.12.0/otherlibs/win32graph/Makefile	2010-08-14 02:04:37.102625000 +0900
+@@ -0,0 +1,35 @@
++#########################################################################
++#                                                                       #
++#                            Objective Caml                             #
++#                                                                       #
++#            Xavier Leroy, projet Cristal, INRIA Rocquencourt           #
++#                                                                       #
++#   Copyright 2001 Institut National de Recherche en Informatique et    #
++#   en Automatique.  All rights reserved.  This file is distributed     #
++#   under the terms of the GNU Library General Public License, with     #
++#   the special exception on linking described in file ../../LICENSE.   #
++#                                                                       #
++#########################################################################
++
++# $Id: Makefile.nt,v 1.7.2.3 2007-04-02 14:01:08 frisch Exp $
++
++LIBNAME=graphicsW32
++COBJS=open.$(O) draw.$(O) events.$(O) dib.$(O)
++CAMLOBJS=graphicsW32.cmo
++WIN32LIBS=$(call SYSLIB,kernel32) $(call SYSLIB,gdi32) $(call SYSLIB,user32)
++LINKOPTS=-cclib "\"$(WIN32LIBS)\""
++LDOPTS=-ldopt "$(WIN32LIBS)"
++
++include ../Makefile
++
++graphicsW32.ml: ../graph/graphics.ml
++	sed -e 's,Graphics\.,GraphicsW32.,g;s,graphics\.,graphicsW32.,;s,caml_gr_,caml_grw32_,g;/unix_open_graph/s,| "Cygwin",,;/Win32.*raw_open_graph/s,->,| "Cygwin" ->,' ../graph/graphics.ml > graphicsW32.ml
++graphicsW32.mli: ../graph/graphics.mli
++	sed -e 's,Graphics\.,GraphicsW32.,g;s,grahpics\.,graphicsW32.,;s,caml_gr_,caml_grw32_,g' ../graph/graphics.mli > graphicsW32.mli
++
++depend:
++
++graphicsW32.cmo: graphicsW32.cmi
++graphicsW32.cmx: graphicsW32.cmi
++draw.$(O): libgraph.h
++open.$(O): libgraph.h
+--- origsrc/ocaml-3.12.0/otherlibs/win32graph/draw.c	2010-01-22 21:48:24.000000000 +0900
++++ src/ocaml-3.12.0/otherlibs/win32graph/draw.c	2010-08-14 02:04:37.133875000 +0900
+@@ -34,7 +34,7 @@ static void GetCurrentPosition(HDC hDC,P
+ static value gr_draw_or_fill_arc(value vx, value vy, value vrx, value vry,
+                                  value vstart, value vend, BOOL fill);
+ 
+-CAMLprim value caml_gr_plot(value vx, value vy)
++CAMLprim value caml_grw32_plot(value vx, value vy)
+ {
+         int x = Int_val(vx);
+         int y = Int_val(vy);
+@@ -47,7 +47,7 @@ CAMLprim value caml_gr_plot(value vx, va
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_moveto(value vx, value vy)
++CAMLprim value caml_grw32_moveto(value vx, value vy)
+ {
+         grwindow.grx = Int_val(vx);
+         grwindow.gry = Int_val(vy);
+@@ -58,17 +58,17 @@ CAMLprim value caml_gr_moveto(value vx,
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_current_x(void)
++CAMLprim value caml_grw32_current_x(void)
+ {
+         return Val_int(grwindow.grx);
+ }
+ 
+-CAMLprim value caml_gr_current_y(void)
++CAMLprim value caml_grw32_current_y(void)
+ {
+         return Val_int(grwindow.gry);
+ }
+ 
+-CAMLprim value caml_gr_lineto(value vx, value vy)
++CAMLprim value caml_grw32_lineto(value vx, value vy)
+ {
+         int x = Int_val(vx);
+         int y = Int_val(vy);
+@@ -84,7 +84,7 @@ CAMLprim value caml_gr_lineto(value vx,
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_draw_rect(value vx, value vy, value vw, value vh)
++CAMLprim value caml_grw32_draw_rect(value vx, value vy, value vw, value vh)
+ {
+         int     x, y, w, h;
+         POINT pt[5];
+@@ -107,7 +107,7 @@ CAMLprim value caml_gr_draw_rect(value v
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_draw_text(value text,value x)
++CAMLprim value caml_grw32_draw_text(value text,value x)
+ {
+         POINT pt;
+         int oldmode = SetBkMode(grwindow.gc,TRANSPARENT);
+@@ -128,7 +128,7 @@ CAMLprim value caml_gr_draw_text(value t
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_fill_rect(value vx, value vy, value vw, value vh)
++CAMLprim value caml_grw32_fill_rect(value vx, value vy, value vw, value vh)
+ {
+         int x = Int_val(vx);
+         int y = Int_val(vy);
+@@ -148,13 +148,13 @@ CAMLprim value caml_gr_fill_rect(value v
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_sound(value freq, value vdur)
++CAMLprim value caml_grw32_sound(value freq, value vdur)
+ {
+         Beep(freq,vdur);
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_point_color(value vx, value vy)
++CAMLprim value caml_grw32_point_color(value vx, value vy)
+ {
+         int x = Int_val(vx);
+         int y = Int_val(vy);
+@@ -169,7 +169,7 @@ CAMLprim value caml_gr_point_color(value
+         return Val_long((r<<16) + (g<<8) + b);
+ }
+ 
+-CAMLprim value caml_gr_circle(value x,value y,value radius)
++CAMLprim value caml_grw32_circle(value x,value y,value radius)
+ {
+         int left,top,right,bottom;
+ 
+@@ -182,24 +182,24 @@ CAMLprim value caml_gr_circle(value x,va
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_set_window_title(value text)
++CAMLprim value caml_grw32_set_window_title(value text)
+ {
+         SetWindowText(grwindow.hwnd,(char *)text);
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_draw_arc(value *argv, int argc)
++CAMLprim value caml_grw32_draw_arc(value *argv, int argc)
+ {
+   return gr_draw_or_fill_arc(argv[0], argv[1], argv[2], argv[3],
+                              argv[4], argv[5], FALSE);
+ }
+ 
+-CAMLprim value caml_gr_draw_arc_nat(vx, vy, vrx, vry, vstart, vend)
++CAMLprim value caml_grw32_draw_arc_nat(vx, vy, vrx, vry, vstart, vend)
+ {
+   return gr_draw_or_fill_arc(vx, vy, vrx, vry, vstart, vend, FALSE);
+ }
+ 
+-CAMLprim value caml_gr_set_line_width(value vwidth)
++CAMLprim value caml_grw32_set_line_width(value vwidth)
+ {
+         int width = Int_val(vwidth);
+         HPEN oldPen,newPen;
+@@ -214,7 +214,7 @@ CAMLprim value caml_gr_set_line_width(va
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_set_color(value vcolor)
++CAMLprim value caml_grw32_set_color(value vcolor)
+ {
+         HBRUSH oldBrush, newBrush;
+         LOGBRUSH lb;
+@@ -303,7 +303,7 @@ static value gr_draw_or_fill_arc(value v
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_show_bitmap(value filename,int x,int y)
++CAMLprim value caml_grw32_show_bitmap(value filename,int x,int y)
+ {
+         AfficheBitmap(filename,grwindow.gcBitmap,x,Wcvt(y));
+         AfficheBitmap(filename,grwindow.gc,x,Wcvt(y));
+@@ -312,7 +312,7 @@ CAMLprim value caml_gr_show_bitmap(value
+ 
+ 
+ 
+-CAMLprim value caml_gr_get_mousex(void)
++CAMLprim value caml_grw32_get_mousex(void)
+ {
+         POINT pt;
+         GetCursorPos(&pt);
+@@ -320,7 +320,7 @@ CAMLprim value caml_gr_get_mousex(void)
+         return pt.x;
+ }
+ 
+-CAMLprim value caml_gr_get_mousey(void)
++CAMLprim value caml_grw32_get_mousey(void)
+ {
+         POINT pt;
+         GetCursorPos(&pt);
+@@ -341,35 +341,35 @@ static void gr_font(char *fontname)
+         }
+ }
+ 
+-CAMLprim value caml_gr_set_font(value fontname)
++CAMLprim value caml_grw32_set_font(value fontname)
+ {
+         gr_check_open();
+         gr_font(String_val(fontname));
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_set_text_size (value sz)
++CAMLprim value caml_grw32_set_text_size (value sz)
+ {
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_draw_char(value chr)
++CAMLprim value caml_grw32_draw_char(value chr)
+ {
+         char str[1];
+         gr_check_open();
+         str[0] = Int_val(chr);
+-        caml_gr_draw_text((value)str, 1);
++        caml_grw32_draw_text((value)str, 1);
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_draw_string(value str)
++CAMLprim value caml_grw32_draw_string(value str)
+ {
+         gr_check_open();
+-        caml_gr_draw_text(str, string_length(str));
++        caml_grw32_draw_text(str, string_length(str));
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_text_size(value str)
++CAMLprim value caml_grw32_text_size(value str)
+ {
+         SIZE extent;
+         value res;
+@@ -386,7 +386,7 @@ CAMLprim value caml_gr_text_size(value s
+         return res;
+ }
+ 
+-CAMLprim value caml_gr_fill_poly(value vect)
++CAMLprim value caml_grw32_fill_poly(value vect)
+ {
+         int n_points, i;
+         POINT   *p,*poly;
+@@ -415,13 +415,13 @@ CAMLprim value caml_gr_fill_poly(value v
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_fill_arc(value *argv, int argc)
++CAMLprim value caml_grw32_fill_arc(value *argv, int argc)
+ {
+   return gr_draw_or_fill_arc(argv[0], argv[1], argv[2], argv[3],
+                              argv[4], argv[5], TRUE);
+ }
+ 
+-CAMLprim value caml_gr_fill_arc_nat(vx, vy, vrx, vry, vstart, vend)
++CAMLprim value caml_grw32_fill_arc_nat(vx, vy, vrx, vry, vstart, vend)
+ {
+   return gr_draw_or_fill_arc(vx, vy, vrx, vry, vstart, vend, TRUE);
+ }
+@@ -455,7 +455,7 @@ static struct custom_operations image_op
+         custom_deserialize_default
+ };
+ 
+-CAMLprim value caml_gr_create_image(value vw, value vh)
++CAMLprim value caml_grw32_create_image(value vw, value vh)
+ {
+         HBITMAP cbm;
+         value res;
+@@ -479,7 +479,7 @@ CAMLprim value caml_gr_create_image(valu
+         return res;
+ }
+ 
+-CAMLprim value caml_gr_blit_image (value i, value x, value y)
++CAMLprim value caml_grw32_blit_image (value i, value x, value y)
+ {
+         HBITMAP oldBmp = SelectObject(grwindow.tempDC,Data(i));
+         int xsrc = Int_val(x);
+@@ -491,7 +491,7 @@ CAMLprim value caml_gr_blit_image (value
+ }
+ 
+ 
+-CAMLprim value caml_gr_draw_image(value i, value x, value y)
++CAMLprim value caml_grw32_draw_image(value i, value x, value y)
+ {
+         HBITMAP oldBmp;
+ 
+@@ -535,7 +535,7 @@ CAMLprim value caml_gr_draw_image(value
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_make_image(value matrix)
++CAMLprim value caml_grw32_make_image(value matrix)
+ {
+         int width, height,has_transp,i,j;
+         value img;
+@@ -552,7 +552,7 @@ CAMLprim value caml_gr_make_image(value
+                 }
+         }
+         Begin_roots1(matrix)
+-                img = caml_gr_create_image(Val_int(width), Val_int(height));
++                img = caml_grw32_create_image(Val_int(width), Val_int(height));
+         End_roots();
+         has_transp = 0;
+         oldBmp = SelectObject(grwindow.tempDC,Data(img));
+@@ -606,7 +606,7 @@ static value alloc_int_vect(mlsize_t siz
+         return res;
+ }
+ 
+-CAMLprim value caml_gr_dump_image (value img)
++CAMLprim value caml_grw32_dump_image (value img)
+ {
+         int height = Height(img);
+         int width = Width(img);
+--- origsrc/ocaml-3.12.0/otherlibs/win32graph/events.c	2004-07-13 21:25:21.000000000 +0900
++++ src/ocaml-3.12.0/otherlibs/win32graph/events.c	2010-08-14 02:04:37.165125000 +0900
+@@ -32,53 +32,53 @@ struct event_data {
+   unsigned char key;
+ };
+ 
+-static struct event_data caml_gr_queue[SIZE_QUEUE];
+-static unsigned int caml_gr_head = 0;       /* position of next read */
+-static unsigned int caml_gr_tail = 0;       /* position of next write */
++static struct event_data caml_grw32_queue[SIZE_QUEUE];
++static unsigned int caml_grw32_head = 0;       /* position of next read */
++static unsigned int caml_grw32_tail = 0;       /* position of next write */
+ 
+-static int caml_gr_event_mask = EVENT_KEY_PRESSED;
++static int caml_grw32_event_mask = EVENT_KEY_PRESSED;
+ static int last_button = 0;
+ static LPARAM last_pos = 0;
+ 
+-HANDLE caml_gr_queue_semaphore = NULL;
+-CRITICAL_SECTION caml_gr_queue_mutex;
++HANDLE caml_grw32_queue_semaphore = NULL;
++CRITICAL_SECTION caml_grw32_queue_mutex;
+ 
+-void caml_gr_init_event_queue(void)
++void caml_grw32_init_event_queue(void)
+ {
+-  if (caml_gr_queue_semaphore == NULL) {
+-    caml_gr_queue_semaphore = CreateSemaphore(NULL, 0, SIZE_QUEUE, NULL);
+-    InitializeCriticalSection(&caml_gr_queue_mutex);
++  if (caml_grw32_queue_semaphore == NULL) {
++    caml_grw32_queue_semaphore = CreateSemaphore(NULL, 0, SIZE_QUEUE, NULL);
++    InitializeCriticalSection(&caml_grw32_queue_mutex);
+   }
+ }
+ 
+-#define QueueIsEmpty (caml_gr_tail == caml_gr_head)
++#define QueueIsEmpty (caml_grw32_tail == caml_grw32_head)
+ 
+-static void caml_gr_enqueue_event(int kind, LPARAM mouse_xy,
++static void caml_grw32_enqueue_event(int kind, LPARAM mouse_xy,
+                                   int button, int key)
+ {
+   struct event_data * ev;
+ 
+-  if ((caml_gr_event_mask & kind) == 0) return;
+-  EnterCriticalSection(&caml_gr_queue_mutex);
+-  ev = &(caml_gr_queue[caml_gr_tail]);
++  if ((caml_grw32_event_mask & kind) == 0) return;
++  EnterCriticalSection(&caml_grw32_queue_mutex);
++  ev = &(caml_grw32_queue[caml_grw32_tail]);
+   ev->kind = kind;
+   ev->mouse_x = GET_X_LPARAM(mouse_xy);
+   ev->mouse_y = GET_Y_LPARAM(mouse_xy);
+   ev->button = (button != 0);
+   ev->key = key;
+-  caml_gr_tail = (caml_gr_tail + 1) % SIZE_QUEUE;
++  caml_grw32_tail = (caml_grw32_tail + 1) % SIZE_QUEUE;
+   /* If queue was full, it now appears empty;
+      drop oldest entry from queue. */
+   if (QueueIsEmpty) {
+-    caml_gr_head = (caml_gr_head + 1) % SIZE_QUEUE;
++    caml_grw32_head = (caml_grw32_head + 1) % SIZE_QUEUE;
+   } else {
+     /* One more event in queue */
+-    ReleaseSemaphore(caml_gr_queue_semaphore, 1, NULL);
++    ReleaseSemaphore(caml_grw32_queue_semaphore, 1, NULL);
+   }
+-  LeaveCriticalSection(&caml_gr_queue_mutex);
++  LeaveCriticalSection(&caml_grw32_queue_mutex);
+ }
+ 
+-void caml_gr_handle_event(UINT msg, WPARAM wParam, LPARAM lParam)
++void caml_grw32_handle_event(UINT msg, WPARAM wParam, LPARAM lParam)
+ {
+   switch (msg) {
+   case WM_LBUTTONDOWN:
+@@ -86,7 +86,7 @@ void caml_gr_handle_event(UINT msg, WPAR
+   case WM_MBUTTONDOWN:
+     last_button = 1;
+     last_pos = lParam;
+-    caml_gr_enqueue_event(EVENT_BUTTON_DOWN, lParam, 1, 0);
++    caml_grw32_enqueue_event(EVENT_BUTTON_DOWN, lParam, 1, 0);
+     break;
+ 
+   case WM_LBUTTONUP:
+@@ -94,21 +94,21 @@ void caml_gr_handle_event(UINT msg, WPAR
+   case WM_MBUTTONUP:
+     last_button = 0;
+     last_pos = lParam;
+-    caml_gr_enqueue_event(EVENT_BUTTON_UP, lParam, 0, 0);
++    caml_grw32_enqueue_event(EVENT_BUTTON_UP, lParam, 0, 0);
+     break;
+ 
+   case WM_CHAR:
+-    caml_gr_enqueue_event(EVENT_KEY_PRESSED, last_pos, last_button, wParam);
++    caml_grw32_enqueue_event(EVENT_KEY_PRESSED, last_pos, last_button, wParam);
+     break;
+ 
+   case WM_MOUSEMOVE:
+     last_pos = lParam;
+-    caml_gr_enqueue_event(EVENT_MOUSE_MOTION, lParam, last_button, 0);
++    caml_grw32_enqueue_event(EVENT_MOUSE_MOTION, lParam, last_button, 0);
+     break;
+   }
+ }
+ 
+-static value caml_gr_wait_allocate_result(int mouse_x, int mouse_y,
++static value caml_grw32_wait_allocate_result(int mouse_x, int mouse_y,
+                                           int button,
+                                           int keypressed, int key)
+ {
+@@ -121,57 +121,57 @@ static value caml_gr_wait_allocate_resul
+   return res;
+ }
+ 
+-static value caml_gr_wait_event_poll(void)
++static value caml_grw32_wait_event_poll(void)
+ {
+   int key, keypressed, i;
+ 
+   /* Look inside event queue for pending KeyPress events */
+-  EnterCriticalSection(&caml_gr_queue_mutex);
++  EnterCriticalSection(&caml_grw32_queue_mutex);
+   key = 0;
+   keypressed = 0;
+-  for (i = caml_gr_head; i != caml_gr_tail; i = (i + 1) % SIZE_QUEUE) {
+-    if (caml_gr_queue[i].kind == EVENT_KEY_PRESSED) {
++  for (i = caml_grw32_head; i != caml_grw32_tail; i = (i + 1) % SIZE_QUEUE) {
++    if (caml_grw32_queue[i].kind == EVENT_KEY_PRESSED) {
+       keypressed = 1;
+-      key = caml_gr_queue[i].key;
++      key = caml_grw32_queue[i].key;
+       break;
+     }
+   }
+-  LeaveCriticalSection(&caml_gr_queue_mutex);
++  LeaveCriticalSection(&caml_grw32_queue_mutex);
+   /* Use global vars for mouse position and buttons */
+-  return caml_gr_wait_allocate_result(GET_X_LPARAM(last_pos),
++  return caml_grw32_wait_allocate_result(GET_X_LPARAM(last_pos),
+                                       GET_Y_LPARAM(last_pos),
+                                       last_button,
+                                       keypressed, key);
+ }
+ 
+-static value caml_gr_wait_event_blocking(int mask)
++static value caml_grw32_wait_event_blocking(int mask)
+ {
+   struct event_data ev;
+ 
+   /* Increase the selected events if needed */
+-  caml_gr_event_mask |= mask;
++  caml_grw32_event_mask |= mask;
+   /* Pop events from queue until one matches */
+   do {
+     /* Wait for event queue to be non-empty */
+-    WaitForSingleObject(caml_gr_queue_semaphore, INFINITE);
++    WaitForSingleObject(caml_grw32_queue_semaphore, INFINITE);
+     /* Pop oldest event in queue */
+-    EnterCriticalSection(&caml_gr_queue_mutex);
+-    ev = caml_gr_queue[caml_gr_head];
++    EnterCriticalSection(&caml_grw32_queue_mutex);
++    ev = caml_grw32_queue[caml_grw32_head];
+     /* Queue should never be empty at this point, but just in case... */
+     if (QueueIsEmpty) {
+       ev.kind = 0;
+     } else {
+-      caml_gr_head = (caml_gr_head + 1) % SIZE_QUEUE;
++      caml_grw32_head = (caml_grw32_head + 1) % SIZE_QUEUE;
+     }
+-    LeaveCriticalSection(&caml_gr_queue_mutex);
++    LeaveCriticalSection(&caml_grw32_queue_mutex);
+     /* Check if it matches */
+   } while ((ev.kind & mask) == 0);
+-  return caml_gr_wait_allocate_result(ev.mouse_x, ev.mouse_y, ev.button,
++  return caml_grw32_wait_allocate_result(ev.mouse_x, ev.mouse_y, ev.button,
+                                       ev.kind == EVENT_KEY_PRESSED,
+                                       ev.key);
+ }
+ 
+-CAMLprim value caml_gr_wait_event(value eventlist) /* ML */
++CAMLprim value caml_grw32_wait_event(value eventlist) /* ML */
+ {
+   int mask, poll;
+ 
+@@ -194,7 +194,7 @@ CAMLprim value caml_gr_wait_event(value
+     eventlist = Field(eventlist, 1);
+   }
+   if (poll)
+-    return caml_gr_wait_event_poll();
++    return caml_grw32_wait_event_poll();
+   else
+-    return caml_gr_wait_event_blocking(mask);
++    return caml_grw32_wait_event_blocking(mask);
+ }
+--- origsrc/ocaml-3.12.0/otherlibs/win32graph/libgraph.h	2004-07-13 21:25:21.000000000 +0900
++++ src/ocaml-3.12.0/otherlibs/win32graph/libgraph.h	2010-08-14 02:04:37.180750000 +0900
+@@ -49,7 +49,7 @@ extern int bits_per_pixel;
+ 
+ void gr_fail(char *fmt, char *arg);
+ void gr_check_open(void);
+-CAMLprim value caml_gr_set_color(value vcolor);
++CAMLprim value caml_grw32_set_color(value vcolor);
+ 
+ // Windows specific definitions
+ extern RECT WindowRect;
+@@ -74,5 +74,5 @@ typedef struct tagWindow {
+ 
+ extern GR_WINDOW grwindow;
+ HFONT CreationFont(char *name);
+-extern void caml_gr_init_event_queue(void);
+-extern void caml_gr_handle_event(UINT msg, WPARAM wParam, LPARAM lParam);
++extern void caml_grw32_init_event_queue(void);
++extern void caml_grw32_handle_event(UINT msg, WPARAM wParam, LPARAM lParam);
+--- origsrc/ocaml-3.12.0/otherlibs/win32graph/open.c	2010-01-22 21:48:24.000000000 +0900
++++ src/ocaml-3.12.0/otherlibs/win32graph/open.c	2010-08-14 02:04:37.196375000 +0900
+@@ -38,7 +38,7 @@ MSG msg;
+ 
+ static char *szOcamlWindowClass = "OcamlWindowClass";
+ static BOOL gr_initialized = 0;
+-CAMLprim value caml_gr_clear_graph(void);
++CAMLprim value caml_grw32_clear_graph(void);
+ HANDLE hInst;
+ 
+ HFONT CreationFont(char *name)
+@@ -102,7 +102,7 @@ static LRESULT CALLBACK GraphicsWndProc(
+                 ResetForClose(hwnd);
+                 break;
+         }
+-        caml_gr_handle_event(msg, wParam, lParam);
++        caml_grw32_handle_event(msg, wParam, lParam);
+         return DefWindowProc(hwnd, msg, wParam, lParam);
+ }
+ 
+@@ -154,7 +154,7 @@ static value gr_reset(void)
+         grwindow.CurrentBrush = SelectObject(grwindow.gc,GetStockObject(WHITE_BRUSH));
+         SelectObject(grwindow.gc,grwindow.CurrentBrush);
+         SelectObject(grwindow.gcBitmap,grwindow.CurrentBrush);
+-        caml_gr_set_color(Val_long(0));
++        caml_grw32_set_color(Val_long(0));
+         SelectObject(grwindow.gc,grwindow.CurrentFont);
+         SelectObject(grwindow.gcBitmap,grwindow.CurrentFont);
+         grdisplay_mode = grremember_mode = 1;
+@@ -234,7 +234,7 @@ static DWORD WINAPI gr_open_graph_intern
+   grwindow.grx = 0;
+   grwindow.gry = 0;
+ 
+-  caml_gr_init_event_queue();
++  caml_grw32_init_event_queue();
+ 
+   /* The global data structures are now correctly initialized.
+      Restart the Caml main thread. */
+@@ -251,7 +251,7 @@ static DWORD WINAPI gr_open_graph_intern
+   return 0;
+ }
+ 
+-CAMLprim value caml_gr_open_graph(value arg)
++CAMLprim value caml_grw32_open_graph(value arg)
+ {
+   long tid;
+   if (gr_initialized) return Val_unit;
+@@ -267,7 +267,7 @@ CAMLprim value caml_gr_open_graph(value
+   return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_close_graph(void)
++CAMLprim value caml_grw32_close_graph(void)
+ {
+         if (gr_initialized) {
+                 PostMessage(grwindow.hwnd, WM_CLOSE, 0, 0);
+@@ -276,7 +276,7 @@ CAMLprim value caml_gr_close_graph(void)
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_clear_graph(void)
++CAMLprim value caml_grw32_clear_graph(void)
+ {
+         gr_check_open();
+         if(grremember_mode) {
+@@ -290,19 +290,19 @@ CAMLprim value caml_gr_clear_graph(void)
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_size_x(void)
++CAMLprim value caml_grw32_size_x(void)
+ {
+         gr_check_open();
+         return Val_int(grwindow.width);
+ }
+ 
+-CAMLprim value caml_gr_size_y(void)
++CAMLprim value caml_grw32_size_y(void)
+ {
+         gr_check_open();
+         return Val_int(grwindow.height);
+ }
+ 
+-CAMLprim value caml_gr_resize_window (value vx, value vy)
++CAMLprim value caml_grw32_resize_window (value vx, value vy)
+ {
+   gr_check_open ();
+ 
+@@ -311,7 +311,7 @@ CAMLprim value caml_gr_resize_window (va
+   return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_synchronize(void)
++CAMLprim value caml_grw32_synchronize(void)
+ {
+         gr_check_open();
+         BitBlt(grwindow.gc,0,0,grwindow.width,grwindow.height,
+@@ -319,24 +319,24 @@ CAMLprim value caml_gr_synchronize(void)
+         return Val_unit ;
+ }
+ 
+-CAMLprim value caml_gr_display_mode(value flag)
++CAMLprim value caml_grw32_display_mode(value flag)
+ {
+         grdisplay_mode =  (Int_val(flag)) ? 1 : 0;
+         return Val_unit ;
+ }
+ 
+-CAMLprim value caml_gr_remember_mode(value flag)
++CAMLprim value caml_grw32_remember_mode(value flag)
+ {
+         grremember_mode = (Int_val(flag)) ? 1 : 0;
+         return Val_unit ;
+ }
+ 
+-CAMLprim value caml_gr_sigio_signal(value unit)
++CAMLprim value caml_grw32_sigio_signal(value unit)
+ {
+         return Val_unit;
+ }
+ 
+-CAMLprim value caml_gr_sigio_handler(void)
++CAMLprim value caml_grw32_sigio_handler(void)
+ {
+         return Val_unit;
+ }
+@@ -350,9 +350,9 @@ void gr_fail(char *fmt, char *arg)
+   char buffer[1024];
+ 
+   if (graphic_failure_exn == NULL) {
+-    graphic_failure_exn = caml_named_value("Graphics.Graphic_failure");
++    graphic_failure_exn = caml_named_value("GrahpicsW32.Graphic_failure");
+     if (graphic_failure_exn == NULL)
+-      invalid_argument("Exception Graphics.Graphic_failure not initialized, must link graphics.cma");
++      invalid_argument("Exception GrahpicsW32.Graphic_failure not initialized, must link graphicsW32.cma");
+   }
+   sprintf(buffer, fmt, arg);
+   raise_with_string(*graphic_failure_exn, buffer);
+--- origsrc/ocaml-3.12.0/utils/ccomp.ml	2010-04-28 21:09:32.000000000 +0900
++++ src/ocaml-3.12.0/utils/ccomp.ml	2010-08-14 02:04:37.212000000 +0900
+@@ -108,7 +108,8 @@ let call_linker mode output_name files e
+         files
+         extra
+     else
+-      Printf.sprintf "%s -o %s %s %s %s %s %s %s"
++      (*Printf.sprintf "%s -o %s %s %s %s %s %s %s"*)
++      Printf.sprintf "%s -o %s %s %s %s %s %s %s %s"
+         (match !Clflags.c_compiler, mode with
+         | Some cc, _ -> cc
+         | None, Exe -> Config.mkexe
+@@ -117,11 +118,13 @@ let call_linker mode output_name files e
+         | None, Partial -> assert false
+         )
+         (Filename.quote output_name)
+-        (if !Clflags.gprofile then Config.cc_profile else "")
++        (*(if !Clflags.gprofile then Config.cc_profile else "")*)
++        (if Config.system <> "cygwin" && !Clflags.gprofile then Config.cc_profile else "")
+         ""  (*(Clflags.std_include_flag "-I")*)
+         (quote_prefixed "-L" !Config.load_path)
+         (String.concat " " (List.rev !Clflags.ccopts))
+         files
+         extra
++        (if Config.system = "cygwin" && !Clflags.gprofile then "-defaultlib -lgmon -- -pg" else "") (* hack for reference to _mcount *)
+   in
+   command cmd = 0

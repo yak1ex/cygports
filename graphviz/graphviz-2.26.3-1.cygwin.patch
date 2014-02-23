@@ -1,0 +1,211 @@
+--- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.26.3/CYGWIN-PATCHES/README	2011-04-10 00:39:20.696898400 +0900
+@@ -0,0 +1,102 @@
++graphviz
++------------------------------------------------------------------------
++Graphviz is open source graph visualization software. It has several main 
++graph layout programs. It also has web and interactive graphical interfaces, 
++and auxiliary tools, libraries, and language bindings. 
++
++The Graphviz layout programs take descriptions of graphs in a simple text 
++language, and make diagrams in several useful formats such as images and 
++SVG for web pages, Postscript for inclusion in PDF or other documents; or 
++display in an interactive graph browser. (Graphviz also supports GXL, an 
++XML dialect.)
++
++Runtime requirements:
++  cygwin-1.7.9-1
++  libX11_6-1.3.3-1
++  libXau6-1.0.6-1
++  libXdmcp6-1.0.3-1
++  libXpm4-3.5.8-1
++  libexpat1-2.0.1-1
++  libfontconfig1-2.8.0-1
++  libfreetype6-2.3.12-1
++  libgcc1-4.3.4-4
++  libgd2-2.0.36RC1-11
++  libiconv2-1.13.1-2
++  libjpeg7-7-10
++  libpng12-1.2.44-1
++  libxcb1-1.6-1
++  zlib0-1.2.5-1
++
++Build requirements:
++  autoconf
++  automake
++  binutils
++  cygwin
++  gcc
++  gcc-g++
++  libtool
++  lua
++  perl
++  ruby
++  python
++  tcltk
++  and devel packages corresponding to runtime requirements.
++
++Canonical homepage:
++  http://www.graphviz.org/
++
++Canonical download:
++  http://www.graphviz.org/pub/graphviz/ARCHIVE/graphviz-2.26.3.tar.gz
++
++License:
++  Eclipse Public License 1.0
++
++Language:
++  C and C++
++
++------------------------------------------------------------------------
++
++Build instructions:
++  unpack graphviz-2.26.3-1-src.tar.bz2
++    if you use setup to install this src package, it will be
++	 unpacked under /usr/src automatically
++  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
++  cd /usr/src
++  cygport graphviz-2.26.3-1.cygport all
++
++This will create:
++  graphviz-2.26.3-1.tar.bz2
++  graphviz-devel-2.26.3-1.tar.bz2
++  graphviz-doc-2.26.3-1.tar.bz2
++  graphviz-lua-2.26.3-1.tar.bz2
++  graphviz-perl-2.26.3-1.tar.bz2
++  graphviz-python-2.26.3-1.tar.bz2
++  graphviz-ruby-2.26.3-1.tar.bz2
++  graphviz-tcl-2.26.3-1.tar.bz2
++  libgraphviz6-2.26.3-1.tar.bz2
++
++Or use 'cygport graphviz-2.20.3-1.cygport prep' to get a patched source directory
++
++To find out the files included in the binary distribution, you can
++use "cygcheck -l graphviz".
++
++------------------------------------------------------------------------
++
++Port Notes:
++
++----------  graphviz-2.26.3-1 -- 2011/04/10 ----------------------------
++Update base system to Cygwin 1.7.
++Add lua binding and remove ocaml binding.
++
++----------  graphviz-2.20.3-1 -- 2008/11/23 ----------------------------
++Routine update to 2.20.3.
++
++----------  graphviz-2.18-1 -- 2008/05/03 ----------------------------
++Use cygport framework.
++
++For more information about this package, see the upstream documentation in
++/usr/share/doc/graphviz-2.20.3-1.
++
++This private port maintained by: Yak! <yak_ex@mx.scn.tv>
++Please address all questions to the above address, NOT to the Cygwin 
++mailing list at <cygwin@cygwin.com>.
+--- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/devel.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.26.3/CYGWIN-PATCHES/devel.hint	2011-04-10 00:39:20.698898400 +0900
+@@ -0,0 +1,9 @@
++@ graphviz-devel
++sdesc: "Graph Visualization Software - headers and libraries "
++ldesc: "Graphviz is open source graph visualization software. It has several 
++main graph layout programs. It also has web and interactive graphical 
++interfaces, and auxiliary tools, libraries, and language bindings."
++category: Graphics
++requires: libgcc1 libgraphviz6
++curr: 2.26.3-1
++prev: 2.20.3-1
+--- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/doc.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.26.3/CYGWIN-PATCHES/doc.hint	2011-04-10 00:39:20.700898400 +0900
+@@ -0,0 +1,8 @@
++@ graphviz-doc
++sdesc: "Graph Visualization Software - PDF and HTML documentation"
++ldesc: "Graphviz is open source graph visualization software. It has several 
++main graph layout programs. It also has web and interactive graphical 
++interfaces, and auxiliary tools, libraries, and language bindings."
++category: Graphics
++curr: 2.26.3-1
++prev: 2.20.3-1
+--- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/lib.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.26.3/CYGWIN-PATCHES/lib.hint	2011-04-10 00:39:20.702898400 +0900
+@@ -0,0 +1,8 @@
++@ libgraphviz6
++sdesc: "Graph Visualization Software - DLLs"
++ldesc: "Graphviz is open source graph visualization software. It has several 
++main graph layout programs. It also has web and interactive graphical 
++interfaces, and auxiliary tools, libraries, and language bindings."
++category: Graphics
++requires: libexpat1 libgcc1 zlib0
++curr: 2.26.3-1
+--- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/lua.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.26.3/CYGWIN-PATCHES/lua.hint	2011-04-10 00:39:20.705898400 +0900
+@@ -0,0 +1,9 @@
++@ graphviz-lua
++sdesc: "Graph Visualization Software - Lua bindings"
++ldesc: "Graphviz is open source graph visualization software. It has several 
++main graph layout programs. It also has web and interactive graphical 
++interfaces, and auxiliary tools, libraries, and language bindings."
++category: Graphics
++requires: libgcc1 libgraphviz6 lua
++curr: 2.26.3-1
++prev: 2.20.3-1
+--- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/perl.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.26.3/CYGWIN-PATCHES/perl.hint	2011-04-10 00:39:20.707898400 +0900
+@@ -0,0 +1,9 @@
++@ graphviz-perl
++sdesc: "Graph Visualization Software - Perl bindings"
++ldesc: "Graphviz is open source graph visualization software. It has several 
++main graph layout programs. It also has web and interactive graphical 
++interfaces, and auxiliary tools, libraries, and language bindings."
++category: Graphics
++requires: libgcc1 libgraphviz6 perl
++curr: 2.26.3-1
++prev: 2.20.3-1
+--- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/python.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.26.3/CYGWIN-PATCHES/python.hint	2011-04-10 00:39:20.709898400 +0900
+@@ -0,0 +1,9 @@
++@ graphviz-python
++sdesc: "Graph Visualization Software - Python bindings"
++ldesc: "Graphviz is open source graph visualization software. It has several 
++main graph layout programs. It also has web and interactive graphical 
++interfaces, and auxiliary tools, libraries, and language bindings."
++category: Graphics
++requires: libgcc1 libgraphviz6 python
++curr: 2.26.3-1
++prev: 2.20.3-1
+--- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/ruby.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.26.3/CYGWIN-PATCHES/ruby.hint	2011-04-10 00:39:20.711898400 +0900
+@@ -0,0 +1,9 @@
++@ graphviz-ruby
++sdesc: "Graph Visualization Software - Ruby bindings"
++ldesc: "Graphviz is open source graph visualization software. It has several 
++main graph layout programs. It also has web and interactive graphical 
++interfaces, and auxiliary tools, libraries, and language bindings."
++category: Graphics
++requires: libgcc1 libgraphviz6 ruby zlib0
++curr: 2.26.3-1
++prev: 2.20.3-1
+--- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.26.3/CYGWIN-PATCHES/setup.hint	2011-04-10 00:39:20.713898400 +0900
+@@ -0,0 +1,9 @@
++@ graphviz
++sdesc: "Graph Visualization Software"
++ldesc: "Graphviz is open source graph visualization software. It has several 
++main graph layout programs. It also has web and interactive graphical 
++interfaces, and auxiliary tools, libraries, and language bindings."
++category: Graphics
++requires: cygwin libexpat1 libfontconfig1 libfreetype6 libgcc1 libgd2 libgraphviz6 libiconv2 libjpeg7 libpng12 libX11_6 libXau6 libXdmcp6 libXpm4 libxcb1 libxcb1 zlib0
++curr: 2.26.3-1
++prev: 2.20.3-1
+--- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/tcl.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.26.3/CYGWIN-PATCHES/tcl.hint	2011-04-10 00:39:20.715898400 +0900
+@@ -0,0 +1,9 @@
++@ graphviz-tcl
++sdesc: "Graph Visualization Software - Tcl bindings"
++ldesc: "Graphviz is open source graph visualization software. It has several 
++main graph layout programs. It also has web and interactive graphical 
++interfaces, and auxiliary tools, libraries, and language bindings."
++category: Graphics
++requires: graphviz-devel libgcc1 libgraphviz6 tcltk
++curr: 2.26.3-1
++prev: 2.20.3-1

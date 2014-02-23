@@ -1,0 +1,149 @@
+--- origsrc/ode-0.11.1/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/ode-0.11.1/CYGWIN-PATCHES/README	2010-08-15 21:52:34.156250000 +0900
+@@ -0,0 +1,81 @@
++cygwin-ODE
++------------------------------------------------------------------------
++ODE is an open source, high performance library for simulating rigid body 
++dynamics. It is fully featured, stable, mature and platform independent 
++with an easy to use C/C++ API. It has advanced joint types and integrated 
++collision detection with friction.
++
++Runtime requirements:
++  cygwin
++
++Build requirements:
++  autoconf2.5
++  automake1.9
++  binutils
++  cygwin
++  gcc
++  gcc-c++
++  make
++  w32api
++
++Canonical homepage:
++  http://www.ode.org/
++
++Canonical download:
++  mirror://sourceforge/opende/ode-0.11.1.zip
++
++License:
++  GNU LGPL verion 2.1 or later, or BSD License
++
++Language:
++  C/C++
++
++------------------------------------------------------------------------
++
++Build instructions:
++  unpack cygwin-ODE-0.11.1-1-src.tar.bz2
++    if you use setup to install this src package, it will be
++	 unpacked under /usr/src automatically
++  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
++  cd /usr/src
++  cygport cygwin-ODE-0.11.1-1.cygport all
++
++This will create:
++  cygwin-libode1-0.11.1-1.tar.bz2
++  cygwin-ODE-0.11.1-1.tar.bz2
++  cygwin-ODE-doc-0.11.1-1.tar.bz2
++  cygwin-ODE-demo-0.11.1-1.tar.bz2
++  cygwin-ODE-texture-0.11.1-1.tar.bz2
++  cygwin-ODE-0.11.1-1-src.tar.bz2
++
++Or use 'cygport cygwin-ODE-0.11.1-1.cygport prep' to get a patched source directory
++
++To find out the files included in the binary distribution, you can
++use "cygcheck -l cygwin-ODE".
++
++------------------------------------------------------------------------
++
++Port Notes:
++
++----------  cygwin-ODE-0.11.1-1 - 2009/08/14 --------------------------
++Update to 0.11.1.
++
++----------  cygwin-ODE-0.11-1 - 2009/03/14 ----------------------------
++Update to 0.11.
++- Use libtool framework, which has been done in offical sources.
++- Create Doxygen documents.
++
++----------  cygwin-ODE-0.8-1 -- 2007/08/24 ----------------------------
++Initial release.
++- Drawstuff is installed, though it is not installed normally.
++  - Resource files are also installed (.h and .rc in PREFIX/share, .o in
++    PREFIX/lib/drawstuff).
++  - Default texture path is PREFIX/share/textures instead of relative paths.
++- DLL prefix is changed from lib to cyg.
++
++For more information about this package, see the upstream documentation in
++/usr/share/doc/cygwin-ODE-0.11.1-1.
++
++This private port maintained by: Yak! <yak_ex@mx.scn.tv>
++Please address all questions to the above address, NOT to the Cygwin 
++mailing list at <cygwin@cygwin.com>.
+--- origsrc/ode-0.11.1/CYGWIN-PATCHES/demo.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/ode-0.11.1/CYGWIN-PATCHES/demo.hint	2010-08-15 21:52:34.171875000 +0900
+@@ -0,0 +1,10 @@
++@ cygwin-ODE-demo
++sdesc: "Open Dynamics Engine (demo programs)"
++ldesc: "ODE is an open source, high performance library for simulating rigid body 
++dynamics. It is fully featured, stable, mature and platform independent 
++with an easy to use C/C++ API. It has advanced joint types and integrated 
++collision detection with friction."
++category: Devel Libs
++requires: cygwin cygwin-ODE-texture cygwin-libode1
++curr: 0.11.1-1
++prev: 0.11-1
+--- origsrc/ode-0.11.1/CYGWIN-PATCHES/devel.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/ode-0.11.1/CYGWIN-PATCHES/devel.hint	2010-08-15 21:52:34.187500000 +0900
+@@ -0,0 +1,10 @@
++@ cygwin-ODE
++sdesc: "Open Dynamics Engine (library / header)"
++ldesc: "ODE is an open source, high performance library for simulating rigid body 
++dynamics. It is fully featured, stable, mature and platform independent 
++with an easy to use C/C++ API. It has advanced joint types and integrated 
++collision detection with friction."
++category: Devel Libs
++requires: cygwin cygwin-ODE-texture cygwin-libode1
++curr: 0.11.1-1
++prev: 0.11-1
+--- origsrc/ode-0.11.1/CYGWIN-PATCHES/doc.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/ode-0.11.1/CYGWIN-PATCHES/doc.hint	2010-08-15 21:52:34.203125000 +0900
+@@ -0,0 +1,10 @@
++@ cygwin-ODE-doc
++sdesc: "Open Dynamics Engine (HTML documents)"
++ldesc: "ODE is an open source, high performance library for simulating rigid body 
++dynamics. It is fully featured, stable, mature and platform independent 
++with an easy to use C/C++ API. It has advanced joint types and integrated 
++collision detection with friction."
++category: Devel Libs
++requires: cygwin
++curr: 0.11.1-1
++prev: 0.11-1
+--- origsrc/ode-0.11.1/CYGWIN-PATCHES/lib.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/ode-0.11.1/CYGWIN-PATCHES/lib.hint	2010-08-15 21:52:34.203125000 +0900
+@@ -0,0 +1,10 @@
++@ cygwin-libode1
++sdesc: "Open Dynamics Engine (runtime)"
++ldesc: "ODE is an open source, high performance library for simulating rigid body 
++dynamics. It is fully featured, stable, mature and platform independent 
++with an easy to use C/C++ API. It has advanced joint types and integrated 
++collision detection with friction."
++category: Devel Libs
++requires: cygwin
++curr: 0.11.1-1
++prev: 0.11-1
+--- origsrc/ode-0.11.1/CYGWIN-PATCHES/texture.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/ode-0.11.1/CYGWIN-PATCHES/texture.hint	2010-08-15 21:52:34.218750000 +0900
+@@ -0,0 +1,10 @@
++@ cygwin-ODE-texture
++sdesc: "Open Dynamics Engine (texture files)"
++ldesc: "ODE is an open source, high performance library for simulating rigid body 
++dynamics. It is fully featured, stable, mature and platform independent 
++with an easy to use C/C++ API. It has advanced joint types and integrated 
++collision detection with friction."
++category: Devel Libs
++requires: cygwin
++curr: 0.11.1-1
++prev: 0.11-1

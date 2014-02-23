@@ -1,0 +1,39 @@
+inherit usrlocal
+inherit initial
+
+DESCRIPTION="Syck is the Simple YAML Cobble-Yourself-Up-a-Parser Kit"
+LDESCRIPTION="Syck is the Simple YAML Cobble-Yourself-Up-a-Parser Kit.
+A swift, staunch C extension for many agile languages: Ruby, Python, PHP, OCaml."
+CATEGORY="Libs Text"
+# official homepage is gone.
+HOMEPAGE="http://rubyforge.org/projects/syck/"
+LICENSE="  BSD License"
+LANGUAGE="C"
+SRC_URI=http://files.rubyforge.mmmultiworks.com/syck/${P}.tar.gz
+DIFF_EXCLUDES='ChangeLog CHANGELOG'
+
+src_compile() {
+# Unfortunately, syck-0.55.tar.gz archive is not suitable for rebuild.
+	cd ${origsrcdir}/${SRC_DIR}
+# Configured results are included.
+	make distclean
+        cd ${S}
+# To avoid auto invocation of automake by patching Makefile.am
+	touch tests/Makefile.in
+	touch tests/Makefile
+# ChangLog file is included as "CHANGELOG".
+	mv CHANGELOG ChangeLog
+# Configured results are included.
+	make distclean
+        cygautoreconf
+        cd ${B}
+        mycygconf
+        cygmake
+}
+
+src_install() {
+    cd ${B}
+    mycyginstall
+    __myprepetc && __myprepman
+    prep_initial_cygwin_doc
+}
