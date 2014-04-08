@@ -1,0 +1,216 @@
+バイナリファイル origsrc/libiconv-1.14/5fbf324c87e8ad48 とsrc/libiconv-1.14/5fbf324c87e8ad48 は異なります
+--- origsrc/libiconv-1.14/Makefile.devel	2011-07-03 23:05:11.000000000 +0900
++++ src/libiconv-1.14/Makefile.devel	2014-04-08 12:54:08.078900500 +0900
+@@ -4,8 +4,8 @@
+ 
+ SHELL = /bin/sh
+ MAKE = make
+-AUTOCONF = autoconf-2.68
+-AUTOHEADER = autoheader-2.68
++AUTOCONF = autoconf-2.69
++AUTOHEADER = autoheader-2.69
+ AUTOMAKE = automake-1.11
+ ACLOCAL = aclocal-1.11
+ GPERF = gperf
+@@ -190,8 +190,8 @@ lib/flags.h : lib/encodings.def lib/enco
+ 
+ 
+ lib/translit.h : lib/translit.def lib/gentranslit.c
+-	$(CC) $(CFLAGS) lib/gentranslit.c -o gentranslit
+-	ulimit -s unlimited; ./gentranslit < lib/translit.def > lib/translit.h
++	$(CC) $(CFLAGS) -Wl,--stack,16777216  lib/gentranslit.c -o gentranslit
++	./gentranslit < lib/translit.def > lib/translit.h
+ 	$(RM) gentranslit
+ 
+ 
+--- origsrc/libiconv-1.14/lib/aliases_sysaix.gperf	2014-04-08 12:43:47.496718200 +0900
++++ src/libiconv-1.14/lib/aliases_sysaix.gperf	2014-04-08 18:28:04.789447900 +0900
+@@ -44,6 +44,8 @@ UTF-32LE, ei_utf32le
+ UTF-7, ei_utf7
+ UNICODE-1-1-UTF-7, ei_utf7
+ CSUNICODE11UTF7, ei_utf7
++UTF-7-IMAP, ei_utf7imap
++UTF7IMAP, ei_utf7imap
+ UCS-2-INTERNAL, ei_ucs2internal
+ UCS-2-SWAPPED, ei_ucs2swapped
+ UCS-4-INTERNAL, ei_ucs4internal
+--- origsrc/libiconv-1.14/lib/aliases_syshpux.gperf	2014-04-08 12:43:47.586736200 +0900
++++ src/libiconv-1.14/lib/aliases_syshpux.gperf	2014-04-08 18:28:20.363242100 +0900
+@@ -45,6 +45,8 @@ UTF-32LE, ei_utf32le
+ UTF-7, ei_utf7
+ UNICODE-1-1-UTF-7, ei_utf7
+ CSUNICODE11UTF7, ei_utf7
++UTF-7-IMAP, ei_utf7imap
++UTF7IMAP, ei_utf7imap
+ UCS-2-INTERNAL, ei_ucs2internal
+ UCS-2-SWAPPED, ei_ucs2swapped
+ UCS-4-INTERNAL, ei_ucs4internal
+--- origsrc/libiconv-1.14/lib/aliases_sysosf1.gperf	2014-04-08 12:43:47.672753400 +0900
++++ src/libiconv-1.14/lib/aliases_sysosf1.gperf	2014-04-08 18:28:31.117242100 +0900
+@@ -44,6 +44,8 @@ UTF-32LE, ei_utf32le
+ UTF-7, ei_utf7
+ UNICODE-1-1-UTF-7, ei_utf7
+ CSUNICODE11UTF7, ei_utf7
++UTF-7-IMAP, ei_utf7imap
++UTF7IMAP, ei_utf7imap
+ UCS-2-INTERNAL, ei_ucs2internal
+ UCS-2-SWAPPED, ei_ucs2swapped
+ UCS-4-INTERNAL, ei_ucs4internal
+--- origsrc/libiconv-1.14/lib/aliases_syssolaris.gperf	2014-04-08 12:43:47.756770200 +0900
++++ src/libiconv-1.14/lib/aliases_syssolaris.gperf	2014-04-08 18:28:41.986242100 +0900
+@@ -45,6 +45,8 @@ UTF-32LE, ei_utf32le
+ UTF-7, ei_utf7
+ UNICODE-1-1-UTF-7, ei_utf7
+ CSUNICODE11UTF7, ei_utf7
++UTF-7-IMAP, ei_utf7imap
++UTF7IMAP, ei_utf7imap
+ UCS-2-INTERNAL, ei_ucs2internal
+ UCS-2-SWAPPED, ei_ucs2swapped
+ UCS-4-INTERNAL, ei_ucs4internal
+--- origsrc/libiconv-1.14/lib/canonical_sysaix.h	2014-04-08 12:43:47.936806200 +0900
++++ src/libiconv-1.14/lib/canonical_sysaix.h	2014-04-08 18:28:18.762242100 +0900
+@@ -1,18 +1,19 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str310,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str366,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str401,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str240,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str778,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str490,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str418,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str867,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str579,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str363,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str907,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str619,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str379,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str917,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str629,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str750,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str398,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str942,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str654,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str414,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str952,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str664,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str785,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str1021,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str482,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str740,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str571,
+@@ -63,7 +64,7 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str606,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str262,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str308,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str869,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str790,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str272,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str534,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str647,
+@@ -77,9 +78,9 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str158,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str133,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str268,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str623,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str633,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str624,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str544,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str554,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str545,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str370,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str358,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str130,
+@@ -87,7 +88,7 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str420,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str492,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str77,
+-  (int)(long)&((struct stringpool_t *)0)->stringpool_str487,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str522,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str65,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str368,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str291,
+@@ -105,6 +106,7 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str75,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str863,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str843,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str939,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str819,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str443,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str183,
+--- origsrc/libiconv-1.14/lib/canonical_syshpux.h	2014-04-08 12:43:47.958810600 +0900
++++ src/libiconv-1.14/lib/canonical_syshpux.h	2014-04-08 18:28:29.262242100 +0900
+@@ -13,6 +13,7 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str887,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str553,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str850,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str1082,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str648,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str849,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str690,
+@@ -105,6 +106,7 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str194,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str938,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str918,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str970,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str714,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str473,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str142,
+--- origsrc/libiconv-1.14/lib/canonical_sysosf1.h	2014-04-08 12:43:47.981815200 +0900
++++ src/libiconv-1.14/lib/canonical_sysosf1.h	2014-04-08 18:28:40.044242100 +0900
+@@ -13,6 +13,7 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str856,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str619,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str628,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str946,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str565,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str798,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str580,
+@@ -105,6 +106,7 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str155,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str1011,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str987,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str1010,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str882,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str607,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str116,
+--- origsrc/libiconv-1.14/lib/canonical_syssolaris.h	2014-04-08 12:43:48.004819800 +0900
++++ src/libiconv-1.14/lib/canonical_syssolaris.h	2014-04-08 18:28:51.006242100 +0900
+@@ -13,6 +13,7 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str682,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str497,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str788,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str1098,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str429,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str786,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str496,
+@@ -105,6 +106,7 @@
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str131,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str968,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str952,
++  (int)(long)&((struct stringpool_t *)0)->stringpool_str1027,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str909,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str521,
+   (int)(long)&((struct stringpool_t *)0)->stringpool_str145,
+--- origsrc/libiconv-1.14/libcharset/Makefile.devel	2010-09-24 08:28:15.000000000 +0900
++++ src/libiconv-1.14/libcharset/Makefile.devel	2014-04-08 12:52:21.455239200 +0900
+@@ -3,8 +3,8 @@
+ 
+ SHELL = /bin/sh
+ MAKE = make
+-AUTOCONF = autoconf-2.68
+-AUTOHEADER = autoheader-2.68
++AUTOCONF = autoconf-2.69
++AUTOHEADER = autoheader-2.69
+ ACLOCAL = aclocal-1.11
+ CP = cp
+ RM = rm -f
+--- origsrc/libiconv-1.14/preload/Makefile.devel	2010-09-24 08:29:30.000000000 +0900
++++ src/libiconv-1.14/preload/Makefile.devel	2014-04-08 12:52:31.191212700 +0900
+@@ -3,7 +3,7 @@
+ 
+ SHELL = /bin/sh
+ MAKE = make
+-AUTOCONF = autoconf-2.68
++AUTOCONF = autoconf-2.69
+ ACLOCAL = aclocal-1.11
+ CP = cp
+ RM = rm -f
