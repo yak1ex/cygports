@@ -1,6 +1,6 @@
---- origsrc/global-6.2.4/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
-+++ src/global-6.2.4/CYGWIN-PATCHES/README	2012-10-05 00:50:31.117806000 +0900
-@@ -0,0 +1,90 @@
+--- origsrc/global-6.2.12/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/global-6.2.12/CYGWIN-PATCHES/README	2014-04-09 12:15:03.928918500 +0900
+@@ -0,0 +1,93 @@
 +global
 +------------------------------------------
 +GNU GLOBAL source code tagging system:
@@ -23,7 +23,7 @@
 +  http://www.tamacom.com/global.html
 +
 +Canonical download:
-+  http://tamacom.com/global/global-5.9.tar.gz
++  http://tamacom.com/global/global-6.2.12.tar.gz
 +
 +License:
 +  GNU GPLv3, BOKIN model
@@ -34,18 +34,18 @@
 +------------------------------------
 +
 +Build instructions:
-+  unpack global-6.2.4-1-src.tar.bz2
++  unpack global-6.2.12-1-src.tar.bz2
 +    if you use setup to install this src package, it will be
 +	 unpacked under /usr/src automatically
 +  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
 +  cd /usr/src
-+  cygport global-6.2.4-1.cygport all
++  cygport global-6.2.12-1.cygport all
 +
 +This will create:
-+  /usr/src/global-6.2.4-1.tar.bz2
-+  /usr/src/global-6.2.4-1-src.tar.bz2
++  /usr/src/global-6.2.12-1.tar.bz2
++  /usr/src/global-6.2.12-1-src.tar.bz2
 +
-+Or use 'cygport global-6.2.4-1.cygport prep' to get a patched source directory
++Or use 'cygport global-6.2.12-1.cygport prep' to get a patched source directory
 +
 +To find out the files included in the binary distribution, you can
 +use "cygcheck -l global".
@@ -53,6 +53,9 @@
 +------------------
 +
 +Port Notes:
++
++----------  global-6.2.12-1 -- 2014/04/09 -----------
++Routine update to 6.2.12.
 +
 +----------  global-6.2.4-1 -- 2010/06/08 -----------
 +Routine update to 6.2.4.
@@ -91,13 +94,10 @@
 +
 +This private port maintained by: Yak! <yak_ex@mx.scn.tv>
 +Please address all questions to the above address, NOT to the Cygwin mailing list.
---- origsrc/global-6.2.4/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/global-6.2.4/CYGWIN-PATCHES/setup.hint	2012-10-05 00:50:31.126806900 +0900
-@@ -0,0 +1,7 @@
-+@ global
+--- origsrc/global-6.2.12/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/global-6.2.12/CYGWIN-PATCHES/setup.hint	2014-04-09 12:15:55.976122700 +0900
+@@ -0,0 +1,4 @@
 +sdesc: "A source code tag system"
 +ldesc: "GNU GLOBAL is a source code tag system that works the same way across diverse environments. You can locate a specified object in the source files and move there easily. It is useful for hacking a large project containing many subdirectories, many #ifdef and many main() functions. It is similar to ctags or etags but is different from them at the point of independence of any editor."
 +category: Devel
 +requires: cygwin ctags
-+curr: 6.2.4-1
-+prev: 5.9-1
