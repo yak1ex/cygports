@@ -1,6 +1,6 @@
---- origsrc/nkf-2.1.0/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
-+++ src/nkf-2.1.0/CYGWIN-PATCHES/README	2009-12-30 11:07:55.829875000 +0900
-@@ -0,0 +1,66 @@
+--- origsrc/nkf-2.1.3/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/nkf-2.1.3/CYGWIN-PATCHES/README	2014-04-10 12:36:39.274057500 +0900
+@@ -0,0 +1,69 @@
 +nkf
 +------------------------------------------------------------------------
 +Nkf is a yet another kanji code converter among networks, 
@@ -21,7 +21,7 @@
 +  http://sourceforge.jp/projects/nkf/
 +
 +Canonical download:
-+  http://osdn.dl.sourceforge.jp/nkf/44486/nkf-2.1.0.tar.gz
++  http://osdn.dl.sourceforge.jp/nkf/59912/nkf-2.1.3.tar.gz
 +
 +License:
 +  zlib/libpng License
@@ -32,19 +32,19 @@
 +------------------------------------------------------------------------
 +
 +Build instructions:
-+  unpack nkf-2.1.0-1.tar.bz2
++  unpack nkf-2.1.3-1.tar.bz2
 +    if you use setup to install this src package, it will be
 +	 unpacked under /usr/src automatically
 +  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
 +  cd /usr/src
-+  cygport nkf-2.1.0-1.cygport all
++  cygport nkf-2.1.3-1.cygport all
 +
 +This will create:
-+  nkf-2.1.0-1.tar.bz2
-+  nkf-perl-2.1.0-1.tar.bz2
-+  nkf-2.1.0-1.tar.bz2
++  nkf-2.1.3-1.tar.bz2
++  nkf-perl-2.1.3-1.tar.bz2
++  nkf-2.1.3-1.tar.bz2
 +
-+Or use 'cygport nkf-2.1.0-1.cygport prep' to get a patched source directory
++Or use 'cygport nkf-2.1.3-1.cygport prep' to get a patched source directory
 +
 +To find out the files included in the binary distribution, you can
 +use "cygcheck -l nkf".
@@ -52,6 +52,9 @@
 +------------------------------------------------------------------------
 +
 +Port Notes:
++
++----------  nkf-2.1.3-1 -- 2014/04/10 ----------------------------
++Upgrade to upstream version 2.1.3.
 +
 +----------  nkf-2.1.0-1 -- 2009/12/30 ----------------------------
 +Upgrade to upstream version 2.1.0.
@@ -67,9 +70,9 @@
 +This private port maintained by: Yak! <yak_ex@mx.scn.tv>
 +Please address all questions to the above address,
 +NOT to the Cygwin mailing list.
---- origsrc/nkf-2.1.0/CYGWIN-PATCHES/nkf.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/nkf-2.1.0/CYGWIN-PATCHES/nkf.hint	2009-12-30 11:07:55.845500000 +0900
-@@ -0,0 +1,9 @@
+--- origsrc/nkf-2.1.3/CYGWIN-PATCHES/nkf.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/nkf-2.1.3/CYGWIN-PATCHES/nkf.hint	2014-04-10 12:37:02.578387700 +0900
+@@ -0,0 +1,8 @@
 +@ nkf
 +sdesc: "Network Kanji Filter"
 +ldesc: "Nkf is a yet another kanji code converter among networks, 
@@ -78,10 +81,9 @@
 +One of the most unique facility of nkf is the guess of the input kanji code."
 +category: Utils
 +requires: cygwin
-+curr: 2.1.0-1
---- origsrc/nkf-2.1.0/CYGWIN-PATCHES/perl.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/nkf-2.1.0/CYGWIN-PATCHES/perl.hint	2009-12-30 11:07:55.908000000 +0900
-@@ -0,0 +1,9 @@
+--- origsrc/nkf-2.1.3/CYGWIN-PATCHES/perl.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/nkf-2.1.3/CYGWIN-PATCHES/perl.hint	2014-04-10 12:37:09.233053100 +0900
+@@ -0,0 +1,8 @@
 +@ nkf-perl
 +sdesc: "Network Kanji Filter - perl module"
 +ldesc: "This is a Perl Extension version of nkf (Network Kanji Filter). 
@@ -90,4 +92,3 @@
 +This package is built against perl 5.10.0."
 +category: Utils
 +requires: cygwin perl
-+curr: 2.1.0-1

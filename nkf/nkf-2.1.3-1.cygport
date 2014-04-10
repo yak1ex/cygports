@@ -8,7 +8,7 @@ kanji code such as 7-bit JIS, MS-kanji (shifted-JIS), utf-8 or EUC.
 One of the most unique facility of nkf is the guess of the input kanji code."
 CATEGORY="Utils"
 HOMEPAGE="http://sourceforge.jp/projects/nkf/"
-SRC_URI="http://osdn.dl.sourceforge.jp/nkf/44486/nkf-2.1.0.tar.gz"
+SRC_URI="http://osdn.dl.sourceforge.jp/nkf/59912/nkf-2.1.3.tar.gz"
 LICENSE="  zlib/libpng License"
 LANGUAGE="C"
 
