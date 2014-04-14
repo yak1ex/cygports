@@ -1,0 +1,28 @@
+--- origsrc/boost_1_53_0/libs/locale/build/Jamfile.v2	2012-05-23 12:39:25.000000000 -0500
++++ src/boost_1_53_0/libs/locale/build/Jamfile.v2	2013-04-17 21:49:33.637251200 -0500
+@@ -261,7 +261,7 @@ rule configure-full ( properties * : fla
+ 
+     }
+         
+-    if ! $(found-iconv) && ! $(found-icu) && ! <target-os>windows in $(properties) && ! <target-os>cygwin in $(properties) 
++    if ! $(found-iconv) && ! $(found-icu) && ! <target-os>windows in $(properties) 
+     {
+         ECHO "- Boost.Locale needs either iconv or ICU library to be built." ;
+         result += <build>no ;
+@@ -298,7 +298,6 @@ rule configure-full ( properties * : fla
+     if ! <boost.locale.winapi> in $(properties:G)
+     {
+         if <target-os>windows in $(properties) 
+-          || <target-os>cygwin in $(properties)
+         {
+             properties += <boost.locale.winapi>on ;
+         }      
+@@ -335,7 +334,7 @@ rule configure-full ( properties * : fla
+     }
+     
+     if ( ! <boost.locale.winapi>off in $(properties) || ! <boost.locale.std>off in $(properties) )
+-       && ( <target-os>windows in $(properties) || <target-os>cygwin in $(properties) )
++       && <target-os>windows in $(properties)
+     {
+         result += <source>win32/lcid.cpp ;
+     }

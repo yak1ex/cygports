@@ -1,0 +1,21 @@
+--- origsrc/boost_1_50_0/boost/config/platform/cygwin.hpp	2011-03-07 07:07:30.000000000 -0600
++++ src/boost_1_50_0/boost/config/platform/cygwin.hpp	2013-01-21 22:08:04.219168600 -0600
+@@ -39,18 +39,8 @@
+ #define BOOST_HAS_STDINT_H
+ #endif
+ 
+-/// Cygwin has no fenv.h
+-#define BOOST_NO_FENV_H
+-
+ // boilerplate code:
+ #include <boost/config/posix_features.hpp>
+-
+-//
+-// Cygwin lies about XSI conformance, there is no nl_types.h:
+-//
+-#ifdef BOOST_HAS_NL_TYPES_H
+-#  undef BOOST_HAS_NL_TYPES_H
+-#endif
+  
+ 
+ 
