@@ -25,23 +25,23 @@ PATCH_URI="
 	1.52.0-filesystem-cygwin.patch
 	1.52.0-math-cygwin.patch
 	1.46.1-python-cygwin.patch
+	1.55.0-asio-cygwin.patch
 	1.55.0-context-cygwin.patch
 "
-#	1.53.0-asio-cygwin.patch
-#	1.48.0-asio-MSG_EOR.patch
-
-# Patch not included in the latest official release
+# Patches not included in the latest official release
 #	1.52.0-filesystem-cygwin.patch (port from old official release)
 #	1.52.0-math-cygwin.patch (my own work)
 #	1.46.1-python-cygwin.patch (updated with modification from 1.40.0-python-cygwin.patch)
+#	1.55.0-asio-cygwin.patch (updated with modification from 1.53.0-asio-cygwin.patch)
 #	1.55.0-context-cygwin.patch (my own work)
 
 # Don't apply, probably useless
 #	fedora/boost-1.50.0-fix-non-utf8-files.patch
 #	fedora/boost-1.53.0-context.patch
+#	1.48.0-asio-MSG_EOR.patch
 #	1.45.0-jam-cygwin.patch
 
-# Don't apply to use Win32 API for simple synchronization
+# Don't apply, in order to use Win32 API for synchronization
 #	1.40.0-interlocked-cygwin.patch
 #	1.40.0-smart_ptr-cygwin.patch
 
@@ -59,7 +59,8 @@ libboost_python_devel_CONTENTS="${prefix_}/lib/libboost_python-mt.dll.a"
 libboost_python3_devel_REQUIRES="libboost-devel"
 libboost_python3_devel_CONTENTS="${prefix_}/lib/libboost_python3-mt.dll.a"
 declare libboost${dll_v//./_}_CONTENTS="--exclude=*python* ${prefix_}/bin/*-${dll_v//./_}.dll"
-declare libboost_python${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python-*"declare libboost_python3_${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python3-*"
+declare libboost_python${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python-*"
+declare libboost_python3_${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python3-*"
 
 
 DIFF_EXCLUDES="boostbook html *.test"
