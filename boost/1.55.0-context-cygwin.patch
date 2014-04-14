@@ -1,7 +1,7 @@
-diff -urN origsrc/boost_1_52_0/libs/context/build/Jamfile.v2 src/boost_1_52_0/libs/context/build/Jamfile.v2
---- origsrc/boost_1_52_0/libs/context/build/Jamfile.v2	2012-09-18 18:06:47.000000000 +0900
-+++ src/boost_1_52_0/libs/context/build/Jamfile.v2	2012-12-13 11:58:42.994776700 +0900
-@@ -28,6 +28,7 @@
+diff -urN origsrc/boost_1_55_0/libs/context/build/Jamfile.v2 src/boost_1_55_0/libs/context/build/Jamfile.v2
+--- origsrc/boost_1_55_0/libs/context/build/Jamfile.v2	2013-07-27 00:24:15.000000000 +0900
++++ src/boost_1_55_0/libs/context/build/Jamfile.v2	2014-04-13 23:51:37.261739100 +0900
+@@ -29,6 +29,7 @@
      local tmp = elf ;
      if [ os.name ] = "MACOSX" { tmp = mach-o ; }
      if [ os.name ] = "NT" { tmp = pe ; }
@@ -9,7 +9,7 @@ diff -urN origsrc/boost_1_52_0/libs/context/build/Jamfile.v2 src/boost_1_52_0/li
      return $(tmp) ;
  }
  
-@@ -44,6 +45,7 @@
+@@ -45,6 +46,7 @@
  {
      local tmp = sysv ;
      if [ os.name ] = "NT" { tmp = ms ; }
@@ -17,7 +17,7 @@ diff -urN origsrc/boost_1_52_0/libs/context/build/Jamfile.v2 src/boost_1_52_0/li
      else if [ os.platform ] = "ARM" { tmp = aapcs ; }
      else if [ os.platform ] = "MIPS" { tmp = o32 ; }
      return $(tmp) ;
-@@ -53,6 +55,7 @@
+@@ -54,6 +56,7 @@
     : aapcs
       eabi
       ms
@@ -25,7 +25,7 @@ diff -urN origsrc/boost_1_52_0/libs/context/build/Jamfile.v2 src/boost_1_52_0/li
       n32
       n64
       o32
-@@ -314,6 +317,28 @@
+@@ -341,6 +344,28 @@
     ;
  
  alias asm_context_sources
@@ -53,25 +53,10 @@ diff -urN origsrc/boost_1_52_0/libs/context/build/Jamfile.v2 src/boost_1_52_0/li
 +alias asm_context_sources
     : [ make asm/make_i386_ms_pe_masm.o : asm/make_i386_ms_pe_masm.asm : @masm ]
       [ make asm/jump_i386_ms_pe_masm.o : asm/jump_i386_ms_pe_masm.asm : @masm ]
-    : <abi>ms
-@@ -446,6 +471,14 @@
-    ;
- 
- alias context_sources
-+   : fcontext.cpp
-+     seh.cpp
-+     guarded_stack_allocator_windows.cpp
-+     utils_windows.cpp
-+   : <target-os>cygwin
-+   ;
-+
-+alias context_sources
-    : fcontext.cpp
-      guarded_stack_allocator_posix.cpp
-      utils_posix.cpp
-diff -urN origsrc/boost_1_52_0/libs/context/src/asm/jump_i386_cyg_pe_gas.S src/boost_1_52_0/libs/context/src/asm/jump_i386_cyg_pe_gas.S
---- origsrc/boost_1_52_0/libs/context/src/asm/jump_i386_cyg_pe_gas.S	1970-01-01 09:00:00.000000000 +0900
-+++ src/boost_1_52_0/libs/context/src/asm/jump_i386_cyg_pe_gas.S	2012-12-13 12:13:12.187839500 +0900
+      dummy.cpp
+diff -urN origsrc/boost_1_55_0/libs/context/src/asm/jump_i386_cyg_pe_gas.S src/boost_1_55_0/libs/context/src/asm/jump_i386_cyg_pe_gas.S
+--- origsrc/boost_1_55_0/libs/context/src/asm/jump_i386_cyg_pe_gas.S	1970-01-01 09:00:00.000000000 +0900
++++ src/boost_1_55_0/libs/context/src/asm/jump_i386_cyg_pe_gas.S	2014-04-13 23:51:37.270740000 +0900
 @@ -0,0 +1,116 @@
 +/*
 +            Copyright Oliver Kowalke 2009.
@@ -189,9 +174,9 @@ diff -urN origsrc/boost_1_52_0/libs/context/src/asm/jump_i386_cyg_pe_gas.S src/b
 +    movl    0x14(%ecx),  %ecx       /* fetch the address to return to */
 +
 +    jmp     *%ecx                   /* indirect jump to context */
-diff -urN origsrc/boost_1_52_0/libs/context/src/asm/jump_i386_ms_pe_gas.S src/boost_1_52_0/libs/context/src/asm/jump_i386_ms_pe_gas.S
---- origsrc/boost_1_52_0/libs/context/src/asm/jump_i386_ms_pe_gas.S	1970-01-01 09:00:00.000000000 +0900
-+++ src/boost_1_52_0/libs/context/src/asm/jump_i386_ms_pe_gas.S	2012-12-13 12:13:34.062979500 +0900
+diff -urN origsrc/boost_1_55_0/libs/context/src/asm/jump_i386_ms_pe_gas.S src/boost_1_55_0/libs/context/src/asm/jump_i386_ms_pe_gas.S
+--- origsrc/boost_1_55_0/libs/context/src/asm/jump_i386_ms_pe_gas.S	1970-01-01 09:00:00.000000000 +0900
++++ src/boost_1_55_0/libs/context/src/asm/jump_i386_ms_pe_gas.S	2014-04-13 23:51:37.279740900 +0900
 @@ -0,0 +1,108 @@
 +/*
 +            Copyright Oliver Kowalke 2009.
@@ -301,9 +286,9 @@ diff -urN origsrc/boost_1_52_0/libs/context/src/asm/jump_i386_ms_pe_gas.S src/bo
 +    movl    0x14(%ecx),  %ecx       /* fetch the address to return to */
 +
 +    jmp     *%ecx                   /* indirect jump to context */
-diff -urN origsrc/boost_1_52_0/libs/context/src/asm/make_i386_cyg_pe_gas.S src/boost_1_52_0/libs/context/src/asm/make_i386_cyg_pe_gas.S
---- origsrc/boost_1_52_0/libs/context/src/asm/make_i386_cyg_pe_gas.S	1970-01-01 09:00:00.000000000 +0900
-+++ src/boost_1_52_0/libs/context/src/asm/make_i386_cyg_pe_gas.S	2012-12-13 12:47:01.482076900 +0900
+diff -urN origsrc/boost_1_55_0/libs/context/src/asm/make_i386_cyg_pe_gas.S src/boost_1_55_0/libs/context/src/asm/make_i386_cyg_pe_gas.S
+--- origsrc/boost_1_55_0/libs/context/src/asm/make_i386_cyg_pe_gas.S	1970-01-01 09:00:00.000000000 +0900
++++ src/boost_1_55_0/libs/context/src/asm/make_i386_cyg_pe_gas.S	2014-04-13 23:51:37.284741400 +0900
 @@ -0,0 +1,105 @@
 +/*
 +            Copyright Oliver Kowalke 2009.
@@ -410,9 +395,9 @@ diff -urN origsrc/boost_1_52_0/libs/context/src/asm/make_i386_cyg_pe_gas.S src/b
 +.def _align_stack; .scl 2; .type 32; .endef
 +.def _seh_fcontext; .scl 2; .type 32; .endef
 +.def _exit; .scl 2; .type 32; .endef
-diff -urN origsrc/boost_1_52_0/libs/context/src/asm/make_i386_ms_pe_gas.S src/boost_1_52_0/libs/context/src/asm/make_i386_ms_pe_gas.S
---- origsrc/boost_1_52_0/libs/context/src/asm/make_i386_ms_pe_gas.S	1970-01-01 09:00:00.000000000 +0900
-+++ src/boost_1_52_0/libs/context/src/asm/make_i386_ms_pe_gas.S	2012-12-13 12:45:14.450141900 +0900
+diff -urN origsrc/boost_1_55_0/libs/context/src/asm/make_i386_ms_pe_gas.S src/boost_1_55_0/libs/context/src/asm/make_i386_ms_pe_gas.S
+--- origsrc/boost_1_55_0/libs/context/src/asm/make_i386_ms_pe_gas.S	1970-01-01 09:00:00.000000000 +0900
++++ src/boost_1_55_0/libs/context/src/asm/make_i386_ms_pe_gas.S	2014-04-13 23:51:37.288741800 +0900
 @@ -0,0 +1,105 @@
 +/*
 +            Copyright Oliver Kowalke 2009.
@@ -519,24 +504,3 @@ diff -urN origsrc/boost_1_52_0/libs/context/src/asm/make_i386_ms_pe_gas.S src/bo
 +.def _align_stack; .scl 2; .type 32; .endef
 +.def _seh_fcontext; .scl 2; .type 32; .endef
 +.def _exit; .scl 2; .type 32; .endef
-diff -urN origsrc/boost_1_52_0/boost/context/fcontext.hpp src/boost_1_52_0/boost/context/fcontext.hpp
---- origsrc/boost_1_52_0/boost/context/fcontext.hpp	2012-09-18 17:34:31.000000000 +0900
-+++ src/boost_1_52_0/boost/context/fcontext.hpp	2012-12-12 20:47:10.852115800 +0900
-@@ -26,7 +26,7 @@
- #if defined(__x86_64__) || defined(__x86_64) \
-     || defined(__amd64__) || defined(__amd64) \
-     || defined(_M_X64) || defined(_M_AMD64)
--# if defined(BOOST_WINDOWS)
-+# if defined(BOOST_WINDOWS) || defined(__CYGWIN__)
- #  include <boost/context/detail/fcontext_x86_64_win.hpp>
- # else
- #  include <boost/context/detail/fcontext_x86_64.hpp>
-@@ -37,7 +37,7 @@
-     || defined(__X86__) || defined(_X86_) || defined(__THW_INTEL__) \
-     || defined(__I86__) || defined(__INTEL__) || defined(__IA32__) \
-     || defined(_M_IX86) || defined(_I86_)
--# if defined(BOOST_WINDOWS)
-+# if defined(BOOST_WINDOWS) || defined(__CYGWIN__)
- #  include <boost/context/detail/fcontext_i386_win.hpp>
- # else
- #  include <boost/context/detail/fcontext_i386.hpp>

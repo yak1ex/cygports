@@ -1,4 +1,4 @@
-inherit python
+inherit python python3
 inherit usrlocal
 
 DESCRIPTION="Boost C++ libraries"
@@ -7,31 +7,60 @@ SRC_URI="mirror://sourceforge/boost/${PN}_${PV//./_}.tar.bz2"
 SRC_DIR="${PN}_${PV//./_}"
 
 PATCH_URI="
-	boost-1.48.0-foreach.patch
+	fedora/boost-1.55.0-attribute.patch
+	fedora/boost-1.50.0-foreach.patch
+	fedora/boost-1.50.0-long-double-1.patch
+	fedora/boost-1.50.0-pool.patch
 	1.40.0-cstdint-cygwin.patch
-	1.48.0-asio-cygwin.patch
-	1.48.0-asio-MSG_EOR.patch
-	1.52.0-context-cygwin.patch
-	1.52.0-filesystem-cygwin.patch
+	1.50.0-config-cygwin.patch
+	1.53.0-filesystem-cygwin.patch
 	1.40.0-iostreams-cygwin.patch
-	1.52.0-math-cygwin.patch
-	1.46.1-python-cygwin.patch
+	1.53.0-locale-cygwin.patch
 	1.40.0-regex-cygwin.patch
 	1.46.1-system-cygwin.patch
 	1.48.0-type_traits-qtbug22829.patch
 	1.43.0-jam-toolkit.patch
+	1.50.0-jam-pep3149.patch
+
+	1.52.0-filesystem-cygwin.patch
+	1.52.0-math-cygwin.patch
+	1.46.1-python-cygwin.patch
+	1.55.0-context-cygwin.patch
 "
+#	1.53.0-asio-cygwin.patch
+#	1.48.0-asio-MSG_EOR.patch
+
+# Patch not included in the latest official release
+#	1.52.0-filesystem-cygwin.patch (port from old official release)
+#	1.52.0-math-cygwin.patch (my own work)
+#	1.46.1-python-cygwin.patch (updated with modification from 1.40.0-python-cygwin.patch)
+#	1.55.0-context-cygwin.patch (my own work)
+
+# Don't apply, probably useless
+#	fedora/boost-1.50.0-fix-non-utf8-files.patch
+#	fedora/boost-1.53.0-context.patch
+#	1.45.0-jam-cygwin.patch
+
+# Don't apply to use Win32 API for simple synchronization
+#	1.40.0-interlocked-cygwin.patch
+#	1.40.0-smart_ptr-cygwin.patch
 
 case ${PV} in
 	*.0)	dll_v=${PV%.0} ;;
 	*)	dll_v=${PV} ;;
 esac
 
-PKG_NAMES="${PN} libboost${dll_v} libboost_python${dll_v} libboost-devel"
-PKG_HINTS="boost lib python devel"
-libboost_devel_CONTENTS="${prefix_}/include/ ${prefix_}/lib/ usr/share/doc/"
+PKG_NAMES="libboost${dll_v} libboost_python${dll_v} libboost-devel"
+PKG_HINTS="lib python devel"
+libboost_devel_REQUIRES="libicu-devel"
+libboost_devel_CONTENTS="--exclude=*boost_python* ${prefix_}/include/ ${prefix_}/lib/ usr/share/doc/"
+libboost_python_devel_REQUIRES="libboost-devel"
+libboost_python_devel_CONTENTS="${prefix_}/lib/libboost_python-mt.dll.a"
+libboost_python3_devel_REQUIRES="libboost-devel"
+libboost_python3_devel_CONTENTS="${prefix_}/lib/libboost_python3-mt.dll.a"
 declare libboost${dll_v//./_}_CONTENTS="--exclude=*python* ${prefix_}/bin/*-${dll_v//./_}.dll"
-declare libboost_python${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python-*"
+declare libboost_python${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python-*"declare libboost_python3_${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python3-*"
+
 
 DIFF_EXCLUDES="boostbook html *.test"
 
@@ -43,10 +72,15 @@ src_compile() {
 	cd ${B}
 	${B}/bootstrap.sh \
 		--prefix=${prefix} \
+		--without-libraries=python \
 		--with-icu=/usr \
-		--with-python=${PYTHON} \
 		--with-toolset=gcc \
 		|| error "configure failed"
+
+	cat >> project-config.jam <<_EOF
+using python : ${PYTHON3_VERSION}${PYTHON3_ABIFLAGS} : ${PYTHON3} : ${PYTHON3_INCLUDEDIR} ;
+using python : ${PYTHON_VERSION} : /usr ;
+_EOF
 
 	cat > user-config.jam <<-_EOF
 	# Compiler configuration
@@ -60,7 +94,8 @@ src_compile() {
 		--user-config=user-config.jam \
 		--without-mpi \
 		release \
-		threading=multi link=shared,static \
+		python=${PYTHON_VERSION} \
+		threading=multi link=shared,static pch=off \
 		${MAKEOPTS} \
 		|| true
 }
@@ -69,13 +104,11 @@ src_install() {
 	cd ${B}
 	mydobin $(find bin.v2/libs -name '*.dll')
 	mydolib $(find bin.v2/libs -name '*.a')
+#	dobin stage/lib/*.dll
+#	dolib stage/lib/*.dll.a
 
 	dodir ${prefix}/include
 	cp -r ${S}/boost ${D}${prefix}/include/
-
-	# Unit test DLLs broken on Cygwin; results in _WinMain@16 linker errors
-#	rm -f ${D}${prefix}/bin/cygboost_{prg_exec_monitor,unit_test}*.dll \
-#	      ${D}${prefix}/lib/libboost_{prg_exec_monitor,unit_test}*.dll.a
 
 	pushd ${D}${prefix}/lib
 	for lib in libboost_*
