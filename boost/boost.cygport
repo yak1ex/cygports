@@ -1,7 +1,16 @@
 inherit python python3
 inherit usrlocal
 
-DESCRIPTION="Boost C++ libraries"
+NAME="boost"
+VERSION=1.55.0
+RELEASE=1
+CATEGORY="Libs"
+SUMMARY="Boost C++ libraries"
+DESCRIPTION="Boost provides free peer-reviewed portable C++ source libraries.
+We emphasize libraries that work well with the C++ Standard Library. Boost
+libraries are intended to be widely useful, and usable across a broad spectrum
+of applications. The Boost license encourages both commercial and non-commercial
+use."
 HOMEPAGE="http://www.boost.org/"
 SRC_URI="mirror://sourceforge/boost/${PN}_${PV//./_}.tar.bz2"
 SRC_DIR="${PN}_${PV//./_}"
@@ -50,18 +59,17 @@ case ${PV} in
 	*)	dll_v=${PV} ;;
 esac
 
-PKG_NAMES="libboost${dll_v} libboost_python${dll_v} libboost-devel"
-PKG_HINTS="lib python devel"
-libboost_devel_REQUIRES="libicu-devel"
-libboost_devel_CONTENTS="--exclude=*boost_python* ${prefix_}/include/ ${prefix_}/lib/ usr/share/doc/"
-libboost_python_devel_REQUIRES="libboost-devel"
-libboost_python_devel_CONTENTS="${prefix_}/lib/libboost_python-mt.dll.a"
-libboost_python3_devel_REQUIRES="libboost-devel"
-libboost_python3_devel_CONTENTS="${prefix_}/lib/libboost_python3-mt.dll.a"
-declare libboost${dll_v//./_}_CONTENTS="--exclude=*python* ${prefix_}/bin/*-${dll_v//./_}.dll"
-declare libboost_python${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python-*"
-declare libboost_python3_${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python3-*"
-
+PKG_NAMES="libboost${dll_v}_ libboost_python${dll_v}_ libboost_python3_${dll_v}_
+           libboost-devel_ libboost_python-devel_ libboost_python3-devel_"
+libboost_devel__REQUIRES="libicu-devel"
+libboost_devel__CONTENTS="--exclude=*boost_python* ${prefix_}/include/ ${prefix_}/lib/ usr/share/doc/"
+libboost_python_devel__REQUIRES="libboost-devel_"
+libboost_python_devel__CONTENTS="${prefix_}/lib/libboost_python-mt*.a"
+libboost_python3_devel__REQUIRES="libboost-devel_"
+libboost_python3_devel__CONTENTS="${prefix_}/lib/libboost_python3-mt*.a"
+declare libboost${dll_v//./_}__CONTENTS="--exclude=*python* ${prefix_}/bin/*-${dll_v//./_}.dll"
+declare libboost_python${dll_v//./_}__CONTENTS="${prefix_}/bin/cygboost_python-*"
+declare libboost_python3_${dll_v//./_}__CONTENTS="${prefix_}/bin/cygboost_python3-*"
 
 DIFF_EXCLUDES="boostbook html *.test"
 
