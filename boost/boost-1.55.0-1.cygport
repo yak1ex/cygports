@@ -103,10 +103,8 @@ _EOF
 
 src_install() {
 	cd ${B}
-	mydobin $(find bin.v2/libs -name '*.dll')
-	mydolib $(find bin.v2/libs -name '*.a')
-#	dobin stage/lib/*.dll
-#	dolib stage/lib/*.dll.a
+	mydobin stage/lib/*.dll
+	mydolib stage/lib/*.a
 
 	dodir ${prefix}/include
 	cp -r ${S}/boost ${D}${prefix}/include/
