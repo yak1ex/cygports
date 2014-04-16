@@ -59,17 +59,17 @@ case ${PV} in
 	*)	dll_v=${PV} ;;
 esac
 
-PKG_NAMES="libboost${dll_v}_ libboost_python${dll_v}_ libboost_python3_${dll_v}_
-           libboost-devel_ libboost_python-devel_ libboost_python3-devel_"
-libboost_devel__REQUIRES="libicu-devel"
-libboost_devel__CONTENTS="--exclude=*boost_python* ${prefix_}/include/ ${prefix_}/lib/ usr/share/doc/"
-libboost_python_devel__REQUIRES="libboost-devel_"
-libboost_python_devel__CONTENTS="${prefix_}/lib/libboost_python-mt*.a"
-libboost_python3_devel__REQUIRES="libboost-devel_"
-libboost_python3_devel__CONTENTS="${prefix_}/lib/libboost_python3-mt*.a"
-declare libboost${dll_v//./_}__CONTENTS="--exclude=*python* ${prefix_}/bin/*-${dll_v//./_}.dll"
-declare libboost_python${dll_v//./_}__CONTENTS="${prefix_}/bin/cygboost_python-*"
-declare libboost_python3_${dll_v//./_}__CONTENTS="${prefix_}/bin/cygboost_python3-*"
+PKG_NAMES="libboost${dll_v} libboost_python${dll_v} libboost_python3_${dll_v}
+           libboost-devel libboost_python-devel libboost_python3-devel"
+libboost_devel_REQUIRES="libicu-devel"
+libboost_devel_CONTENTS="--exclude=*boost_python* ${prefix_}/include/ ${prefix_}/lib/ usr/share/doc/"
+libboost_python_devel_REQUIRES="libboost-devel_"
+libboost_python_devel_CONTENTS="${prefix_}/lib/libboost_python-mt*.a"
+libboost_python3_devel_REQUIRES="libboost-devel_"
+libboost_python3_devel_CONTENTS="${prefix_}/lib/libboost_python3-mt*.a"
+declare libboost${dll_v//./_}_CONTENTS="--exclude=*python* ${prefix_}/bin/*-${dll_v//./_}.dll"
+declare libboost_python${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python-*"
+declare libboost_python3_${dll_v//./_}_CONTENTS="${prefix_}/bin/cygboost_python3-*"
 
 DIFF_EXCLUDES="boostbook html *.test"
 
