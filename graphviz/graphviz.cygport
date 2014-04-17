@@ -1,4 +1,10 @@
-DESCRIPTION="Graph Visualization Software"
+
+NAME="graphviz"
+VERSION=2.38.0
+RELEASE=1
+SUMMARY="Graph Visualization Software"
+DESCRIPTION="
+"
 HOMEPAGE="http://www.graphviz.org/"
 SRC_URI="http://www.graphviz.org/pub/graphviz/ARCHIVE/${P}.tar.gz"
 DIFF_EXCLUDES='libltdl AssemblyInfo.cs'
