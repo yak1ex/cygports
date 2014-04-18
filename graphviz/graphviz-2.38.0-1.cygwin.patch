@@ -1,5 +1,5 @@
---- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.26.3/CYGWIN-PATCHES/README	2011-04-10 00:39:20.696898400 +0900
+--- origsrc/graphviz-2.38.0/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/CYGWIN-PATCHES/README	2014-04-18 14:22:29.466856700 +0900
 @@ -0,0 +1,102 @@
 +graphviz
 +------------------------------------------------------------------------
@@ -103,8 +103,8 @@
 +This private port maintained by: Yak! <yak_ex@mx.scn.tv>
 +Please address all questions to the above address, NOT to the Cygwin 
 +mailing list at <cygwin@cygwin.com>.
---- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/devel.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.26.3/CYGWIN-PATCHES/devel.hint	2011-04-10 00:39:20.698898400 +0900
+--- origsrc/graphviz-2.38.0/CYGWIN-PATCHES/devel.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/CYGWIN-PATCHES/devel.hint	2014-04-18 14:22:29.481857500 +0900
 @@ -0,0 +1,9 @@
 +@ graphviz-devel
 +sdesc: "Graph Visualization Software - headers and libraries "
@@ -115,8 +115,8 @@
 +requires: libgcc1 libgraphviz6
 +curr: 2.26.3-1
 +prev: 2.20.3-1
---- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/doc.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.26.3/CYGWIN-PATCHES/doc.hint	2011-04-10 00:39:20.700898400 +0900
+--- origsrc/graphviz-2.38.0/CYGWIN-PATCHES/doc.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/CYGWIN-PATCHES/doc.hint	2014-04-18 14:22:29.499858500 +0900
 @@ -0,0 +1,8 @@
 +@ graphviz-doc
 +sdesc: "Graph Visualization Software - PDF and HTML documentation"
@@ -126,8 +126,8 @@
 +category: Graphics
 +curr: 2.26.3-1
 +prev: 2.20.3-1
---- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/lib.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.26.3/CYGWIN-PATCHES/lib.hint	2011-04-10 00:39:20.702898400 +0900
+--- origsrc/graphviz-2.38.0/CYGWIN-PATCHES/lib.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/CYGWIN-PATCHES/lib.hint	2014-04-18 14:22:29.512859300 +0900
 @@ -0,0 +1,8 @@
 +@ libgraphviz6
 +sdesc: "Graph Visualization Software - DLLs"
@@ -137,8 +137,8 @@
 +category: Graphics
 +requires: libexpat1 libgcc1 zlib0
 +curr: 2.26.3-1
---- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/lua.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.26.3/CYGWIN-PATCHES/lua.hint	2011-04-10 00:39:20.705898400 +0900
+--- origsrc/graphviz-2.38.0/CYGWIN-PATCHES/lua.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/CYGWIN-PATCHES/lua.hint	2014-04-18 14:22:29.529860300 +0900
 @@ -0,0 +1,9 @@
 +@ graphviz-lua
 +sdesc: "Graph Visualization Software - Lua bindings"
@@ -149,8 +149,8 @@
 +requires: libgcc1 libgraphviz6 lua
 +curr: 2.26.3-1
 +prev: 2.20.3-1
---- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/perl.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.26.3/CYGWIN-PATCHES/perl.hint	2011-04-10 00:39:20.707898400 +0900
+--- origsrc/graphviz-2.38.0/CYGWIN-PATCHES/perl.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/CYGWIN-PATCHES/perl.hint	2014-04-18 14:22:29.544861100 +0900
 @@ -0,0 +1,9 @@
 +@ graphviz-perl
 +sdesc: "Graph Visualization Software - Perl bindings"
@@ -161,8 +161,8 @@
 +requires: libgcc1 libgraphviz6 perl
 +curr: 2.26.3-1
 +prev: 2.20.3-1
---- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/python.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.26.3/CYGWIN-PATCHES/python.hint	2011-04-10 00:39:20.709898400 +0900
+--- origsrc/graphviz-2.38.0/CYGWIN-PATCHES/python.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/CYGWIN-PATCHES/python.hint	2014-04-18 14:22:29.558861900 +0900
 @@ -0,0 +1,9 @@
 +@ graphviz-python
 +sdesc: "Graph Visualization Software - Python bindings"
@@ -173,8 +173,8 @@
 +requires: libgcc1 libgraphviz6 python
 +curr: 2.26.3-1
 +prev: 2.20.3-1
---- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/ruby.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.26.3/CYGWIN-PATCHES/ruby.hint	2011-04-10 00:39:20.711898400 +0900
+--- origsrc/graphviz-2.38.0/CYGWIN-PATCHES/ruby.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/CYGWIN-PATCHES/ruby.hint	2014-04-18 14:22:29.574862800 +0900
 @@ -0,0 +1,9 @@
 +@ graphviz-ruby
 +sdesc: "Graph Visualization Software - Ruby bindings"
@@ -185,8 +185,8 @@
 +requires: libgcc1 libgraphviz6 ruby zlib0
 +curr: 2.26.3-1
 +prev: 2.20.3-1
---- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.26.3/CYGWIN-PATCHES/setup.hint	2011-04-10 00:39:20.713898400 +0900
+--- origsrc/graphviz-2.38.0/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/CYGWIN-PATCHES/setup.hint	2014-04-18 14:22:29.588863600 +0900
 @@ -0,0 +1,9 @@
 +@ graphviz
 +sdesc: "Graph Visualization Software"
@@ -197,8 +197,8 @@
 +requires: cygwin libexpat1 libfontconfig1 libfreetype6 libgcc1 libgd2 libgraphviz6 libiconv2 libjpeg7 libpng12 libX11_6 libXau6 libXdmcp6 libXpm4 libxcb1 libxcb1 zlib0
 +curr: 2.26.3-1
 +prev: 2.20.3-1
---- origsrc/graphviz-2.26.3/CYGWIN-PATCHES/tcl.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.26.3/CYGWIN-PATCHES/tcl.hint	2011-04-10 00:39:20.715898400 +0900
+--- origsrc/graphviz-2.38.0/CYGWIN-PATCHES/tcl.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/CYGWIN-PATCHES/tcl.hint	2014-04-18 14:22:29.605864600 +0900
 @@ -0,0 +1,9 @@
 +@ graphviz-tcl
 +sdesc: "Graph Visualization Software - Tcl bindings"
