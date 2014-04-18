@@ -1,5 +1,5 @@
 --- origsrc/graphviz-2.38.0/cmd/edgepaint/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/cmd/edgepaint/Makefile.am	2014-04-18 12:29:10.137957300 +0900
++++ src/graphviz-2.38.0/cmd/edgepaint/Makefile.am	2014-04-18 13:38:52.506175100 +0900
 @@ -5,6 +5,7 @@ pdfdir = $(pkgdatadir)/doc/pdf
  
  AM_CPPFLAGS = \
@@ -9,7 +9,7 @@
  	-I$(top_srcdir)/lib/sfdpgen \
  	-I$(top_srcdir)/lib/edgepaint \
 --- origsrc/graphviz-2.38.0/cmd/lefty/common.h	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/cmd/lefty/common.h	2014-04-17 19:16:35.756824300 +0900
++++ src/graphviz-2.38.0/cmd/lefty/common.h	2014-04-18 13:38:52.520175900 +0900
 @@ -29,7 +29,7 @@ extern "C" {
   */
  #define FEATURE_MINTSIZE 1 
@@ -20,7 +20,7 @@
  #define FEATURE_WIN32 1
  #endif
 --- origsrc/graphviz-2.38.0/cmd/lefty/lefty.c	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/cmd/lefty/lefty.c	2014-04-17 19:16:35.785827200 +0900
++++ src/graphviz-2.38.0/cmd/lefty/lefty.c	2014-04-18 13:38:52.536176800 +0900
 @@ -207,6 +207,61 @@ eop:
  
  #else
@@ -108,7 +108,7 @@
      __argv++, __argc--;
      processargs (__argc, __argv);
 --- origsrc/graphviz-2.38.0/config/config_perl.pl	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/config/config_perl.pl	2014-04-17 19:16:35.810829700 +0900
++++ src/graphviz-2.38.0/config/config_perl.pl	2014-04-18 13:38:52.553177800 +0900
 @@ -4,6 +4,7 @@ if ($ARGV[0] eq "PERL_LIBS") {
  	$archlib = $Config{archlib};
  	$libperl = $Config{libperl};
@@ -118,7 +118,7 @@
  }
  if ($ARGV[0] eq "PERL_INCLUDES") {
 --- origsrc/graphviz-2.38.0/configure.ac	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/configure.ac	2014-04-17 19:16:35.825831200 +0900
++++ src/graphviz-2.38.0/configure.ac	2014-04-18 14:48:37.925567400 +0900
 @@ -190,7 +190,12 @@ AC_SUBST([EXTRA_SMYRNA_LDFLAGS])
  AC_DEFINE_UNQUOTED(DEFAULT_FONTPATH,"$DEFAULT_FONTPATH",[Path to TrueType fonts.])
  AC_DEFINE_UNQUOTED(PATHSEPARATOR,"$PATHSEPARATOR",[Path separator character.])
@@ -142,8 +142,17 @@
  
    # can't assume ksh on all architectures
    # TCLSH_EXEC_PREFIX=${TCLSH%%/bin/tclsh.*}
+@@ -1733,7 +1738,7 @@ AC_SUBST([TCL_SHLIB_SUFFIX])
+ #AC_SUBST([TCL_RANLIB])
+ #AC_SUBST([TCL_LIB_FLAG])
+ #AC_SUBST([TCL_BUILD_LIB_SPEC])
+-#AC_SUBST([TCL_LIB_SPEC])
++AC_SUBST([TCL_LIB_SPEC])
+ #AC_SUBST([TCL_LIB_VERSIONS_OK])
+ #AC_SUBST([TCL_SHARED_LIB_SUFFIX])
+ #AC_SUBST([TCL_UNSHARED_LIB_SUFFIX])
 --- origsrc/graphviz-2.38.0/lib/common/globals.c	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/lib/common/globals.c	2014-04-17 19:16:35.859834600 +0900
++++ src/graphviz-2.38.0/lib/common/globals.c	2014-04-18 13:38:52.589179800 +0900
 @@ -15,8 +15,9 @@
  #include "config.h"
  #endif
@@ -156,7 +165,7 @@
  #include "fdp.h"
  
 --- origsrc/graphviz-2.38.0/lib/common/timing.c	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/lib/common/timing.c	2014-04-17 19:16:35.890837700 +0900
++++ src/graphviz-2.38.0/lib/common/timing.c	2014-04-18 13:38:52.602180600 +0900
 @@ -42,11 +42,13 @@ typedef clock_t mytime_t;
  
  static mytime_t T;
@@ -172,7 +181,7 @@
  {
      mytime_t S;
 --- origsrc/graphviz-2.38.0/lib/gvc/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/lib/gvc/Makefile.am	2014-04-18 10:08:58.266122500 +0900
++++ src/graphviz-2.38.0/lib/gvc/Makefile.am	2014-04-18 13:38:52.616181400 +0900
 @@ -53,7 +53,7 @@ if ENABLE_LTDL
  libgvc_C_la_LIBADD += @LIBLTDL@ $(LIBLTDL_LDFLAGS)
  endif
@@ -183,7 +192,7 @@
  libgvc_la_LIBADD = $(libgvc_C_la_LIBADD) \
  	$(top_builddir)/lib/xdot/libxdot.la \
 --- origsrc/graphviz-2.38.0/lib/gvc/gvcext.h	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/lib/gvc/gvcext.h	2014-04-17 19:20:06.863932900 +0900
++++ src/graphviz-2.38.0/lib/gvc/gvcext.h	2014-04-18 13:38:52.630182200 +0900
 @@ -76,7 +76,7 @@ __declspec(dllimport) lt_symlist_t lt_pr
  
  
@@ -194,7 +203,7 @@
  #else
  #if !defined(LTDL_H)
 --- origsrc/graphviz-2.38.0/lib/gvpr/compile.c	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/lib/gvpr/compile.c	2014-04-17 19:16:35.956844300 +0900
++++ src/graphviz-2.38.0/lib/gvpr/compile.c	2014-04-18 13:38:52.646183100 +0900
 @@ -74,7 +74,7 @@ static int ioflush(void *chan)
  
  static Agiodisc_t gprIoDisc = { iofread, ioputstr, ioflush };
@@ -214,7 +223,7 @@
      gprDisc.id = &AgIdDisc;
  #endif
 --- origsrc/graphviz-2.38.0/lib/gvpr/gvpr.c	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/lib/gvpr/gvpr.c	2014-04-17 19:16:35.984847100 +0900
++++ src/graphviz-2.38.0/lib/gvpr/gvpr.c	2014-04-18 13:38:52.666184200 +0900
 @@ -938,6 +938,9 @@ gverrorf (Expr_t *handle, Exdisc_t *disc
   *  - do automatic cast for array indices if type is known
   *  - array initialization
@@ -226,7 +235,7 @@
  {
      Sfdisc_t errdisc;
 --- origsrc/graphviz-2.38.0/lib/vmalloc/features/vmalloc	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/lib/vmalloc/features/vmalloc	2014-04-17 19:27:19.656207800 +0900
++++ src/graphviz-2.38.0/lib/vmalloc/features/vmalloc	2014-04-18 13:38:52.684185200 +0900
 @@ -21,6 +21,7 @@ hdr dlfcn
  
  std	malloc note{ stuck with standard malloc }end noexecute{
@@ -247,7 +256,7 @@
  
  lib alloca note{ alloca exists }end compile{
 --- origsrc/graphviz-2.38.0/plugin/core/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/plugin/core/Makefile.am	2014-04-17 20:25:53.381529700 +0900
++++ src/graphviz-2.38.0/plugin/core/Makefile.am	2014-04-18 13:38:52.699186100 +0900
 @@ -17,7 +17,13 @@ else
  pkglib_LTLIBRARIES = libgvplugin_core.la
  endif
@@ -271,7 +280,7 @@
  
  if WITH_DARWIN9
 --- origsrc/graphviz-2.38.0/plugin/dot_layout/gvplugin_dot_layout.c	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/plugin/dot_layout/gvplugin_dot_layout.c	2014-04-17 19:16:36.098858500 +0900
++++ src/graphviz-2.38.0/plugin/dot_layout/gvplugin_dot_layout.c	2014-04-18 13:38:52.712186900 +0900
 @@ -12,6 +12,7 @@
   *************************************************************************/
  
@@ -281,7 +290,7 @@
  extern gvplugin_installed_t gvlayout_dot_layout[];
  
 --- origsrc/graphviz-2.38.0/plugin/gd/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/plugin/gd/Makefile.am	2014-04-17 20:28:23.546565700 +0900
++++ src/graphviz-2.38.0/plugin/gd/Makefile.am	2014-04-18 13:38:52.732188000 +0900
 @@ -40,7 +40,7 @@ libgvplugin_gd_la_DEPENDENCIES =  $(top_
  
  if WITH_WIN32
@@ -292,7 +301,7 @@
  
  if WITH_DARWIN9
 --- origsrc/graphviz-2.38.0/plugin/neato_layout/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/plugin/neato_layout/Makefile.am	2014-04-18 12:14:33.622823500 +0900
++++ src/graphviz-2.38.0/plugin/neato_layout/Makefile.am	2014-04-18 13:38:52.753189200 +0900
 @@ -45,7 +45,7 @@ libgvplugin_neato_layout_C_la_LIBADD +=
  endif
  
@@ -303,7 +312,7 @@
  endif
  
 --- origsrc/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.c	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.c	2014-04-17 19:16:36.121860800 +0900
++++ src/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.c	2014-04-18 13:38:52.767190000 +0900
 @@ -12,6 +12,7 @@
   *************************************************************************/
  
@@ -313,7 +322,7 @@
  extern gvplugin_installed_t gvlayout_neato_types[];
  
 --- origsrc/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.cygwin.def	1970-01-01 09:00:00.000000000 +0900
-+++ src/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.cygwin.def	2014-04-18 10:15:59.794628500 +0900
++++ src/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.cygwin.def	2014-04-18 13:38:52.781190800 +0900
 @@ -0,0 +1,7 @@
 +LIBRARY	"gvplugin_neato_layout"
 +EXPORTS
@@ -322,8 +331,147 @@
 +neato_init_node	
 +user_pos	
 +
+--- origsrc/graphviz-2.38.0/tclpkg/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/tclpkg/Makefile.am	2014-04-18 16:56:16.003438800 +0900
+@@ -32,6 +32,8 @@ pkgIndex.tcl: @TCL_PKGINDEX@ @TCL_PKGIND
+ 	cat @TCL_PKGINDEX@ @TCL_PKGINDEX_GD@ @TCL_PKGINDEX_SWIG@ @TK_PKGINDEX@ end >$@
+ 	rm -f end
+ 
++SO_P = cyg
++SO_S = dll
+ # Installation of softlinks into non-owned directories is done as a
+ # separate step, with soft failures, so that a developer can do:
+ #    ./configure --prefix=$HOME/graphviz; make; make install
+@@ -41,7 +43,7 @@ if WITH_LUA
+ 	-mkdir -p $(DESTDIR)@LUA_INSTALL_DIR@;
+ 	if test -w $(DESTDIR)@LUA_INSTALL_DIR@; then \
+ 		(cd $(DESTDIR)@LUA_INSTALL_DIR@; \
+-			cp -f $(DESTDIR)$(pkgluadir)/libgv_lua.so gv.so;) \
++			cp -f $(DESTDIR)$(pkgluadir)/$(SO_P)gv_lua.$(SO_S) gv.$(SO_S);) \
+ 	else \
+ 		echo "Warning: @LUA_INSTALL_DIR@ is not writable."; \
+ 		echo "Skipping system installation of lua binding."; \
+@@ -51,7 +53,7 @@ if WITH_PERL
+ 	-mkdir -p $(DESTDIR)@PERL_INSTALL_DIR@;
+ 	if test -w $(DESTDIR)@PERL_INSTALL_DIR@; then \
+ 		(cd $(DESTDIR)@PERL_INSTALL_DIR@; \
+-			cp -f $(DESTDIR)$(pkgperldir)/libgv_perl.so gv.so; \
++			cp -f $(DESTDIR)$(pkgperldir)/$(SO_P)gv_perl.$(SO_S) gv.$(SO_S); \
+ 			cp -f $(DESTDIR)$(pkgperldir)/gv.pm gv.pm;) \
+ 	else \
+ 		echo "Warning: @PERL_INSTALL_DIR@ is not writable."; \
+@@ -62,7 +64,7 @@ if WITH_PHP
+ 	-mkdir -p $(DESTDIR)@PHP_INSTALL_DIR@;
+ 	if test -w $(DESTDIR)@PHP_INSTALL_DIR@; then \
+ 		(cd $(DESTDIR)@PHP_INSTALL_DIR@; \
+-			cp -f $(DESTDIR)$(pkgphpdir)/libgv_php.so gv.so;) \
++			cp -f $(DESTDIR)$(pkgphpdir)/$(SO_P)gv_php.$(SO_S) gv.$(SO_S);) \
+ 	else \
+ 		echo "Warning: @PHP_INSTALL_DIR@ is not writable."; \
+ 		echo "Skipping system installation of php binding."; \
+@@ -80,7 +82,7 @@ if WITH_PYTHON
+ 	-mkdir -p $(DESTDIR)@PYTHON_INSTALL_DIR@;
+ 	if test -w $(DESTDIR)@PYTHON_INSTALL_DIR@; then \
+ 		(cd $(DESTDIR)@PYTHON_INSTALL_DIR@; \
+-			cp -f $(DESTDIR)$(pkgpythondir)/libgv_python.so _gv.so; \
++			cp -f $(DESTDIR)$(pkgpythondir)/$(SO_P)gv_python.$(SO_S) _gv.$(SO_S); \
+ 			cp -f $(DESTDIR)$(pkgpythondir)/gv.py gv.py;) \
+ 	else \
+ 		echo "Warning: @PYTHON_INSTALL_DIR@ is not writable."; \
+@@ -91,7 +93,7 @@ if WITH_PYTHON23
+ 	-mkdir -p $(DESTDIR)@PYTHON23_INSTALL_DIR@;
+ 	if test -w $(DESTDIR)@PYTHON23_INSTALL_DIR@; then \
+ 		(cd $(DESTDIR)@PYTHON23_INSTALL_DIR@; \
+-			cp -f $(DESTDIR)$(pkgpython23dir)/libgv_python23.so _gv.so; \
++			cp -f $(DESTDIR)$(pkgpython23dir)/$(SO_P)gv_python23.$(SO_S) _gv.$(SO_S); \
+ 			cp -f $(DESTDIR)$(pkgpython23dir)/gv.py gv.py;) \
+ 	else \
+ 		echo "Warning: @PYTHON23_INSTALL_DIR@ is not writable."; \
+@@ -102,7 +104,7 @@ if WITH_PYTHON24
+ 	-mkdir -p $(DESTDIR)@PYTHON24_INSTALL_DIR@;
+ 	if test -w $(DESTDIR)@PYTHON24_INSTALL_DIR@; then \
+ 		(cd $(DESTDIR)@PYTHON24_INSTALL_DIR@; \
+-			cp -f $(DESTDIR)$(pkgpython24dir)/libgv_python24.so _gv.so; \
++			cp -f $(DESTDIR)$(pkgpython24dir)/$(SO_P)gv_python24.$(SO_S) _gv.$(SO_S); \
+ 			cp -f $(DESTDIR)$(pkgpython24dir)/gv.py gv.py;) \
+ 	else \
+ 		echo "Warning: @PYTHON24_INSTALL_DIR@ is not writable."; \
+@@ -113,7 +115,7 @@ if WITH_PYTHON25
+ 	-mkdir -p $(DESTDIR)@PYTHON25_INSTALL_DIR@;
+ 	if test -w $(DESTDIR)@PYTHON25_INSTALL_DIR@; then \
+ 		(cd $(DESTDIR)@PYTHON25_INSTALL_DIR@; \
+-			cp -f $(DESTDIR)$(pkgpython25dir)/libgv_python25.so _gv.so; \
++			cp -f $(DESTDIR)$(pkgpython25dir)/$(SO_P)gv_python25.$(SO_S) _gv.$(SO_S); \
+ 			cp -f $(DESTDIR)$(pkgpython25dir)/gv.py gv.py;) \
+ 	else \
+ 		echo "Warning: @PYTHON25_INSTALL_DIR@ is not writable."; \
+@@ -124,7 +126,7 @@ if WITH_PYTHON26
+ 	-mkdir -p $(DESTDIR)@PYTHON26_INSTALL_DIR@;
+ 	if test -w $(DESTDIR)@PYTHON26_INSTALL_DIR@; then \
+ 		(cd $(DESTDIR)@PYTHON26_INSTALL_DIR@; \
+-			cp -f $(DESTDIR)$(pkgpython26dir)/libgv_python26.so _gv.so; \
++			cp -f $(DESTDIR)$(pkgpython26dir)/$(SO_P)gv_python26.$(SO_S) _gv.$(SO_S); \
+ 			cp -f $(DESTDIR)$(pkgpython26dir)/gv.py gv.py;) \
+ 	else \
+ 		echo "Warning: @PYTHON26_INSTALL_DIR@ is not writable."; \
+@@ -135,7 +137,7 @@ if WITH_PYTHON27
+ 	-mkdir -p $(DESTDIR)@PYTHON27_INSTALL_DIR@;
+ 	if test -w $(DESTDIR)@PYTHON27_INSTALL_DIR@; then \
+ 		(cd $(DESTDIR)@PYTHON27_INSTALL_DIR@; \
+-			cp -f $(DESTDIR)$(pkgpython27dir)/libgv_python27.so _gv.so; \
++			cp -f $(DESTDIR)$(pkgpython27dir)/$(SO_P)gv_python27.$(SO_S) _gv.$(SO_S); \
+ 			cp -f $(DESTDIR)$(pkgpython27dir)/gv.py gv.py;) \
+ 	else \
+ 		echo "Warning: @PYTHON27_INSTALL_DIR@ is not writable."; \
+@@ -146,7 +148,7 @@ if WITH_RUBY
+ 	-mkdir -p $(DESTDIR)@RUBY_INSTALL_DIR@;
+ 	if test -w $(DESTDIR)@RUBY_INSTALL_DIR@; then \
+ 		(cd $(DESTDIR)@RUBY_INSTALL_DIR@; \
+-			cp -f $(DESTDIR)$(pkgrubydir)/libgv_ruby.so gv.so;) \
++			cp -f $(DESTDIR)$(pkgrubydir)/$(SO_P)gv_ruby.$(SO_S) gv.$(SO_S);) \
+ 	else \
+ 		echo "Warning: @RUBY_INSTALL_DIR@ is not writable."; \
+ 		echo "Skipping system installation of ruby binding."; \
+@@ -172,27 +174,27 @@ uninstall-hook:
+ 	-rm -rf $(DESTDIR)$(pkgiodir);
+ 	-rm -rf $(DESTDIR)$(pkgjavadir);
+ 	-rm -rf $(DESTDIR)$(pkgluadir);
+-	-rm -rf $(DESTDIR)@LUA_INSTALL_DIR@/gv.so;
++	-rm -rf $(DESTDIR)@LUA_INSTALL_DIR@/gv.$(SO_S);
+ 	-rm -rf $(DESTDIR)$(pkgocamldir);
+ 	-rm -rf $(DESTDIR)$(pkgperldir);
+-	-rm -rf $(DESTDIR)@PERL_INSTALL_DIR@/gv.so $(DESTDIR)@PERL_INSTALL_DIR@/gv.pm;
++	-rm -rf $(DESTDIR)@PERL_INSTALL_DIR@/gv.$(SO_S) $(DESTDIR)@PERL_INSTALL_DIR@/gv.pm;
+ 	-rm -rf $(DESTDIR)$(pkgphpdir);
+-	-rm -rf $(DESTDIR)@PHP_INSTALL_DIR@/gv.so $(DESTDIR)@PHP_INSTALL_DATADIR@/gv.php;
++	-rm -rf $(DESTDIR)@PHP_INSTALL_DIR@/gv.$(SO_S) $(DESTDIR)@PHP_INSTALL_DATADIR@/gv.php;
+ 	-rm -rf $(DESTDIR)$(pkgpythondir);
+-	-rm -rf $(DESTDIR)@PYTHON_INSTALL_DIR@/_gv.so $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
++	-rm -rf $(DESTDIR)@PYTHON_INSTALL_DIR@/_gv.$(SO_S) $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
+ 	-rm -rf $(DESTDIR)$(pkgpython23dir);
+-	-rm -rf $(DESTDIR)@PYTHON23_INSTALL_DIR@/_gv.so $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
++	-rm -rf $(DESTDIR)@PYTHON23_INSTALL_DIR@/_gv.$(SO_S) $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
+ 	-rm -rf $(DESTDIR)$(pkgpython24dir);
+-	-rm -rf $(DESTDIR)@PYTHON24_INSTALL_DIR@/_gv.so $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
++	-rm -rf $(DESTDIR)@PYTHON24_INSTALL_DIR@/_gv.$(SO_S) $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
+ 	-rm -rf $(DESTDIR)$(pkgpython25dir);
+-	-rm -rf $(DESTDIR)@PYTHON25_INSTALL_DIR@/_gv.so $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
++	-rm -rf $(DESTDIR)@PYTHON25_INSTALL_DIR@/_gv.$(SO_S) $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
+ 	-rm -rf $(DESTDIR)$(pkgpython26dir);
+-	-rm -rf $(DESTDIR)@PYTHON26_INSTALL_DIR@/_gv.so $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
++	-rm -rf $(DESTDIR)@PYTHON26_INSTALL_DIR@/_gv.$(SO_S) $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
+ 	-rm -rf $(DESTDIR)$(pkgpython27dir);
+-	-rm -rf $(DESTDIR)@PYTHON27_INSTALL_DIR@/_gv.so $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
++	-rm -rf $(DESTDIR)@PYTHON27_INSTALL_DIR@/_gv.$(SO_S) $(DESTDIR)@PYTHON_INSTALL_DIR@/gv.py;
+ 	-rm -rf $(DESTDIR)$(pkgRdir);
+ 	-rm -rf $(DESTDIR)$(pkgrubydir);
+-	-rm -rf $(DESTDIR)@RUBY_INSTALL_DIR@/gv.so;
++	-rm -rf $(DESTDIR)@RUBY_INSTALL_DIR@/gv.$(SO_S);
+ 	-rm -rf $(DESTDIR)$(pkgtcldir);
+ 	-rm -rf $(DESTDIR)@TCL_INSTALL_DIR@/@PACKAGE_NAME@-@PACKAGE_VERSION@;
+ 
 --- origsrc/graphviz-2.38.0/tclpkg/gdtclft/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/tclpkg/gdtclft/Makefile.am	2014-04-18 12:36:14.561232900 +0900
++++ src/graphviz-2.38.0/tclpkg/gdtclft/Makefile.am	2014-04-18 13:38:52.794191500 +0900
 @@ -28,7 +28,7 @@ endif
  
  libgdtclft_la_SOURCES = gdtclft.c
@@ -334,7 +482,7 @@
  if WITH_LIBGD
  libgdtclft_la_LIBADD = \
 --- origsrc/graphviz-2.38.0/tclpkg/gv/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/tclpkg/gv/Makefile.am	2014-04-17 19:22:23.876632800 +0900
++++ src/graphviz-2.38.0/tclpkg/gv/Makefile.am	2014-04-18 16:45:14.122123500 +0900
 @@ -26,7 +26,7 @@ SHARP_data = gv.cs gvPINVOKE.cs SWIGTYPE
  nodist_libgv_sharp_la_SOURCES = gv_sharp.cpp $(SHARP_data)
  libgv_sharp_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
@@ -389,16 +537,25 @@
  libgv_ocaml_la_CPPFLAGS = $(BASECPPFLAGS) $(OCAML_INCLUDES)
  gv.ml gv.mli: gv_ocaml.cpp
  gv_ocaml.cpp: gv.i
-@@ -152,7 +152,7 @@ PERL_data = gv.pm
+@@ -146,13 +146,15 @@ pkgperldir = $(pkglibdir)/perl
+ PERL        ?= perl
+ # cleanup for opencsw's perl which adds flags that g++ doesn't like
+ PERL_CC      = `$(PERL) -MExtUtils::Embed -e ccopts | $(PERL) -pe 's/-x.*? //g'`
+-PERL_LD      = `$(PERL) -MExtUtils::Embed -e ldopts`
++# Unnecessary libraries are included in ldopts but -fstack-protector should be considered
++#PERL_LD      = `$(PERL) -MExtUtils::Embed -e ldopts`
++PERL_LD = -lssp
+ VENDOR_ARCH  = `$(PERL) -MConfig -e 'print $$Config{installvendorarch};'`
+ PERL_data = gv.pm
  nodist_libgv_perl_la_SOURCES = gv_perl.cpp $(PERL_data)
  libgv_perl_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_perl_la_LIBADD = $(BASELIBS) $(PERL_LIBS)
 -libgv_perl_la_LDFLAGS = -module -avoid-version $(PERL_LD)
-+libgv_perl_la_LDFLAGS = -module -avoid-version -no-undefined $(PERL_LD)
++libgv_perl_la_LDFLAGS = -module -avoid-version -no-undefined $(PERL_LD) 
  libgv_perl_la_CPPFLAGS = $(BASECPPFLAGS) $(PERL_CC)
  $(PERL_data): gv_perl.cpp
  gv_perl.cpp: gv.i
-@@ -163,7 +163,7 @@ PHP_data = gv.php
+@@ -163,7 +165,7 @@ PHP_data = gv.php
  nodist_libgv_php_la_SOURCES = gv_php.cpp php_gv.h
  libgv_php_la_SOURCES = $(BASESOURCES) gv_php_init.c
  libgv_php_la_LIBADD = $(BASELIBS) $(PHP_LIBS)
@@ -407,7 +564,7 @@
  libgv_php_la_CPPFLAGS = $(BASECPPFLAGS) $(PHP_INCLUDES)
  gv.php: gv_php.cpp
  php_gv.h: gv_php.cpp
-@@ -175,7 +175,7 @@ PYTHON_data = gv.py
+@@ -175,7 +177,7 @@ PYTHON_data = gv.py
  nodist_libgv_python_la_SOURCES = gv_python.cpp $(PYTHON_data)
  libgv_python_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_python_la_LIBADD = $(BASELIBS) $(PYTHON_LIBS)
@@ -416,7 +573,7 @@
  libgv_python_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON_INCLUDES)
  $(PYTHON_data): gv_python.cpp
  gv_python.cpp: gv.i
-@@ -186,7 +186,7 @@ PYTHON23_data = gv.py
+@@ -186,7 +188,7 @@ PYTHON23_data = gv.py
  nodist_libgv_python23_la_SOURCES = gv_python23.cpp $(PYTHON23_data)
  libgv_python23_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_python23_la_LIBADD = $(BASELIBS) $(PYTHON23_LIBS)
@@ -425,7 +582,7 @@
  libgv_python23_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON23_INCLUDES)
  # $(PYTHON23_data): gv_python23.cpp
  gv_python23.cpp: gv.i
-@@ -197,7 +197,7 @@ PYTHON24_data = gv.py
+@@ -197,7 +199,7 @@ PYTHON24_data = gv.py
  nodist_libgv_python24_la_SOURCES = gv_python24.cpp $(PYTHON24_data)
  libgv_python24_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_python24_la_LIBADD = $(BASELIBS) $(PYTHON24_LIBS)
@@ -434,7 +591,7 @@
  libgv_python24_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON24_INCLUDES)
  # $(PYTHON24_data): gv_python24.cpp
  gv_python24.cpp: gv.i
-@@ -208,7 +208,7 @@ PYTHON25_data = gv.py
+@@ -208,7 +210,7 @@ PYTHON25_data = gv.py
  nodist_libgv_python25_la_SOURCES = gv_python25.cpp $(PYTHON25_data)
  libgv_python25_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_python25_la_LIBADD = $(BASELIBS) $(PYTHON25_LIBS)
@@ -443,7 +600,7 @@
  libgv_python25_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON25_INCLUDES)
  # $(PYTHON25_data): gv_python25.cpp
  gv_python25.cpp: gv.i
-@@ -219,7 +219,7 @@ PYTHON26_data = gv.py
+@@ -219,7 +221,7 @@ PYTHON26_data = gv.py
  nodist_libgv_python26_la_SOURCES = gv_python26.cpp $(PYTHON26_data)
  libgv_python26_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_python26_la_LIBADD = $(BASELIBS) $(PYTHON26_LIBS)
@@ -452,7 +609,7 @@
  libgv_python26_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON26_INCLUDES)
  # $(PYTHON26_data): gv_python26.cpp
  gv_python26.cpp: gv.i
-@@ -241,7 +241,7 @@ R_data =
+@@ -241,7 +243,7 @@ R_data =
  nodist_libgv_R_la_SOURCES = gv_R.cpp $(R_data)
  libgv_R_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_R_la_LIBADD = $(BASELIBS) $(R_LIBS)
@@ -461,7 +618,7 @@
  libgv_R_la_CPPFLAGS = $(BASECPPFLAGS) $(R_CFLAGS)
  # $(R_data): gv_R.cpp
  gv_R.cpp: gv.i
-@@ -252,7 +252,7 @@ RUBY_data =
+@@ -252,7 +254,7 @@ RUBY_data =
  nodist_libgv_ruby_la_SOURCES = gv_ruby.cpp $(RUBY_data)
  libgv_ruby_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_ruby_la_LIBADD = $(BASELIBS) $(RUBY_LIBS)
@@ -470,17 +627,76 @@
  libgv_ruby_la_CPPFLAGS = $(BASECPPFLAGS) $(RUBY_CFLAGS)
  # $(RUBY_data): gv_ruby.cpp
  gv_ruby.cpp: gv.i
-@@ -263,7 +263,7 @@ TCL_data =
+@@ -262,8 +264,8 @@ pkgtcldir = $(pkglibdir)/tcl
+ TCL_data = 
  nodist_libgv_tcl_la_SOURCES = gv_tcl.cpp $(TCL_data)
  libgv_tcl_la_SOURCES = $(BASESOURCES) gv_tcl_init.c
- libgv_tcl_la_LIBADD = $(top_builddir)/tclpkg/tclstubs/libtclstubs_C.la $(BASELIBS) $(TCL_LIBS)
+-libgv_tcl_la_LIBADD = $(top_builddir)/tclpkg/tclstubs/libtclstubs_C.la $(BASELIBS) $(TCL_LIBS)
 -libgv_tcl_la_LDFLAGS = -module -avoid-version
++libgv_tcl_la_LIBADD = $(top_builddir)/tclpkg/tclstubs/libtclstubs_C.la $(BASELIBS) $(TCL_LIBS) $(TCL_LIB_SPEC)
 +libgv_tcl_la_LDFLAGS = -module -avoid-version -no-undefined
  libgv_tcl_la_CPPFLAGS = $(BASECPPFLAGS) $(TCL_INCLUDES)
  # $(TCL_data): gv_tcl.cpp
  gv_tcl.cpp: gv.i
+@@ -460,42 +462,45 @@ gv.3ruby.pdf: gv.3ruby
+ gv.3tcl.pdf: gv.3tcl
+ 	- $(GROFF) -Tps -man gv.3tcl | $(PS2PDF) - - >gv.3tcl.pdf
+ 
++SO_P=cyg
++SO_S=dll
++
+ install-data-hook:
+ if WITH_JAVA
+ 	(cd $(DESTDIR)$(pkgjavadir); $(LN_S) -f org/graphviz/libgv_java.so ../../libgv.$(JSHEXT); javac -classpath $(DESTDIR)$(libjavadir) gv.java;)
+ endif
+ if WITH_LUA
+-	(cd $(DESTDIR)$(pkgluadir);    rm -f gv.so;  $(LN_S) libgv_lua.so gv.so;)
++	(cd $(DESTDIR)$(pkgluadir);    rm -f gv.$(SO_S);  $(LN_S) $(SO_P)gv_lua.$(SO_S) gv.$(SO_S);)
+ endif
+ if WITH_PERL
+-	(cd $(DESTDIR)$(pkgperldir);   rm -f gv.so;  $(LN_S) libgv_perl.so gv.so;)
++	(cd $(DESTDIR)$(pkgperldir);   rm -f gv.$(SO_S);  $(LN_S) $(SO_P)gv_perl.$(SO_S) gv.$(SO_S);)
+ endif
+ if WITH_PHP
+-	(cd $(DESTDIR)$(pkgphpdir);   rm -f gv.so;  $(LN_S) libgv_php.so gv.so;)
++	(cd $(DESTDIR)$(pkgphpdir);   rm -f gv.$(SO_S);  $(LN_S) $(SO_P)gv_php.$(SO_S) gv.$(SO_S);)
+ endif
+ if WITH_PYTHON
+-	(cd $(DESTDIR)$(pkgpythondir); rm -f _gv.so; $(LN_S) libgv_python.so _gv.so;)
++	(cd $(DESTDIR)$(pkgpythondir); rm -f _gv.$(SO_S);  $(LN_S) $(SO_P)gv_python.$(SO_S) _gv.$(SO_S);)
+ endif
+ if WITH_PYTHON23
+-	(cd $(DESTDIR)$(pkgpython23dir); rm -f _gv.so; $(LN_S) libgv_python23.so _gv.so;)
++	(cd $(DESTDIR)$(pkgpython23dir); rm -f _gv.$(SO_S);  $(LN_S) $(SO_P)gv_python23.$(SO_S) _gv.$(SO_S);)
+ endif
+ if WITH_PYTHON24
+-	(cd $(DESTDIR)$(pkgpython24dir); rm -f _gv.so; $(LN_S) libgv_python24.so _gv.so;)
++	(cd $(DESTDIR)$(pkgpython24dir); rm -f _gv.$(SO_S);  $(LN_S) $(SO_P)gv_python24.$(SO_S) _gv.$(SO_S);)
+ endif
+ if WITH_PYTHON25
+-	(cd $(DESTDIR)$(pkgpython25dir); rm -f _gv.so; $(LN_S) libgv_python25.so _gv.so;)
++	(cd $(DESTDIR)$(pkgpython25dir); rm -f _gv.$(SO_S);  $(LN_S) $(SO_P)gv_python25.$(SO_S) _gv.$(SO_S);)
+ endif
+ if WITH_PYTHON26
+-	(cd $(DESTDIR)$(pkgpython26dir); rm -f _gv.so; $(LN_S) libgv_python26.so _gv.so;)
++	(cd $(DESTDIR)$(pkgpython26dir); rm -f _gv.$(SO_S);  $(LN_S) $(SO_P)gv_python26.$(SO_S) _gv.$(SO_S);)
+ endif
+ if WITH_PYTHON27
+-	(cd $(DESTDIR)$(pkgpython27dir); rm -f _gv.so; $(LN_S) libgv_python27.so _gv.so;)
++	(cd $(DESTDIR)$(pkgpython27dir); rm -f _gv.$(SO_S);  $(LN_S) $(SO_P)gv_python27.$(SO_S) _gv.$(SO_S);)
+ endif
+ if WITH_R
+-	(cd $(DESTDIR)$(pkgRdir);   rm -f gv.so;  $(LN_S) libgv_R.so gv.so;)
++	(cd $(DESTDIR)$(pkgRdir);   rm -f gv.$(SO_S);  $(LN_S) $(SO_P)gv_R.$(SO_S) gv.$(SO_S);)
+ endif
+ if WITH_RUBY
+-	(cd $(DESTDIR)$(pkgrubydir);   rm -f gv.so;  $(LN_S) libgv_ruby.so gv.so;)
++	(cd $(DESTDIR)$(pkgrubydir);   rm -f gv.$(SO_S);  $(LN_S) $(SO_P)gv_ruby.$(SO_S) gv.$(SO_S);)
+ endif
+ 
+ devtsts: $(DEVTSTS)
 --- origsrc/graphviz-2.38.0/tclpkg/tcldot/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/tclpkg/tcldot/Makefile.am	2014-04-18 12:42:02.418129200 +0900
++++ src/graphviz-2.38.0/tclpkg/tcldot/Makefile.am	2014-04-18 13:38:52.828193500 +0900
 @@ -51,7 +51,7 @@ libtcldot_la_SOURCES = \
  	tcldot-io.c \
  	no_builtins.c $(GDTCLFT)
@@ -491,7 +707,7 @@
  libtcldot_la_LIBADD = $(TCLHANDLE_LIBS) \
  	$(top_builddir)/tclpkg/tclstubs/libtclstubs_C.la \
 --- origsrc/graphviz-2.38.0/tclpkg/tclpathplan/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/tclpkg/tclpathplan/Makefile.am	2014-04-18 12:44:21.182066000 +0900
++++ src/graphviz-2.38.0/tclpkg/tclpathplan/Makefile.am	2014-04-18 13:38:52.842194300 +0900
 @@ -18,7 +18,7 @@ pkgtcl_LTLIBRARIES = libtclplan.la
  endif
  

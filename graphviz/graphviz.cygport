@@ -12,18 +12,19 @@ DIFF_EXCLUDES='libltdl AssemblyInfo.cs m4 Makefile 02graphviz.xml'
 inherit usrlocal
 
 #PKG_NAMES="${PN} ${PN}-devel ${PN}-doc ${PN}-ocaml ${PN}-perl ${PN}-python ${PN}-ruby ${PN}-tcl libgraphviz4"
-PKG_NAMES="${PN} ${PN}-devel ${PN}-doc libgraphviz6 ${PN}-perl ${PN}-python ${PN}-ruby ${PN}-tcl ${PN}-lua"
+PKG_NAMES="${PN} ${PN}-devel ${PN}-doc libgraphviz6 ${PN}-perl ${PN}-python ${PN}-ruby ${PN}-tcl ${PN}-lua ${PN}-R"
 #PKG_HINTS="setup devel doc ocaml perl python ruby tcl lib"
-PKG_HINTS="setup devel doc lib perl python ruby tcl lua"
+PKG_HINTS="setup devel doc lib perl python ruby tcl lua R"
 PKG_CONTENTS[0]="${prefix#/}/bin/[^c]* ${prefix#/}/bin/c[^y]* usr/share/doc ${prefix#/}/share/graphviz/demo ${prefix#/}/share/graphviz/doc/[^hp]* ${prefix#/}/share/graphviz/graphs ${prefix#/}/share/graphviz/lefty ${prefix#/}/share/graphviz/gvpr ${mandir#/}"
 PKG_CONTENTS[1]="${prefix#/}/include ${prefix#/}/lib/*.a ${prefix#/}/lib/*.la ${prefix#/}/lib/pkgconfig"
 PKG_CONTENTS[2]="${prefix#/}/share/graphviz/doc/html ${prefix#/}/share/graphviz/doc/pdf"
 PKG_CONTENTS[3]="${prefix#/}/bin/*.dll ${prefix#/}/lib/graphviz/*.dll"
 PKG_CONTENTS[4]="${prefix#/}/lib/graphviz/perl usr/lib/perl5"
-PKG_CONTENTS[5]="${prefix#/}/lib/graphviz/python usr/lib/python2.6"
+PKG_CONTENTS[5]="${prefix#/}/lib/graphviz/python usr/lib/python2*"
 PKG_CONTENTS[6]="${prefix#/}/lib/graphviz/ruby usr/lib/ruby"
 PKG_CONTENTS[7]="${prefix#/}/lib/graphviz/tcl usr/lib/tcl*"
 PKG_CONTENTS[8]="${prefix#/}/lib/graphviz/lua usr/lib/lua"
+PKG_CONTENTS[9]="${prefix#/}/lib/graphviz/R"
 #PKG_CONTENTS[8]="${prefix#/}/lib/graphviz/ocaml"
 
 src_compile() {
@@ -48,23 +49,9 @@ src_install() {
     mv ${D}${prefix}/bin/cyggvplugin*.dll ${D}${prefix}/lib/graphviz
     sed -i 's,../bin/cyggvplugin,./graphviz/cyggvplugin,' ${D}${prefix}/lib/libgvplugin*.la
 
+# Adjust libgdtclft.la
+    sed -i 's,../bin/cyg,../../../bin/cyg,' ${D}/usr/lib/tcl*/graphviz/lib{gdtclft,tcldot,tclplan,tkspline}.la
+
 # Now, dynamic modules are not built
 #   rm ${D}${prefix}/lib/graphviz/ocaml/libgv_ocaml.la
-    rm ${D}${prefix}/lib/graphviz/tcl/libgv_tcl.la
-
-# Fix symlinks
-    rm ${D}${prefix}/lib/graphviz/perl/gv.so
-    ln -s cyggv_perl.dll ${D}${prefix}/lib/graphviz/perl/gv.dll
-    rm ${D}/usr/lib/perl5/vendor_perl/5.10/i686-cygwin/gv.so
-    ln -s ${prefix}/lib/graphviz/perl/cyggv_perl.dll ${D}/usr/lib/perl5/vendor_perl/5.10/i686-cygwin/gv.dll
-
-    rm ${D}${prefix}/lib/graphviz/python/_gv.so
-    ln -s cyggv_python.dll ${D}${prefix}/lib/graphviz/python/_gv.dll
-    rm ${D}/usr/lib/python2.6/site-packages/_gv.so
-    ln -s ${prefix}/lib/graphviz/python/cyggv_python.dll ${D}/usr/lib/python2.6/site-packages/_gv.dll
-
-    rm ${D}${prefix}/lib/graphviz/ruby/gv.so
-    ln -s cyggv_ruby.dll ${D}${prefix}/lib/graphviz/ruby/gv.so
-    rm ${D}/usr/lib/ruby/site_ruby/1.8/i386-cygwin/gv.so
-    ln -s ${prefix}/lib/graphviz/ruby/cyggv_ruby.dll  ${D}/usr/lib/ruby/site_ruby/1.8/i386-cygwin/gv.so
 }
