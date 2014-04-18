@@ -180,6 +180,18 @@
  double elapsed_sec(void)
  {
      mytime_t S;
+--- origsrc/graphviz-2.38.0/lib/edgepaint/lab_gamut.h	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/lib/edgepaint/lab_gamut.h	2014-04-18 18:24:57.137508400 +0900
+@@ -11,7 +11,8 @@
+ #ifndef LAB_GAMUT_H
+ #define LAB_GAMUT_H
+ 
+-static color_lab lab_gamut_data[] = {{0,0,0},
++typedef struct color_lab_ { signed char l, a, b; } color_lab_;
++static color_lab_ lab_gamut_data[] = {{0,0,0},
+ {1,-2,1},
+ {1,-1,-1},
+ {1,-1,0},
 --- origsrc/graphviz-2.38.0/lib/gvc/Makefile.am	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/lib/gvc/Makefile.am	2014-04-18 13:38:52.616181400 +0900
 @@ -53,7 +53,7 @@ if ENABLE_LTDL
