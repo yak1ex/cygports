@@ -1,7 +1,16 @@
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/cmd/lefty/common.h src/graphviz-2.38.0/cmd/lefty/common.h
+--- origsrc/graphviz-2.38.0/cmd/edgepaint/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/cmd/edgepaint/Makefile.am	2014-04-18 12:29:10.137957300 +0900
+@@ -5,6 +5,7 @@ pdfdir = $(pkgdatadir)/doc/pdf
+ 
+ AM_CPPFLAGS = \
+ 	-I$(top_srcdir) \
++	-I$(top_srcdir)/lib/common \
+ 	-I$(top_srcdir)/lib/sparse \
+ 	-I$(top_srcdir)/lib/sfdpgen \
+ 	-I$(top_srcdir)/lib/edgepaint \
 --- origsrc/graphviz-2.38.0/cmd/lefty/common.h	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/cmd/lefty/common.h	2014-04-17 19:16:35.756824300 +0900
-@@ -29,7 +29,7 @@
+@@ -29,7 +29,7 @@ extern "C" {
   */
  #define FEATURE_MINTSIZE 1 
  #define FEATURE_DOT 1
@@ -10,10 +19,9 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  #ifndef FEATURE_WIN32
  #define FEATURE_WIN32 1
  #endif
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/cmd/lefty/lefty.c src/graphviz-2.38.0/cmd/lefty/lefty.c
 --- origsrc/graphviz-2.38.0/cmd/lefty/lefty.c	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/cmd/lefty/lefty.c	2014-04-17 19:16:35.785827200 +0900
-@@ -207,6 +207,61 @@
+@@ -207,6 +207,61 @@ eop:
  
  #else
  
@@ -75,7 +83,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  HINSTANCE hinstance, hprevinstance;
  
  int APIENTRY WinMain (
-@@ -214,6 +269,10 @@
+@@ -214,6 +269,10 @@ int APIENTRY WinMain (
  ) {
      Tobj co;
      Psrc_t src;
@@ -86,7 +94,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  
      hinstance = hInstance;
      hprevinstance = hPrevInstance;
-@@ -231,6 +290,12 @@
+@@ -231,6 +290,12 @@ int APIENTRY WinMain (
      Eshowbody = 1;
      Eshowcalls = 1;
  
@@ -99,7 +107,41 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
      processstr (leftyoptions);
      __argv++, __argc--;
      processargs (__argc, __argv);
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/lib/common/globals.c src/graphviz-2.38.0/lib/common/globals.c
+--- origsrc/graphviz-2.38.0/config/config_perl.pl	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/config/config_perl.pl	2014-04-17 19:16:35.810829700 +0900
+@@ -4,6 +4,7 @@ if ($ARGV[0] eq "PERL_LIBS") {
+ 	$archlib = $Config{archlib};
+ 	$libperl = $Config{libperl};
+ 	$libperl =~ s/lib([^\.]+).*/$1/;
++	$libperl =~ s/cyg([^\d\.]+).*/$1/;
+ 	print "-L$archlib/CORE -l$libperl";
+ }
+ if ($ARGV[0] eq "PERL_INCLUDES") {
+--- origsrc/graphviz-2.38.0/configure.ac	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/configure.ac	2014-04-17 19:16:35.825831200 +0900
+@@ -190,7 +190,12 @@ AC_SUBST([EXTRA_SMYRNA_LDFLAGS])
+ AC_DEFINE_UNQUOTED(DEFAULT_FONTPATH,"$DEFAULT_FONTPATH",[Path to TrueType fonts.])
+ AC_DEFINE_UNQUOTED(PATHSEPARATOR,"$PATHSEPARATOR",[Path separator character.])
+ AC_DEFINE_UNQUOTED(NO_POSTSCRIPT_ALIAS,$NO_POSTSCRIPT_ALIAS,[Postscript fontnames.])
+-AM_CONDITIONAL(WITH_WIN32, [test "x$UWIN" = "xyes" -o "x$CYGWIN" = "xyes" -o "x$MINGW32" = "xyes"])
++AC_ARG_WITH(win32, [AC_HELP_STRING([--without-win32], [Disable win32 window system])], [], [with_win32=yes])
++AM_CONDITIONAL(WITH_WIN32, [test "x$with_win32" = "xyes" -a \( "x$UWIN" = "xyes" -o "x$CYGWIN" = "xyes" -o "x$MINGW32" = "xyes" \)])
++if test "x$with_win32" = "xyes" -a "x$CYGWIN" = "xyes"; then
++    CFLAGS="${CFLAGS} -DCYGWIN_WIN32"
++    CXXFLAGS="${CXXFLAGS} -DCYGWIN_WIN32"
++fi
+ AM_CONDITIONAL(WITH_DARWIN9, [test "x$DARWIN9" = "xyes"])
+ 
+ DEFAULT_DPI=96
+@@ -1625,7 +1630,7 @@ if test "x$enable_tcl" != "xyes"; then
+ fi
+ 
+ if test "x$use_tcl" = "x"; then
+-  TCL_VERSION_FOUND=`echo 'puts [[info tclversion]]' | $TCLSH`
++  TCL_VERSION_FOUND=`echo 'puts [[info tclversion]]' | $TCLSH | tr -d "\015"`
+ 
+   # can't assume ksh on all architectures
+   # TCLSH_EXEC_PREFIX=${TCLSH%%/bin/tclsh.*}
 --- origsrc/graphviz-2.38.0/lib/common/globals.c	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/lib/common/globals.c	2014-04-17 19:16:35.859834600 +0900
 @@ -15,8 +15,9 @@
@@ -113,10 +155,9 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  #include "globals.h"
  #include "fdp.h"
  
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/lib/common/timing.c src/graphviz-2.38.0/lib/common/timing.c
 --- origsrc/graphviz-2.38.0/lib/common/timing.c	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/lib/common/timing.c	2014-04-17 19:16:35.890837700 +0900
-@@ -42,11 +42,13 @@
+@@ -42,11 +42,13 @@ typedef clock_t mytime_t;
  
  static mytime_t T;
  
@@ -130,10 +171,20 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  double elapsed_sec(void)
  {
      mytime_t S;
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/lib/gvc/gvcext.h src/graphviz-2.38.0/lib/gvc/gvcext.h
+--- origsrc/graphviz-2.38.0/lib/gvc/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/lib/gvc/Makefile.am	2014-04-18 10:08:58.266122500 +0900
+@@ -53,7 +53,7 @@ if ENABLE_LTDL
+ libgvc_C_la_LIBADD += @LIBLTDL@ $(LIBLTDL_LDFLAGS)
+ endif
+ 
+-libgvc_la_LDFLAGS = -version-info $(GVC_VERSION) -no-undefined
++libgvc_la_LDFLAGS = -version-info $(GVC_VERSION) -no-undefined -Wl,--export-all-symbols
+ libgvc_la_SOURCES = $(libgvc_C_la_SOURCES)
+ libgvc_la_LIBADD = $(libgvc_C_la_LIBADD) \
+ 	$(top_builddir)/lib/xdot/libxdot.la \
 --- origsrc/graphviz-2.38.0/lib/gvc/gvcext.h	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/lib/gvc/gvcext.h	2014-04-17 19:20:06.863932900 +0900
-@@ -76,7 +76,7 @@
+@@ -76,7 +76,7 @@ __declspec(dllimport) lt_symlist_t lt_pr
  
  
  #ifndef WIN32_DLL
@@ -142,10 +193,9 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  	__declspec(dllexport) lt_symlist_t lt_preloaded_symbols[];
  #else
  #if !defined(LTDL_H)
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/lib/gvpr/compile.c src/graphviz-2.38.0/lib/gvpr/compile.c
 --- origsrc/graphviz-2.38.0/lib/gvpr/compile.c	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/lib/gvpr/compile.c	2014-04-17 19:16:35.956844300 +0900
-@@ -74,7 +74,7 @@
+@@ -74,7 +74,7 @@ static int ioflush(void *chan)
  
  static Agiodisc_t gprIoDisc = { iofread, ioputstr, ioflush };
  
@@ -154,7 +204,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  static Agdisc_t gprDisc = { 0, 0, &gprIoDisc };
  #else
  static Agdisc_t gprDisc = { &AgMemDisc, &AgIdDisc, &gprIoDisc };
-@@ -2555,7 +2555,7 @@
+@@ -2555,7 +2555,7 @@ Agraph_t *readG(Sfio_t * fp)
  {
      Agraph_t *g;
  
@@ -163,10 +213,9 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
      gprDisc.mem = &AgMemDisc;
      gprDisc.id = &AgIdDisc;
  #endif
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/lib/gvpr/gvpr.c src/graphviz-2.38.0/lib/gvpr/gvpr.c
 --- origsrc/graphviz-2.38.0/lib/gvpr/gvpr.c	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/lib/gvpr/gvpr.c	2014-04-17 19:16:35.984847100 +0900
-@@ -938,6 +938,9 @@
+@@ -938,6 +938,9 @@ gverrorf (Expr_t *handle, Exdisc_t *disc
   *  - do automatic cast for array indices if type is known
   *  - array initialization
   */
@@ -176,10 +225,9 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  int gvpr (int argc, char *argv[], gvpropts * uopts)
  {
      Sfdisc_t errdisc;
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/lib/vmalloc/features/vmalloc src/graphviz-2.38.0/lib/vmalloc/features/vmalloc
 --- origsrc/graphviz-2.38.0/lib/vmalloc/features/vmalloc	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/lib/vmalloc/features/vmalloc	2014-04-17 19:27:19.656207800 +0900
-@@ -21,6 +21,7 @@
+@@ -21,6 +21,7 @@ hdr dlfcn
  
  std	malloc note{ stuck with standard malloc }end noexecute{
  	_BEGIN_EXTERNS_
@@ -187,7 +235,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  	extern void _exit _ARG_((int));
  	extern char* strdup _ARG_((const char*));
  	#if _STD_
-@@ -28,8 +29,9 @@
+@@ -28,8 +29,9 @@ std	malloc note{ stuck with standard mal
  	#else
  	char* malloc(n) unsigned n; { _exit(0); return 0; }
  	#endif
@@ -198,10 +246,9 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  }end
  
  lib alloca note{ alloca exists }end compile{
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/plugin/core/Makefile.am src/graphviz-2.38.0/plugin/core/Makefile.am
 --- origsrc/graphviz-2.38.0/plugin/core/Makefile.am	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/plugin/core/Makefile.am	2014-04-17 20:25:53.381529700 +0900
-@@ -17,7 +17,13 @@
+@@ -17,7 +17,13 @@ else
  pkglib_LTLIBRARIES = libgvplugin_core.la
  endif
  
@@ -215,7 +262,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  	gvplugin_core.c \
  	gvrender_core_dot.c \
  	gvrender_core_fig.c \
-@@ -44,7 +50,6 @@
+@@ -44,7 +50,6 @@ ps.h : $(srcdir)/ps.txt
  
  if WITH_WIN32
  libgvplugin_core_la_LDFLAGS += -no-undefined
@@ -223,7 +270,6 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  endif
  
  if WITH_DARWIN9
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/plugin/dot_layout/gvplugin_dot_layout.c src/graphviz-2.38.0/plugin/dot_layout/gvplugin_dot_layout.c
 --- origsrc/graphviz-2.38.0/plugin/dot_layout/gvplugin_dot_layout.c	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/plugin/dot_layout/gvplugin_dot_layout.c	2014-04-17 19:16:36.098858500 +0900
 @@ -12,6 +12,7 @@
@@ -234,10 +280,9 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  
  extern gvplugin_installed_t gvlayout_dot_layout[];
  
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/plugin/gd/Makefile.am src/graphviz-2.38.0/plugin/gd/Makefile.am
 --- origsrc/graphviz-2.38.0/plugin/gd/Makefile.am	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/plugin/gd/Makefile.am	2014-04-17 20:28:23.546565700 +0900
-@@ -40,7 +40,7 @@
+@@ -40,7 +40,7 @@ libgvplugin_gd_la_DEPENDENCIES =  $(top_
  
  if WITH_WIN32
  libgvplugin_gd_la_LDFLAGS += -no-undefined
@@ -246,7 +291,17 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  endif
  
  if WITH_DARWIN9
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.c src/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.c
+--- origsrc/graphviz-2.38.0/plugin/neato_layout/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/plugin/neato_layout/Makefile.am	2014-04-18 12:14:33.622823500 +0900
+@@ -45,7 +45,7 @@ libgvplugin_neato_layout_C_la_LIBADD +=
+ endif
+ 
+ if WITH_WIN32
+-libgvplugin_neato_layout_la_LDFLAGS += -no-undefined
++libgvplugin_neato_layout_la_LDFLAGS += -no-undefined -Wl,$(top_srcdir)/plugin/neato_layout/gvplugin_neato_layout.cygwin.def
+ libgvplugin_neato_layout_la_LIBADD += $(top_builddir)/lib/cgraph/libcgraph.la $(top_builddir)/lib/cdt/libcdt.la
+ endif
+ 
 --- origsrc/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.c	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.c	2014-04-17 19:16:36.121860800 +0900
 @@ -12,6 +12,7 @@
@@ -257,10 +312,30 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  
  extern gvplugin_installed_t gvlayout_neato_types[];
  
-diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'config*' -x '*.temp' -x Makefile.orig -x '*.xml' -x aclocal.m4 origsrc/graphviz-2.38.0/tclpkg/gv/Makefile.am src/graphviz-2.38.0/tclpkg/gv/Makefile.am
+--- origsrc/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.cygwin.def	1970-01-01 09:00:00.000000000 +0900
++++ src/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.cygwin.def	2014-04-18 10:15:59.794628500 +0900
+@@ -0,0 +1,7 @@
++LIBRARY	"gvplugin_neato_layout"
++EXPORTS
++gvplugin_neato_layout_LTX_library	
++init_nop	
++neato_init_node	
++user_pos	
++
+--- origsrc/graphviz-2.38.0/tclpkg/gdtclft/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/tclpkg/gdtclft/Makefile.am	2014-04-18 12:36:14.561232900 +0900
+@@ -28,7 +28,7 @@ endif
+ 
+ libgdtclft_la_SOURCES = gdtclft.c
+ 
+-libgdtclft_la_LDFLAGS = -no-undefined
++libgdtclft_la_LDFLAGS = -no-undefined $(TCL_STUB_LIB_SPEC)
+ 
+ if WITH_LIBGD
+ libgdtclft_la_LIBADD = \
 --- origsrc/graphviz-2.38.0/tclpkg/gv/Makefile.am	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/tclpkg/gv/Makefile.am	2014-04-17 19:22:23.876632800 +0900
-@@ -26,7 +26,7 @@
+@@ -26,7 +26,7 @@ SHARP_data = gv.cs gvPINVOKE.cs SWIGTYPE
  nodist_libgv_sharp_la_SOURCES = gv_sharp.cpp $(SHARP_data)
  libgv_sharp_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_sharp_la_LIBADD = $(BASELIBS) $(SHARP_LIBS) 
@@ -269,7 +344,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_sharp_la_CPPFLAGS = $(BASECPPFLAGS) $(SHARP_INCLUDES)
  $(SHARP_data): gv_sharp.cpp
  gv_sharp.cpp: gv.i
-@@ -59,7 +59,7 @@
+@@ -59,7 +59,7 @@ GUILE_data =
  nodist_libgv_guile_la_SOURCES = gv_guile.cpp $(GUILE_data)
  libgv_guile_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_guile_la_LIBADD = $(BASELIBS) $(GUILE_LIBS)
@@ -278,7 +353,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_guile_la_CPPFLAGS = $(BASECPPFLAGS) $(GUILE_INCLUDES)
  # $(GUILE_data): gv_guile.cpp
  gv_guile.cpp: gv.i
-@@ -72,7 +72,7 @@
+@@ -72,7 +72,7 @@ IO_data =
  nodist_libgv_io_la_SOURCES = gv_io.cpp $(IO_data)
  libgv_io_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_io_la_LIBADD = $(BASELIBS) $(IO_LIBS)
@@ -287,7 +362,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_io_la_CPPFLAGS = $(BASECPPFLAGS) $(IO_INCLUDES)
  # $(IO_data): gv_io.cpp
  gv_io.cpp: gv.i
-@@ -85,7 +85,7 @@
+@@ -85,7 +85,7 @@ JAVA_data = gv.java gvJNI.java SWIGTYPE_
  nodist_libgv_java_la_SOURCES = gv_java.cpp
  libgv_java_la_SOURCES = $(BASESOURCES)  gv_java_init.c
  libgv_java_la_LIBADD = $(BASELIBS) $(JAVA_LIBS)
@@ -296,7 +371,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_java_la_CPPFLAGS = -DSWIGJAVA $(BASECPPFLAGS) $(JAVA_INCLUDES)
  $(JAVA_data): gv_java.cpp
  gv_java.cpp: gv.i
-@@ -96,7 +96,7 @@
+@@ -96,7 +96,7 @@ LUA_data =
  nodist_libgv_lua_la_SOURCES = gv_lua.cpp $(LUA_data)
  libgv_lua_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_lua_la_LIBADD = $(BASELIBS) $(LUA_LIBS)
@@ -305,7 +380,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_lua_la_CPPFLAGS = $(BASECPPFLAGS) $(LUA_INCLUDES)
  # $(LUA_data): gv_lua.cpp
  gv_lua.cpp: gv.i
-@@ -114,7 +114,7 @@
+@@ -114,7 +114,7 @@ endif
  nodist_libgv_ocaml_la_SOURCES = gv_ocaml.cpp $(OCAML_data)
  libgv_ocaml_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_ocaml_la_LIBADD = $(BASELIBS) $(OCAML_LIBS)
@@ -314,7 +389,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_ocaml_la_CPPFLAGS = $(BASECPPFLAGS) $(OCAML_INCLUDES)
  gv.ml gv.mli: gv_ocaml.cpp
  gv_ocaml.cpp: gv.i
-@@ -152,7 +152,7 @@
+@@ -152,7 +152,7 @@ PERL_data = gv.pm
  nodist_libgv_perl_la_SOURCES = gv_perl.cpp $(PERL_data)
  libgv_perl_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_perl_la_LIBADD = $(BASELIBS) $(PERL_LIBS)
@@ -323,7 +398,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_perl_la_CPPFLAGS = $(BASECPPFLAGS) $(PERL_CC)
  $(PERL_data): gv_perl.cpp
  gv_perl.cpp: gv.i
-@@ -163,7 +163,7 @@
+@@ -163,7 +163,7 @@ PHP_data = gv.php
  nodist_libgv_php_la_SOURCES = gv_php.cpp php_gv.h
  libgv_php_la_SOURCES = $(BASESOURCES) gv_php_init.c
  libgv_php_la_LIBADD = $(BASELIBS) $(PHP_LIBS)
@@ -332,7 +407,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_php_la_CPPFLAGS = $(BASECPPFLAGS) $(PHP_INCLUDES)
  gv.php: gv_php.cpp
  php_gv.h: gv_php.cpp
-@@ -175,7 +175,7 @@
+@@ -175,7 +175,7 @@ PYTHON_data = gv.py
  nodist_libgv_python_la_SOURCES = gv_python.cpp $(PYTHON_data)
  libgv_python_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_python_la_LIBADD = $(BASELIBS) $(PYTHON_LIBS)
@@ -341,7 +416,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_python_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON_INCLUDES)
  $(PYTHON_data): gv_python.cpp
  gv_python.cpp: gv.i
-@@ -186,7 +186,7 @@
+@@ -186,7 +186,7 @@ PYTHON23_data = gv.py
  nodist_libgv_python23_la_SOURCES = gv_python23.cpp $(PYTHON23_data)
  libgv_python23_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_python23_la_LIBADD = $(BASELIBS) $(PYTHON23_LIBS)
@@ -350,7 +425,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_python23_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON23_INCLUDES)
  # $(PYTHON23_data): gv_python23.cpp
  gv_python23.cpp: gv.i
-@@ -197,7 +197,7 @@
+@@ -197,7 +197,7 @@ PYTHON24_data = gv.py
  nodist_libgv_python24_la_SOURCES = gv_python24.cpp $(PYTHON24_data)
  libgv_python24_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_python24_la_LIBADD = $(BASELIBS) $(PYTHON24_LIBS)
@@ -359,7 +434,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_python24_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON24_INCLUDES)
  # $(PYTHON24_data): gv_python24.cpp
  gv_python24.cpp: gv.i
-@@ -208,7 +208,7 @@
+@@ -208,7 +208,7 @@ PYTHON25_data = gv.py
  nodist_libgv_python25_la_SOURCES = gv_python25.cpp $(PYTHON25_data)
  libgv_python25_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_python25_la_LIBADD = $(BASELIBS) $(PYTHON25_LIBS)
@@ -368,7 +443,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_python25_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON25_INCLUDES)
  # $(PYTHON25_data): gv_python25.cpp
  gv_python25.cpp: gv.i
-@@ -219,7 +219,7 @@
+@@ -219,7 +219,7 @@ PYTHON26_data = gv.py
  nodist_libgv_python26_la_SOURCES = gv_python26.cpp $(PYTHON26_data)
  libgv_python26_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_python26_la_LIBADD = $(BASELIBS) $(PYTHON26_LIBS)
@@ -377,7 +452,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_python26_la_CPPFLAGS = $(BASECPPFLAGS) $(PYTHON26_INCLUDES)
  # $(PYTHON26_data): gv_python26.cpp
  gv_python26.cpp: gv.i
-@@ -241,7 +241,7 @@
+@@ -241,7 +241,7 @@ R_data =
  nodist_libgv_R_la_SOURCES = gv_R.cpp $(R_data)
  libgv_R_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_R_la_LIBADD = $(BASELIBS) $(R_LIBS)
@@ -386,7 +461,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_R_la_CPPFLAGS = $(BASECPPFLAGS) $(R_CFLAGS)
  # $(R_data): gv_R.cpp
  gv_R.cpp: gv.i
-@@ -252,7 +252,7 @@
+@@ -252,7 +252,7 @@ RUBY_data =
  nodist_libgv_ruby_la_SOURCES = gv_ruby.cpp $(RUBY_data)
  libgv_ruby_la_SOURCES = $(BASESOURCES) gv_dummy_init.c
  libgv_ruby_la_LIBADD = $(BASELIBS) $(RUBY_LIBS)
@@ -395,7 +470,7 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_ruby_la_CPPFLAGS = $(BASECPPFLAGS) $(RUBY_CFLAGS)
  # $(RUBY_data): gv_ruby.cpp
  gv_ruby.cpp: gv.i
-@@ -263,7 +263,7 @@
+@@ -263,7 +263,7 @@ TCL_data =
  nodist_libgv_tcl_la_SOURCES = gv_tcl.cpp $(TCL_data)
  libgv_tcl_la_SOURCES = $(BASESOURCES) gv_tcl_init.c
  libgv_tcl_la_LIBADD = $(top_builddir)/tclpkg/tclstubs/libtclstubs_C.la $(BASELIBS) $(TCL_LIBS)
@@ -404,3 +479,25 @@ diff -urN -x Makefile.in -x Makefile -x autom4te.cache -x libltdl -x m4 -x 'conf
  libgv_tcl_la_CPPFLAGS = $(BASECPPFLAGS) $(TCL_INCLUDES)
  # $(TCL_data): gv_tcl.cpp
  gv_tcl.cpp: gv.i
+--- origsrc/graphviz-2.38.0/tclpkg/tcldot/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/tclpkg/tcldot/Makefile.am	2014-04-18 12:42:02.418129200 +0900
+@@ -51,7 +51,7 @@ libtcldot_la_SOURCES = \
+ 	tcldot-io.c \
+ 	no_builtins.c $(GDTCLFT)
+ libtcldot_la_CPPFLAGS = $(AM_CPPFLAGS) -DDEMAND_LOADING=1
+-libtcldot_la_LDFLAGS = -no-undefined 
++libtcldot_la_LDFLAGS = -no-undefined $(TCL_STUB_LIB_SPEC)
+ 
+ libtcldot_la_LIBADD = $(TCLHANDLE_LIBS) \
+ 	$(top_builddir)/tclpkg/tclstubs/libtclstubs_C.la \
+--- origsrc/graphviz-2.38.0/tclpkg/tclpathplan/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/tclpkg/tclpathplan/Makefile.am	2014-04-18 12:44:21.182066000 +0900
+@@ -18,7 +18,7 @@ pkgtcl_LTLIBRARIES = libtclplan.la
+ endif
+ 
+ libtclplan_la_SOURCES = find_ints.c intersect.c makecw.c tclpathplan.c wrapper.c
+-libtclplan_la_LDFLAGS = -no-undefined
++libtclplan_la_LDFLAGS = -no-undefined $(TCL_STUB_LIB_SPEC)
+ libtclplan_la_LIBADD = \
+ 	$(top_builddir)/tclpkg/tclhandle/libtclhandle_C.la \
+ 	$(top_builddir)/tclpkg/tclstubs/libtclstubs_C.la \
