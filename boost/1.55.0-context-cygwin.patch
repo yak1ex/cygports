@@ -564,3 +564,24 @@ diff -urN origsrc/boost_1_55_0/libs/context/src/asm/make_i386_ms_pe_gas.S src/bo
 +.def _align_stack; .scl 2; .type 32; .endef
 +.def _seh_fcontext; .scl 2; .type 32; .endef
 +.def _exit; .scl 2; .type 32; .endef
+diff -urN origsrc/boost_1_55_0/boost/context/fcontext.hpp src/boost_1_55_0/boost/context/fcontext.hpp
+--- origsrc/boost_1_55_0/boost/context/fcontext.hpp	2013-02-12 21:55:22.000000000 +0900
++++ src/boost_1_55_0/boost/context/fcontext.hpp	2014-04-20 15:08:39.246111200 +0900
+@@ -30,7 +30,7 @@
+ #if defined(__x86_64__) || defined(__x86_64) \
+     || defined(__amd64__) || defined(__amd64) \
+     || defined(_M_X64) || defined(_M_AMD64)
+-# if defined(BOOST_WINDOWS)
++# if defined(BOOST_WINDOWS) || defined(__CYGWIN__)
+ #  include <boost/context/detail/fcontext_x86_64_win.hpp>
+ # else
+ #  include <boost/context/detail/fcontext_x86_64.hpp>
+@@ -41,7 +41,7 @@
+     || defined(__X86__) || defined(_X86_) || defined(__THW_INTEL__) \
+     || defined(__I86__) || defined(__INTEL__) || defined(__IA32__) \
+     || defined(_M_IX86) || defined(_I86_)
+-# if defined(BOOST_WINDOWS)
++# if defined(BOOST_WINDOWS) || defined(__CYGWIN__)
+ #  include <boost/context/detail/fcontext_i386_win.hpp>
+ # else
+ #  include <boost/context/detail/fcontext_i386.hpp>
