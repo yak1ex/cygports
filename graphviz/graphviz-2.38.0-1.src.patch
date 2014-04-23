@@ -164,35 +164,6 @@
  #AC_SUBST([TCL_LIB_VERSIONS_OK])
  #AC_SUBST([TCL_SHARED_LIB_SUFFIX])
  #AC_SUBST([TCL_UNSHARED_LIB_SUFFIX])
---- origsrc/graphviz-2.38.0/lib/common/globals.c	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/lib/common/globals.c	2014-04-18 13:38:52.589179800 +0900
-@@ -15,8 +15,9 @@
- #include "config.h"
- #endif
- 
--#define EXTERN
- #include "types.h"
-+#define EXTERN __declspec(dllexport)
-+#define extern __declspec(dllexport)
- #include "globals.h"
- #include "fdp.h"
- 
---- origsrc/graphviz-2.38.0/lib/common/timing.c	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/lib/common/timing.c	2014-04-18 13:38:52.602180600 +0900
-@@ -42,11 +42,13 @@ typedef clock_t mytime_t;
- 
- static mytime_t T;
- 
-+__declspec(dllexport)
- void start_timer(void)
- {
-     GET_TIME(T);
- }
- 
-+__declspec(dllexport)
- double elapsed_sec(void)
- {
-     mytime_t S;
 --- origsrc/graphviz-2.38.0/lib/edgepaint/lab_gamut.h	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/lib/edgepaint/lab_gamut.h	2014-04-18 18:24:57.137508400 +0900
 @@ -11,7 +11,8 @@
@@ -280,30 +251,6 @@
  }end
  
  lib alloca note{ alloca exists }end compile{
---- origsrc/graphviz-2.38.0/plugin/core/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/plugin/core/Makefile.am	2014-04-18 13:38:52.699186100 +0900
-@@ -17,7 +17,13 @@ else
- pkglib_LTLIBRARIES = libgvplugin_core.la
- endif
- 
-+if WITH_WIN32
- libgvplugin_core_C_la_SOURCES = \
-+	$(top_builddir)/lib/common/libcommon_C.la
-+else
-+libgvplugin_core_C_la_SOURCES = 
-+endif
-+libgvplugin_core_C_la_SOURCES += \
- 	gvplugin_core.c \
- 	gvrender_core_dot.c \
- 	gvrender_core_fig.c \
-@@ -44,7 +50,6 @@ ps.h : $(srcdir)/ps.txt
- 
- if WITH_WIN32
- libgvplugin_core_la_LDFLAGS += -no-undefined
--libgvplugin_core_la_LIBADD += $(top_builddir)/lib/cgraph/libcgraph.la
- endif
- 
- if WITH_DARWIN9
 --- origsrc/graphviz-2.38.0/plugin/dot_layout/gvplugin_dot_layout.c	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/plugin/dot_layout/gvplugin_dot_layout.c	2014-04-18 13:38:52.712186900 +0900
 @@ -12,6 +12,7 @@
@@ -314,17 +261,6 @@
  
  extern gvplugin_installed_t gvlayout_dot_layout[];
  
---- origsrc/graphviz-2.38.0/plugin/gd/Makefile.am	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/plugin/gd/Makefile.am	2014-04-18 13:38:52.732188000 +0900
-@@ -40,7 +40,7 @@ libgvplugin_gd_la_DEPENDENCIES =  $(top_
- 
- if WITH_WIN32
- libgvplugin_gd_la_LDFLAGS += -no-undefined
--libgvplugin_gd_la_LIBADD += $(top_builddir)/lib/cgraph/libcgraph.la $(top_builddir)/lib/pathplan/libpathplan.la
-+libgvplugin_gd_la_LIBADD += $(top_builddir)/lib/pathplan/libpathplan.la $(top_builddir)/plugin/core/libgvplugin_core.la
- endif
- 
- if WITH_DARWIN9
 --- origsrc/graphviz-2.38.0/plugin/neato_layout/Makefile.am	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/plugin/neato_layout/Makefile.am	2014-04-18 13:38:52.753189200 +0900
 @@ -45,7 +45,7 @@ libgvplugin_neato_layout_C_la_LIBADD +=
