@@ -272,16 +272,6 @@
  libgvplugin_neato_layout_la_LIBADD += $(top_builddir)/lib/cgraph/libcgraph.la $(top_builddir)/lib/cdt/libcdt.la
  endif
  
---- origsrc/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.c	2014-04-14 05:40:25.000000000 +0900
-+++ src/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.c	2014-04-18 13:38:52.767190000 +0900
-@@ -12,6 +12,7 @@
-  *************************************************************************/
- 
- #include "gvplugin.h"
-+#include "config.h"
- 
- extern gvplugin_installed_t gvlayout_neato_types[];
- 
 --- origsrc/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.cygwin.def	1970-01-01 09:00:00.000000000 +0900
 +++ src/graphviz-2.38.0/plugin/neato_layout/gvplugin_neato_layout.cygwin.def	2014-04-18 13:38:52.781190800 +0900
 @@ -0,0 +1,7 @@
