@@ -1,0 +1,56 @@
+inherit usrlocal
+inherit initial
+
+USE_DESTDIR=NO
+OLD_CONFIGURE=YES
+DOCS='README.iso README.iso.jp README.lesw.euc README.regex README.regex.jp README.ext'
+
+NAME="less"
+VERSION="382-iso262-ext03-imd1-cs_regex"
+RELEASE=3
+SUMMARY="Jam less"
+DESCRIPTION="Enhanced less for reading texts using ISO 2022 code extention techniques
+and using multiple Japanese encoding schemes."
+CATEGORY="Utils Text"
+HOMEPAGE="
+    Original:    http://www.greenwoodsoftware.com/less/
+    Jam less:    http://www25.big.jp/~jam/less/ (gone) -> http://ftp.jaist.ac.jp/pub/FreeBSD/ports/disitfiles
+    CP932 patch: http://www.d2.dion.ne.jp/~imady/freesoft/lesspatch/index.html"
+FREEBSD_PORTS_DIST=http://ftp.jaist.ac.jp/pub/FreeBSD/ports/distfiles
+SRC_URI="
+    ${FREEBSD_PORTS_DIST}/less-382.tar.gz
+    ${FREEBSD_PORTS_DIST}/regex_cs-lwp9k.shar.gz
+"
+SRC_DIR="less-382"
+PATCH_URI="
+    ${FREEBSD_PORTS_DIST}/less-382-iso258.patch.gz
+    ${FREEBSD_PORTS_DIST}/less-382-iso258-259.patch.gz
+    ${FREEBSD_PORTS_DIST}/less-382-iso259-260.patch.gz
+    ${FREEBSD_PORTS_DIST}/less-382-iso260-261.patch.gz
+    ${FREEBSD_PORTS_DIST}/less-382-iso261-262.patch.gz
+    ${FREEBSD_PORTS_DIST}/less-382-iso262.ext03.patch.gz
+"
+LICENSE="  Less License (BSD style license)"
+LANGUAGE="C"
+
+CYGPORT_USE_UNSTABLE_API=1
+src_unpack_hook() {
+    sh ../regex_cs-lwp9k.shar
+    rm ../regex_cs-lwp9k.shar
+}
+
+src_compile() {
+    cd ${S}
+#   cygautoreconf
+    touch configure
+    cd ${B}
+    mycygconf --with-cs-regex
+    cygmake
+}
+
+src_install() {
+    cd ${B}
+    mycyginstall
+    prep_initial_cygwin_doc
+    __myprepetc && __myprepman
+}
