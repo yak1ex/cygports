@@ -1,0 +1,11 @@
+--- origsrc/less-382/search.c	2014-04-29 12:05:26.744367000 +0900
++++ src/less-382/search.c	2014-04-29 12:14:34.253279900 +0900
+@@ -28,7 +28,7 @@
+ #define	MAXPOS(a,b)	(((a) > (b)) ? (a) : (b))
+ 
+ #if HAVE_POSIX_REGCOMP_CS
+-#include <regex_cs.h>
++#include "regex_cs.h"
+ #ifdef REG_EXTENDED
+ #define	REGCOMP_FLAG	REG_EXTENDED
+ #else

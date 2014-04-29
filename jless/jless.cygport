@@ -3,11 +3,11 @@ inherit initial
 
 USE_DESTDIR=NO
 OLD_CONFIGURE=YES
-DOCS='README.iso README.iso.jp README.lesw.euc README.regex README.regex.jp README.ext'
+DOCS='README.iso README.iso.jp README.lesw.euc README.regex README.regex.jp README.ext.jp'
 
 NAME="less"
-VERSION="382-iso262-ext03-imd1-cs_regex"
-RELEASE=3
+VERSION="382-iso262-ext03-cs_regex"
+RELEASE=1
 SUMMARY="Jam less"
 DESCRIPTION="Enhanced less for reading texts using ISO 2022 code extention techniques
 and using multiple Japanese encoding schemes."
