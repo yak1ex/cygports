@@ -9,18 +9,9 @@ PN_=`echo $PN | sed 's,_[a-z0-9]*,,'`
 
 DESCRIPTION="Run separate screens on a single terminal"
 HOMEPAGE="http://directory.fsf.org/screen.html"
-#SRC_URI="http://ftp.gnu.org/gnu/${PN}/${P}.tar.gz"
-SRC_URI="http://ftp.uni-erlangen.de/pub/utilities/${PN_}/${P_}.tar.gz"
+SRC_URI="http://ftp.gnu.org/gnu/${PN_}/${P_}.tar.gz"
 SRC_DIR=${P_}
-DIFF_EXCLUDES="02"
-
-# Hack to force cygport to install docs in /usr/share/doc/${PN}
-# (which I think is better) instead of /usr/share/doc/${PN}-${PV}
-function dodoc ()
-{
-	docinto ../${PN}
-	command dodoc "$@"
-}
+DIFF_EXCLUDES="02 Makefile configure"
 
 src_compile() {
 	cd ${S}
@@ -51,5 +42,5 @@ then
 fi
 EOF
 
-	dosym ../Cygwin/${P}.README /usr/share/doc/${PN}/README.Cygwin
+	dosym ../Cygwin/${PN}.README /usr/share/doc/${PN}/README.Cygwin
 }

@@ -1,6 +1,6 @@
 --- origsrc/screen-4.0.3/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
-+++ src/screen-4.0.3/CYGWIN-PATCHES/README	2009-12-29 21:57:21.359375000 +0900
-@@ -0,0 +1,173 @@
++++ src/screen-4.0.3/CYGWIN-PATCHES/README	2014-05-05 01:13:39.252856700 +0900
+@@ -0,0 +1,176 @@
 +============
 +screen_cp932
 +============
@@ -95,7 +95,7 @@
 +Runtime requirements:
 +  crypt
 +  cygwin
-+  libncurses8
++  libncurses10
 +
 +Build requirements:
 +  binutils
@@ -106,17 +106,17 @@
 +  make
 +
 +Build instructions:
-+  tar -jxf screen_patched-4.0.3-4-src.tar.bz2
++  tar -jxf screen_patched-4.0.3-5-src.tar.bz2
 +    if you use setup to install this src package, it will be
 +    unpacked under /usr/src automatically
 +  cd /usr/src
-+  cygport screen_patched-4.0.3-4.cygport all
++  cygport screen_patched-4.0.3-5.cygport all
 +
 +This will create:
-+  /usr/src/screen_patched-4.0.3-4.tar.bz2
-+  /usr/src/screen_patched-4.0.3-4-src.tar.bz2
++  /usr/src/screen_patched-4.0.3-5.tar.bz2
++  /usr/src/screen_patched-4.0.3-5-src.tar.bz2
 +
-+Or use 'cygport screen_patched-4.0.3-4.cygport prep' to get a patched source
++Or use 'cygport screen_patched-4.0.3-5.cygport prep' to get a patched source
 +directory.
 +
 +-------------------------------------------------------------------------
@@ -165,6 +165,9 @@
 +
 +Cygwin version history:
 +
++4.0.3-5:
++* Rebuild for the latest Cygwin environment.
++
 +4.0.3-4:
 +* Rebuild for Cygwin 1.7.
 +
@@ -175,8 +178,8 @@
 +http://cygwin.com/ml/cygwin/2006-09/msg00102.html).
 +* Patch: signal processes to exit when a window is killed.
 --- origsrc/screen-4.0.3/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/screen-4.0.3/CYGWIN-PATCHES/setup.hint	2009-12-29 21:57:21.390625000 +0900
-@@ -0,0 +1,15 @@
++++ src/screen-4.0.3/CYGWIN-PATCHES/setup.hint	2014-05-05 01:13:56.985576100 +0900
+@@ -0,0 +1,16 @@
 +sdesc: "Run separate screens on a single terminal with several patches (incl. cp932 support)"
 +ldesc: "screen is a terminal multiplexer and window manager that runs
 +several separate 'screens' on a single physical character-based
@@ -190,5 +193,6 @@
 +different host.
 +This port includes several additional patches including cp932 support."
 +category: Utils
-+requires: cygwin crypt libncurses8 
-+curr: 4.0.3-4
++requires: cygwin crypt libncurses10
++curr: 4.0.3-5
++prev: 4.0.3-4
