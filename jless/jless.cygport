@@ -15,7 +15,7 @@ CATEGORY="Utils Text"
 HOMEPAGE="
     Original:    http://www.greenwoodsoftware.com/less/
     Jam less:    http://www25.big.jp/~jam/less/ (gone) -> http://ftp.jaist.ac.jp/pub/FreeBSD/ports/disitfiles
-    CP932 patch: http://www.d2.dion.ne.jp/~imady/freesoft/lesspatch/index.html"
+    UTF-8/CP932: http://bogytech.blogspot.jp/search/label/jless"
 FREEBSD_PORTS_DIST=http://ftp.jaist.ac.jp/pub/FreeBSD/ports/distfiles
 SRC_URI="
     ${FREEBSD_PORTS_DIST}/less-382.tar.gz
