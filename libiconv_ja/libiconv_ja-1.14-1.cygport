@@ -16,6 +16,9 @@ PKG_CONTENTS[0]='--exclude=usr/bin/*.dll usr/'
 PKG_CONTENTS[1]='usr/bin/cygiconv-2.dll'
 PKG_CONTENTS[2]='usr/bin/cygcharset-1.dll'
 
+DIFF_EXCLUDES="configure ltmain.sh libtool.m4 ltoptions.m4 ltversion.m4
+	lt~obsolete.m4 aclocal.m4 config.h.in aliases*.h aliases*.gperf canonical*.h *.html"
+
 unset GNULIB_TOOL
 
 libiconv_bootstrap() {
@@ -47,9 +50,6 @@ src_test() {
 	cd ${B}
 	make -k check
 }
-
-DIFF_EXCLUDES="configure
-	aclocal.m4 config.h.in aliases*.h aliases*.gperf canonical*.h *.html"
 
 src_install() {
         cd ${B}

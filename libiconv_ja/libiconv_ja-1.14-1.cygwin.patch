@@ -34,8 +34,8 @@
 +requires: libgcc1
 +external-source: libiconv_ja
 --- origsrc/libiconv-1.14/CYGWIN-PATCHES/libiconv_ja.README	1970-01-01 09:00:00.000000000 +0900
-+++ src/libiconv-1.14/CYGWIN-PATCHES/libiconv_ja.README	2014-04-08 12:42:22.483719000 +0900
-@@ -0,0 +1,162 @@
++++ src/libiconv-1.14/CYGWIN-PATCHES/libiconv_ja.README	2014-05-05 17:39:59.778652500 +0900
+@@ -0,0 +1,166 @@
 +libiconv_ja
 +========================================================================
 +This library provides an iconv() implementation, for use on systems
@@ -83,17 +83,17 @@
 +===========================================================
 +
 +Build instructions:
-+  unpack libiconv_ja-1.14-X-src.tar.bz2
++  unpack libiconv_ja-1.14-X-src.tar.xz
 +    if you use setup to install this src package, it will be
 +	 unpacked under /usr/src automatically
 +  cd /usr/src
 +  cygport ./libiconv_ja-1.14-X.cygport all
 +
 +This will create:
-+  /usr/src/libiconv_ja-1.14-X.tar.bz2
-+  /usr/src/libiconv2_ja-1.14-X.tar.bz2
-+  /usr/src/libcharset1_ja-1.14-X.tar.bz2
-+  /usr/src/libiconv_ja-1.14-X-src.tar.bz2
++  /usr/src/libiconv_ja-1.14-X.tar.xz
++  /usr/src/libiconv2_ja-1.14-X.tar.xz
++  /usr/src/libcharset1_ja-1.14-X.tar.xz
++  /usr/src/libiconv_ja-1.14-X-src.tar.xz
 +
 +Or use 'cygport ./libiconv_ja-1.14-X.cygport prep' to get a patched
 +source directory
@@ -105,6 +105,10 @@
 +===========================================================
 +
 +Port Notes:
++----------  libiconv_ja-1.14-2 -- 2014 May 5 -----------
++* Build also for x86_64.
++* Add AC_CONFIG_MACRO_DIR to configure.ac to sync libtool-related m4 files.
++
 +----------  libiconv_ja-1.14-1 -- 2014 Apr 8 -----------
 +* Update to latest release.
 +* Change patch source.
