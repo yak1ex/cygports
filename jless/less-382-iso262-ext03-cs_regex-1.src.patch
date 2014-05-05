@@ -1,3 +1,14 @@
+--- origsrc/less-382/less.h	2014-05-05 15:18:46.456124000 +0900
++++ src/less-382/less.h	2014-05-05 15:44:03.670383200 +0900
+@@ -198,7 +198,7 @@ typedef off_t		LINENUM;
+ #if MSDOS_COMPILER==MSOFTC
+ #define	SET_BINARY(f)	_setmode(f, _O_BINARY);
+ #else
+-#if MSDOS_COMPILER || OS2 || __CYGWIN__
++#if MSDOS_COMPILER || OS2 || __CYGWIN__ && !defined(__LP64__) /* This is actually NOT related with LP64 but there is NOT __CYGWIN64__ */
+ #define	SET_BINARY(f)	setmode(f, O_BINARY)
+ #else
+ #define	SET_BINARY(f)
 --- origsrc/less-382/search.c	2014-04-29 12:05:26.744367000 +0900
 +++ src/less-382/search.c	2014-04-29 12:14:34.253279900 +0900
 @@ -28,7 +28,7 @@

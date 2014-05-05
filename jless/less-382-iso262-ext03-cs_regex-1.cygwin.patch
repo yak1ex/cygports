@@ -1,6 +1,6 @@
 --- origsrc/less-382/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
-+++ src/less-382/CYGWIN-PATCHES/README	2014-04-29 13:37:53.986620100 +0900
-@@ -0,0 +1,71 @@
++++ src/less-382/CYGWIN-PATCHES/README	2014-05-05 15:47:44.966725400 +0900
+@@ -0,0 +1,74 @@
 +less-382-iso262-ext03
 +------------------------------------------------------------------------
 +Enhanced less for reading texts using ISO 2022 code extention techniques 
@@ -11,10 +11,10 @@
 +  libncurses10
 +
 +Build requirements:
-+  cygport-usrlocal-0.2-1
++  cygport-usrlocal-0.8-1
 +  cygwin
-+  libncurses-devel
-+  libncurses10
++  libncurses-devel or libncursesw-devel
++  libncurses10 or libncursesw10
 +
 +Canonical homepage:
 +  Original:    http://www.greenwoodsoftware.com/less/
@@ -39,7 +39,7 @@
 +------------------------------------------------------------------------
 +
 +Build instructions:
-+  unpack less-382-iso262-ext03-cs_regex-1-src.tar.xz
++  unpack less-382-iso262-ext03-cs_regex-2-src.tar.xz
 +    if you use setup to install this src package, it will be
 +	 unpacked under /usr/src automatically
 +  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
@@ -47,8 +47,8 @@
 +  cygport jless.cygport all
 +
 +This will create:
-+  less-382-iso262-ext03-cs_regex-3.tar.xz
-+  less-382-iso262-ext03-cs_regex-3-src.tar.xz
++  less-382-iso262-ext03-cs_regex-2.tar.xz
++  less-382-iso262-ext03-cs_regex-2-src.tar.xz
 +
 +Or use 'cygport jless.cygport prep' to get a patched source directory
 +
@@ -58,6 +58,9 @@
 +------------------------------------------------------------------------
 +
 +Port Notes:
++
++----------  less-382-iso262-ext03-cs_regex-2 -- 2014/05/05 -------------
++- Build for 64bit also.
 +
 +----------  less-382-iso262-ext03-cs_regex-1 -- 2014/04/29 -------------
 +- Use ext03 patch instead of CP932 patch.
