@@ -15,7 +15,7 @@ inherit usrlocal
 PKG_NAMES="${PN} ${PN}-devel ${PN}-doc libgraphviz6 ${PN}-perl ${PN}-python ${PN}-ruby ${PN}-tcl ${PN}-lua ${PN}-R"
 #PKG_HINTS="setup devel doc ocaml perl python ruby tcl lib"
 PKG_HINTS="setup devel doc lib perl python ruby tcl lua R"
-PKG_CONTENTS[0]="${prefix#/}/bin/[^c]* ${prefix#/}/bin/c[^y]* usr/share/doc ${prefix#/}/share/graphviz/demo ${prefix#/}/share/graphviz/doc/[^hp]* ${prefix#/}/share/graphviz/graphs ${prefix#/}/share/graphviz/lefty ${prefix#/}/share/graphviz/gvpr ${mandir#/}"
+PKG_CONTENTS[0]="${prefix#/}/bin/[^c]* ${prefix#/}/bin/c[^y]* usr/share/doc ${prefix#/}/share/graphviz/demo ${prefix#/}/share/graphviz/doc/[^hp]* ${prefix#/}/share/graphviz/graphs ${prefix#/}/share/graphviz/lefty ${prefix#/}/share/graphviz/gvpr ${prefix#/}/share/graphviz/gvedit ${mandir#/}"
 PKG_CONTENTS[1]="${prefix#/}/include ${prefix#/}/lib/*.a ${prefix#/}/lib/*.la ${prefix#/}/lib/pkgconfig"
 PKG_CONTENTS[2]="${prefix#/}/share/graphviz/doc/html ${prefix#/}/share/graphviz/doc/pdf"
 PKG_CONTENTS[3]="${prefix#/}/bin/*.dll ${prefix#/}/lib/graphviz/*.dll"
