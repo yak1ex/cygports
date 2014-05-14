@@ -22,6 +22,46 @@
  dotty_SOURCES = mswin32/dotty.c
  dotty_LDADD = -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32
  else
+--- origsrc/graphviz-2.38.0/cmd/dotty/mswin32/dotty.c	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/cmd/dotty/mswin32/dotty.c	2014-05-14 12:07:08.191282600 +0900
+@@ -20,6 +20,9 @@
+ #include <stdlib.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#ifdef __CYGWIN__
++#include <sys/cygwin.h>
++#endif
+ 
+ static char *shellpath;
+ 
+@@ -47,6 +50,18 @@ int APIENTRY WinMain (
+     ZeroMemory (&pi, sizeof(pi));
+ 
+     shellpath = getenv ("PATH");
++#ifdef __CYGWIN__
++    {
++        static char *shellpath_temp = 0;
++        ssize_t buf_size = cygwin_conv_path_list(CCP_POSIX_TO_WIN_A, shellpath, 0, 0);
++        shellpath_temp = malloc(buf_size);
++        if(cygwin_conv_path_list(CCP_POSIX_TO_WIN_A, shellpath, shellpath_temp, buf_size)) {
++            panic(__FILE__, __LINE__, __func__, "Can't convert PATH"); // noreturn
++            exit(1);
++        }
++        shellpath = shellpath_temp;
++    }
++#endif
+     if (!shellpath || !(path = buildpath ("lefty"))) {
+         if (!GetModuleFileName (hInstance, cmd, 256) ||
+                 !(s = strrchr (cmd, '\\')))
+@@ -63,7 +78,7 @@ int APIENTRY WinMain (
+         );
+     else
+         sprintf (
+-	    cmd, "%s -e \"load('dotty.lefty');%sdotty.init();dotty.createviewandgraph('%Ns','file',null,null);txtview('off');\"",
++	    cmd, "%s -e \"load('dotty.lefty');%sdotty.init();dotty.createviewandgraph('%s','file',null,null);txtview('off');\"",
+             path, lneato, lpCmdLine
+         );
+ 
 --- origsrc/graphviz-2.38.0/cmd/edgepaint/Makefile.am	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/cmd/edgepaint/Makefile.am	2014-04-18 13:38:52.506175100 +0900
 @@ -5,6 +5,7 @@ pdfdir = $(pkgdatadir)/doc/pdf
