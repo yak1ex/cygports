@@ -31,7 +31,8 @@ src_compile() {
     cd ${S}
     cygautoreconf
     cd ${B}
-    mycygconf --with-win32gui --without-x --disable-ocaml
+#    mycygconf --with-win32gui --without-x --disable-ocaml
+    mycygconf --without-win32gui --with-x --disable-ocaml
     rm -f ${B}/cmd/lefty/ws/mswin32/lefty.rc
     ln -s ${S}/cmd/lefty/ws/mswin32/lefty.rc ${B}/cmd/lefty/ws/mswin32
     rm -f ${B}/cmd/lefty/ws/mswin32/resource.h

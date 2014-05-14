@@ -125,6 +125,17 @@
  #ifndef FEATURE_WIN32
  #define FEATURE_WIN32 1
  #endif
+--- origsrc/graphviz-2.38.0/cmd/lefty/dot2l/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/cmd/lefty/dot2l/Makefile.am	2014-05-14 18:51:48.797963500 +0900
+@@ -9,7 +9,7 @@ noinst_HEADERS = dot2l.h triefa.h dotpar
+ if WITH_X
+ noinst_LTLIBRARIES = libdot2l.la
+ endif
+-if WITH_WIN32
++if WITH_WIN32GUI
+ noinst_LTLIBRARIES = libdot2l.la
+ endif
+ 
 --- origsrc/graphviz-2.38.0/cmd/lefty/lefty.c	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/cmd/lefty/lefty.c	2014-04-18 13:38:52.536176800 +0900
 @@ -207,6 +207,61 @@ eop:
@@ -213,6 +224,51 @@
      processstr (leftyoptions);
      __argv++, __argc--;
      processargs (__argc, __argv);
+--- origsrc/graphviz-2.38.0/cmd/lefty/os/mswin32/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/cmd/lefty/os/mswin32/Makefile.am	2014-05-14 18:46:56.003963500 +0900
+@@ -3,7 +3,7 @@
+ 
+ AM_CPPFLAGS = -I$(top_srcdir)/cmd/lefty
+ 
+-if WITH_WIN32
++if WITH_WIN32GUI
+ noinst_LTLIBRARIES = libos.la
+ endif
+ 
+--- origsrc/graphviz-2.38.0/cmd/lefty/ws/mswin32/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/cmd/lefty/ws/mswin32/Makefile.am	2014-05-14 18:45:23.474963500 +0900
+@@ -4,7 +4,7 @@
+ AM_CPPFLAGS = -I$(top_srcdir)/cmd/lefty 
+ 
+ noinst_HEADERS = gcommon.h resource.h
+-if WITH_WIN32
++if WITH_WIN32GUI
+ noinst_LTLIBRARIES = libws.la
+ endif
+ 
+--- origsrc/graphviz-2.38.0/cmd/lneato/Makefile.am	2014-04-14 05:40:25.000000000 +0900
++++ src/graphviz-2.38.0/cmd/lneato/Makefile.am	2014-05-14 18:51:01.018963500 +0900
+@@ -9,15 +9,16 @@ pdf = lneato.1.pdf
+ if WITH_X
+ man_MANS = $(man)
+ pdf_DATA = $(pdf)
+-if WITH_WIN32
+-bin_PROGRAMS = lneato
+-else
+ bin_SCRIPTS = lneato
+ endif
++if WITH_WIN32GUI
++man_MANS = $(man)
++pdf_DATA = $(pdf)
++bin_PROGRAMS = lneato
+ endif
+ 
+ AM_CFLAGS = -DLNEATO
+-if WITH_WIN32
++if WITH_WIN32GUI
+ lneato_SOURCES = ${top_srcdir}/cmd/dotty/mswin32/dotty.c
+ lneato_LDADD = -luser32 -lgdi32 -lwinspool -lcomdlg32 -ladvapi32 -lshell32
+ else
 --- origsrc/graphviz-2.38.0/config/config_perl.pl	2014-04-14 05:40:25.000000000 +0900
 +++ src/graphviz-2.38.0/config/config_perl.pl	2014-04-18 13:38:52.553177800 +0900
 @@ -4,6 +4,7 @@ if ($ARGV[0] eq "PERL_LIBS") {
