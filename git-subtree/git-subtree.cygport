@@ -1,0 +1,28 @@
+inherit initial
+
+NAME="git-subtree"
+VERSION="1.7.12.4"
+RELEASE=1
+SUMMARY="Merge subtrees together and split repository into subtrees"
+LDESCRIPTION="Subtrees allow subprojects to be included within a subdirectory
+of the main project, optionally including the subproject's
+entire history."
+CATEGORY="Devel"
+HOMEPAGE="https://github.com/git/git/tree/master/contrib/subtree"
+SRC_URI=https://github.com/git/git/archive/v${PV}.tar.gz
+LICENSE="  GPLv2"
+LANGUAGE="Shell"
+
+SRC_DIR=git-${PV}
+
+src_compile() {
+    lndirs
+    cd ${B}/contrib/subtree
+    make all doc
+}
+
+src_install() {
+    cd ${B}/contrib/subtree
+    mkdir -p ${D}/usr/lib/git-core ${D}/usr/share/man/man1
+    make prefix=${D}/usr libexecdir=${D}/usr/lib/git-core install install-man
+}

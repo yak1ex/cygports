@@ -1,0 +1,74 @@
+--- origsrc/git-1.7.12.4/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/git-1.7.12.4/CYGWIN-PATCHES/README	2014-08-23 20:52:55.485226700 +0900
+@@ -0,0 +1,60 @@
++git-subtree
++------------------------------------------------------------------------
++Merge subtrees together and split repository into subtrees
++
++Subtrees allow subprojects to be included within a subdirectory
++of the main project, optionally including the subproject's entire history.
++
++Runtime requirements:
++  bash
++  git
++
++Build requirements:
++  asciidoc
++  bash
++  make
++  xmlto
++
++Canonical homepage:
++  https://github.com/git/git/tree/master/contrib/subtree
++
++Canonical download:
++  https://github.com/git/git/archive/v1.7.12.4.tar.gz
++
++License:
++  GPLv2
++
++Language:
++  Shell
++
++------------------------------------------------------------------------
++
++Build instructions:
++  unpack git-subtree-1.7.12.4-1-src.tar.xz
++    if you use setup to install this src package, it will be
++	 unpacked under /usr/src automatically
++  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
++  cd /usr/src
++  cygport git-subtree.cygport all
++
++This will create:
++  git-subtree-1.7.12.4-1.tar.xz
++  git-subtree-1.7.12.4-1-src.tar.xz
++
++Or use 'cygport git-subtree.cygport prep' to get a patched source directory
++
++To find out the files included in the binary distribution, you can
++use "cygcheck -l git-subtree".
++
++------------------------------------------------------------------------
++
++Port Notes:
++
++----------  git-subtree-1.7.12.4-1 -- 2014/08/23 ----------------------------
++Initial release.
++
++For more information about this package, see the upstream documentation in
++/usr/share/doc/git-subtree-1.7.12.4-1.
++
++This private port maintained by: Yak! <yak_ex@mx.scn.tv>
++Please address all questions to the above address, NOT to the Cygwin mailing list.
+--- origsrc/git-1.7.12.4/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/git-1.7.12.4/CYGWIN-PATCHES/setup.hint	2014-08-23 20:47:01.467780900 +0900
+@@ -0,0 +1,8 @@
++@ git-subtree
++sdesc: "Merge subtrees together and split repository into subtrees"
++ldesc: "Subtrees allow subprojects to be included within a subdirectory
++of the main project, optionally including the subproject's
++entire history."
++category: Devel
++requires: bash git
++curr: 1.7.12.4-1
