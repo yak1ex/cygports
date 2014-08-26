@@ -1,6 +1,6 @@
---- origsrc/git-1.7.12.4/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
-+++ src/git-1.7.12.4/CYGWIN-PATCHES/README	2014-08-23 20:52:55.485226700 +0900
-@@ -0,0 +1,60 @@
+--- origsrc/git/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
++++ src/git/CYGWIN-PATCHES/README	2014-08-26 12:20:55.701337700 +0900
+@@ -0,0 +1,61 @@
 +git-subtree
 +------------------------------------------------------------------------
 +Merge subtrees together and split repository into subtrees
@@ -15,6 +15,7 @@
 +Build requirements:
 +  asciidoc
 +  bash
++  docbook-xml45
 +  make
 +  xmlto
 +
@@ -22,7 +23,7 @@
 +  https://github.com/git/git/tree/master/contrib/subtree
 +
 +Canonical download:
-+  https://github.com/git/git/archive/v1.7.12.4.tar.gz
++  https://github.com/git/git/archive/v2.0.4.tar.gz
 +
 +License:
 +  GPLv2
@@ -33,7 +34,7 @@
 +------------------------------------------------------------------------
 +
 +Build instructions:
-+  unpack git-subtree-1.7.12.4-1-src.tar.xz
++  unpack git-subtree-2.0.4-1-src.tar.xz
 +    if you use setup to install this src package, it will be
 +	 unpacked under /usr/src automatically
 +  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
@@ -41,8 +42,8 @@
 +  cygport git-subtree.cygport all
 +
 +This will create:
-+  git-subtree-1.7.12.4-1.tar.xz
-+  git-subtree-1.7.12.4-1-src.tar.xz
++  git-subtree-2.0.4-1.tar.xz
++  git-subtree-2.0.4-1-src.tar.xz
 +
 +Or use 'cygport git-subtree.cygport prep' to get a patched source directory
 +
@@ -53,16 +54,16 @@
 +
 +Port Notes:
 +
-+----------  git-subtree-1.7.12.4-1 -- 2014/08/23 ----------------------------
++----------  git-subtree-2.0.4-1 -- 2014/08/26 ----------------------------
 +Initial release.
 +
 +For more information about this package, see the upstream documentation in
-+/usr/share/doc/git-subtree-1.7.12.4-1.
++/usr/share/doc/git-subtree.
 +
 +This private port maintained by: Yak! <yak_ex@mx.scn.tv>
 +Please address all questions to the above address, NOT to the Cygwin mailing list.
---- origsrc/git-1.7.12.4/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/git-1.7.12.4/CYGWIN-PATCHES/setup.hint	2014-08-23 20:47:01.467780900 +0900
+--- origsrc/git/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
++++ src/git/CYGWIN-PATCHES/setup.hint	2014-08-26 11:51:30.214806700 +0900
 @@ -0,0 +1,8 @@
 +@ git-subtree
 +sdesc: "Merge subtrees together and split repository into subtrees"
@@ -71,4 +72,4 @@
 +entire history."
 +category: Devel
 +requires: bash git
-+curr: 1.7.12.4-1
++curr: 2.0.4-1
