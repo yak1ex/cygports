@@ -28,5 +28,5 @@ src_compile() {
 src_install() {
     cd ${B}/contrib/subtree
     mkdir -p ${D}/usr/lib/git-core ${D}/usr/share/man/man1
-    cygmake prefix=${D}/usr libexecdir=${D}/usr/lib/git-core install install-man
+    cygmake prefix=${D}/usr install install-man
 }
