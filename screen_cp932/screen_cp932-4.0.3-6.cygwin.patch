@@ -1,5 +1,5 @@
 --- origsrc/screen-4.0.3/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
-+++ src/screen-4.0.3/CYGWIN-PATCHES/README	2014-05-05 01:13:39.252856700 +0900
++++ src/screen-4.0.3/CYGWIN-PATCHES/README	2018-04-27 13:11:43.569711500 +0900
 @@ -0,0 +1,176 @@
 +============
 +screen_cp932
@@ -178,7 +178,7 @@
 +http://cygwin.com/ml/cygwin/2006-09/msg00102.html).
 +* Patch: signal processes to exit when a window is killed.
 --- origsrc/screen-4.0.3/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/screen-4.0.3/CYGWIN-PATCHES/setup.hint	2014-05-05 01:13:56.985576100 +0900
++++ src/screen-4.0.3/CYGWIN-PATCHES/setup.hint	2018-04-27 13:11:43.591712700 +0900
 @@ -0,0 +1,16 @@
 +sdesc: "Run separate screens on a single terminal with several patches (incl. cp932 support)"
 +ldesc: "screen is a terminal multiplexer and window manager that runs
