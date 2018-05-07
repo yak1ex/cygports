@@ -4,9 +4,7 @@
 
 inherit usrlocal
 
-# FIXME: build depends on sharutils
 # FIXME: proper package name handling
-# FIXME: update cygwin.patch
 P_=`echo $P | sed 's,_[a-z0-9]*-,-,'`
 PN_=`echo $PN | sed 's,_[a-z0-9]*,,'`
 NAME=screen_cp932
@@ -25,7 +23,7 @@ src_compile() {
 	cd ${B}
 	mycygconf --with-sys-screenrc=${sysconfdir}/screenrc --enable-colors256 --datarootdir=${prefix}/share
 	cygmake
-        uudecode -o ${S}/utf8encodings/02 ${S}/utf8encodings/02.uue
+	uudecode -o ${S}/utf8encodings/02 ${S}/utf8encodings/02.uue
 }
 
 src_install() {

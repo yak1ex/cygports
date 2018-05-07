@@ -7,7 +7,7 @@ DOCS='README.iso README.iso.jp README.lesw.euc README.regex README.regex.jp READ
 
 NAME="less"
 VERSION="382-iso262-ext03-cs_regex"
-RELEASE=2
+RELEASE=3
 SUMMARY="Jam less"
 DESCRIPTION="Enhanced less for reading texts using ISO 2022 code extention techniques
 and using multiple Japanese encoding schemes."

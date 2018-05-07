@@ -1,6 +1,6 @@
 --- origsrc/less-382/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
-+++ src/less-382/CYGWIN-PATCHES/README	2014-05-05 15:47:44.966725400 +0900
-@@ -0,0 +1,74 @@
++++ src/less-382/CYGWIN-PATCHES/README	2018-05-07 14:57:30.812500100 +0900
+@@ -0,0 +1,77 @@
 +less-382-iso262-ext03
 +------------------------------------------------------------------------
 +Enhanced less for reading texts using ISO 2022 code extention techniques 
@@ -8,13 +8,13 @@
 +
 +Runtime requirements:
 +  cygwin
-+  libncurses10
++  libncursesw10
 +
 +Build requirements:
 +  cygport-usrlocal-0.8-1
 +  cygwin
-+  libncurses-devel or libncursesw-devel
-+  libncurses10 or libncursesw10
++  libncursesw-devel
++  libncursesw10
 +
 +Canonical homepage:
 +  Original:    http://www.greenwoodsoftware.com/less/
@@ -39,7 +39,7 @@
 +------------------------------------------------------------------------
 +
 +Build instructions:
-+  unpack less-382-iso262-ext03-cs_regex-2-src.tar.xz
++  unpack less-382-iso262-ext03-cs_regex-3-src.tar.xz
 +    if you use setup to install this src package, it will be
 +	 unpacked under /usr/src automatically
 +  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
@@ -47,8 +47,8 @@
 +  cygport jless.cygport all
 +
 +This will create:
-+  less-382-iso262-ext03-cs_regex-2.tar.xz
-+  less-382-iso262-ext03-cs_regex-2-src.tar.xz
++  less-382-iso262-ext03-cs_regex-3.tar.xz
++  less-382-iso262-ext03-cs_regex-3-src.tar.xz
 +
 +Or use 'cygport jless.cygport prep' to get a patched source directory
 +
@@ -58,6 +58,9 @@
 +------------------------------------------------------------------------
 +
 +Port Notes:
++
++----------  less-382-iso262-ext03-cs_regex-3 -- 2018/05/07 -------------
++- Adjust and rebuild for the latest Cygwin environment.
 +
 +----------  less-382-iso262-ext03-cs_regex-2 -- 2014/05/05 -------------
 +- Build for 64bit also.
@@ -76,11 +79,12 @@
 +Please address all questions to the above address, NOT to the Cygwin 
 +mailing list at <cygwin@cygwin.com>.
 --- origsrc/less-382/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/less-382/CYGWIN-PATCHES/setup.hint	2014-04-29 13:39:03.455643400 +0900
-@@ -0,0 +1,6 @@
++++ src/less-382/CYGWIN-PATCHES/setup.hint	2018-05-07 14:56:16.729092500 +0900
+@@ -0,0 +1,7 @@
 +@ jless
 +sdesc: "Jam less"
 +ldesc: "Enhanced less for reading texts using ISO 2022 code extention techniques and using multiple Japanese encoding schemes."
 +category: Utils Text
-+requires: cygwin libncurses10
-+curr: 382-iso262-ext03-cs_regex-1
++requires: cygwin libncursesw10
++curr: 382-iso262-ext03-cs_regex-3
++prev: 382-iso262-ext03-cs_regex-2

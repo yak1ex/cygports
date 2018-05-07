@@ -1,5 +1,5 @@
 --- origsrc/screen-4.0.3/Makefile.in	2006-10-23 22:06:32.000000000 +0900
-+++ src/screen-4.0.3/Makefile.in	2009-12-31 21:27:33.621250000 +0900
++++ src/screen-4.0.3/Makefile.in	2018-05-07 14:30:35.620997100 +0900
 @@ -18,7 +18,7 @@ exec_prefix = @exec_prefix@
  bindir  = $(exec_prefix)/bin
  
@@ -25,7 +25,7 @@
  
  ###############################################################################
 --- origsrc/screen-4.0.3/ansi.c	2003-12-05 22:57:05.000000000 +0900
-+++ src/screen-4.0.3/ansi.c	2009-12-31 21:27:33.668125000 +0900
++++ src/screen-4.0.3/ansi.c	2018-05-07 14:31:03.655800300 +0900
 @@ -61,6 +61,7 @@ int visual_bell = 0;
  int use_hardstatus = 1;		/* display status line in hs */
  char *printcmd = 0;
@@ -77,8 +77,17 @@
      }
  }
  
+@@ -2888,7 +2900,7 @@ char *str;
+   extern struct layer *flayer;
+   struct layer *oldflayer = flayer;
+   flayer = &p->w_layer;
+-  LMsg(err, str);
++  LMsg(err, strarg, str);
+   flayer = oldflayer;
+ }
+ 
 --- origsrc/screen-4.0.3/attacher.c	2003-09-08 23:24:48.000000000 +0900
-+++ src/screen-4.0.3/attacher.c	2009-12-31 21:27:33.730625000 +0900
++++ src/screen-4.0.3/attacher.c	2018-05-07 14:31:10.439478600 +0900
 @@ -274,7 +274,7 @@ int how;
      }
    debug1("Attach decided, it is '%s'\n", SockPath);
@@ -97,8 +106,17 @@
      {
        debug("Detaching backend!\n");
        bzero((char *) &m, sizeof(m));
+@@ -715,7 +715,7 @@ LockTerminal()
+ 	      debug2("Lock: %s: return code %d\n", prg, WEXITSTATUS(wstat));
+ 	    }
+           else
+-	    printf(LockEnd);
++	    printf(strarg, LockEnd);
+         }
+     }
+   else
 --- origsrc/screen-4.0.3/comm.c	2003-09-08 23:25:08.000000000 +0900
-+++ src/screen-4.0.3/comm.c	2009-12-31 21:27:33.761875000 +0900
++++ src/screen-4.0.3/comm.c	2018-05-07 14:30:35.711006100 +0900
 @@ -112,6 +112,9 @@ struct comm comms[RC_LAST + 1] =
  #endif
    { "charset",          NEED_FORE|ARGS_1 },
@@ -126,7 +144,7 @@
    { "lastmsg",		NEED_DISPLAY|ARGS_0 },
    { "license",		NEED_LAYER|ARGS_0 },
 --- origsrc/screen-4.0.3/configure.in	2003-06-03 20:58:24.000000000 +0900
-+++ src/screen-4.0.3/configure.in	2009-12-31 21:27:33.824375000 +0900
++++ src/screen-4.0.3/configure.in	2018-05-07 14:30:35.756010600 +0900
 @@ -270,7 +270,7 @@ dnl   Solaris seteuid doesn't change the
  dnl     multiuser screen sessions
  AC_CHECKING(seteuid)
@@ -282,7 +300,7 @@
  #endif
  ], load=1)
 --- origsrc/screen-4.0.3/display.c	2003-12-05 22:45:41.000000000 +0900
-+++ src/screen-4.0.3/display.c	2009-12-31 21:27:33.886875000 +0900
++++ src/screen-4.0.3/display.c	2018-05-07 14:31:17.901224700 +0900
 @@ -94,6 +94,9 @@ extern int real_uid, real_gid;
  /*
   * tputs needs this to calculate the padding
@@ -309,8 +327,17 @@
  	  debug1("DisplayLine on right side of dw char- x now %d\n", x);
  	  GotoPos(x, y);
  	}
+@@ -3909,7 +3919,7 @@ char **cmdv;
+ #endif
+       display = 0;
+       execvpe(*cmdv, cmdv, NewEnv + 3);
+-      Panic(errno, *cmdv);
++      Panic(errno, strarg, *cmdv);
+     default:
+       break;
+     }
 --- origsrc/screen-4.0.3/doc/screen.1	2003-12-05 22:51:57.000000000 +0900
-+++ src/screen-4.0.3/doc/screen.1	2009-12-31 21:27:33.933750000 +0900
++++ src/screen-4.0.3/doc/screen.1	2018-05-07 14:30:35.829017900 +0900
 @@ -1388,6 +1388,17 @@ can use this to adjust an already placed
  .ti -2n
  All keys not described here exit copy mode.
@@ -344,7 +371,7 @@
  .PP
  Kill current window.
 --- origsrc/screen-4.0.3/doc/screen.texinfo	2003-12-05 22:51:46.000000000 +0900
-+++ src/screen-4.0.3/doc/screen.texinfo	2009-12-31 21:27:33.965000000 +0900
++++ src/screen-4.0.3/doc/screen.texinfo	2018-05-07 14:30:35.853020300 +0900
 @@ -878,6 +878,8 @@ Selects compaction of trailing empty lin
  Grab or ungrab console output.  @xref{Console}.
  @item copy
@@ -363,7 +390,7 @@
  @item kill
  Destroy the current window.  @xref{Kill}.
  @item lastmsg
-@@ -2833,6 +2837,24 @@ current window and its history into the 
+@@ -2833,6 +2837,24 @@ current window and its history into the
  outlined below.
  @end deffn
  
@@ -389,7 +416,7 @@
  * Line Termination::            End copied lines with CR/LF
  * Scrollback::                  Set the size of the scrollback buffer
 --- origsrc/screen-4.0.3/encoding.c	2006-10-23 21:58:14.000000000 +0900
-+++ src/screen-4.0.3/encoding.c	2009-12-31 21:27:33.996250000 +0900
++++ src/screen-4.0.3/encoding.c	2018-05-07 14:30:35.872022200 +0900
 @@ -35,6 +35,10 @@ extern struct layer *flayer;
  
  extern char *screenencodings;
@@ -541,7 +568,7 @@
  	  return 2;
  	}
 --- origsrc/screen-4.0.3/etc/etcscreenrc	2003-12-05 22:46:13.000000000 +0900
-+++ src/screen-4.0.3/etc/etcscreenrc	2009-12-31 21:27:34.011875000 +0900
++++ src/screen-4.0.3/etc/etcscreenrc	2018-05-07 14:30:35.895024500 +0900
 @@ -9,6 +9,7 @@
  #startup_message off
  
@@ -561,7 +588,7 @@
  # Do not use xterms alternate window buffer. 
  # This one would not add lines to the scrollback buffer.
 --- origsrc/screen-4.0.3/etc/screenrc	2006-10-23 22:06:32.000000000 +0900
-+++ src/screen-4.0.3/etc/screenrc	2009-12-31 21:27:34.043125000 +0900
++++ src/screen-4.0.3/etc/screenrc	2018-05-07 14:30:35.913026300 +0900
 @@ -37,6 +37,11 @@ defscrollback 1000
  
  # enable support for the "alternate screen" capability in all windows
@@ -575,7 +602,7 @@
  ################
  #
 --- origsrc/screen-4.0.3/extern.h	2003-08-22 21:27:57.000000000 +0900
-+++ src/screen-4.0.3/extern.h	2014-05-04 14:28:23.525307600 +0900
++++ src/screen-4.0.3/extern.h	2018-05-07 14:31:36.998134200 +0900
 @@ -100,7 +100,7 @@ extern int   SttyMode __P((struct mode *
  
  /* mark.c */
@@ -589,7 +616,7 @@
  #ifdef ZMODEM
  extern void  zmodem_abort __P((struct win *, struct display *));
  #endif
-+#ifndef __CYGWIN__
++#if !defined(__CYGWIN__)
  extern void  execvpe __P((char *, char **, char **));
 +#endif
  
@@ -625,8 +652,46 @@
 +# endif
 +# define screen_unlink(path) unlink(path)
 +#endif /* CYGWIN_FILEMODE */
+--- origsrc/screen-4.0.3/fileio.c	2003-09-08 23:25:28.000000000 +0900
++++ src/screen-4.0.3/fileio.c	2018-05-07 14:31:45.474981800 +0900
+@@ -69,7 +69,7 @@ register char *str1, *str2;
+     {
+       len2 = strlen(str2);
+       if ((cp = realloc(str2, (unsigned) len1 + len2 + add_colon + 1)) == NULL)
+-	Panic(0, strnomem);
++	Panic(0, strarg, strnomem);
+       bcopy(cp, cp + len1 + add_colon, len2 + 1);
+     }
+   else
+@@ -77,7 +77,7 @@ register char *str1, *str2;
+       if (len1 == 0)
+ 	return 0;
+       if ((cp = malloc((unsigned) len1 + add_colon + 1)) == NULL)
+-	Panic(0, strnomem);
++	Panic(0, strarg, strnomem);
+       cp[len1 + add_colon] = '\0'; 
+     }
+   bcopy(str1, cp, len1);
+@@ -577,7 +577,7 @@ int *lenp;
+   if ((buf = malloc(size)) == NULL)
+     {
+       close(i);
+-      Msg(0, strnomem);
++      Msg(0, strarg, strnomem);
+       return NULL;
+     }
+   errno = 0;
+@@ -827,7 +827,7 @@ char **cmdv;
+ #endif
+       execvp(*cmdv, cmdv);
+       close(1);
+-      Panic(errno, *cmdv);
++      Panic(errno, strarg, *cmdv);
+     default:
+       break;
+     }
 --- origsrc/screen-4.0.3/loadav.c	2003-09-08 23:25:51.000000000 +0900
-+++ src/screen-4.0.3/loadav.c	2009-12-31 21:27:34.136875000 +0900
++++ src/screen-4.0.3/loadav.c	2018-05-07 14:30:35.952030200 +0900
 @@ -53,7 +53,7 @@ static int loadok;
  
  /***************************************************************/
@@ -646,7 +711,7 @@
  /***************************************************************/
  
 --- origsrc/screen-4.0.3/mark.c	2003-09-08 23:26:00.000000000 +0900
-+++ src/screen-4.0.3/mark.c	2009-12-31 21:27:34.168125000 +0900
++++ src/screen-4.0.3/mark.c	2018-05-07 14:30:35.970032000 +0900
 @@ -49,6 +49,7 @@ static int  MarkScrollDownDisplay __P((i
  static int  MarkScrollUpDisplay __P((int));
  
@@ -754,7 +819,7 @@
  
  
 --- origsrc/screen-4.0.3/mark.h	2002-01-09 00:42:30.000000000 +0900
-+++ src/screen-4.0.3/mark.h	2009-12-31 21:27:34.199375000 +0900
++++ src/screen-4.0.3/mark.h	2018-05-07 14:30:35.991034100 +0900
 @@ -26,6 +26,7 @@ struct markdata
  {
    struct win *md_window;/* pointer to window we are working on */
@@ -764,7 +829,34 @@
    int	x1, y1;		/* first mark in WIN coords */
    int	second;		/* first mark dropped flag */
 --- origsrc/screen-4.0.3/misc.c	2003-12-05 22:45:41.000000000 +0900
-+++ src/screen-4.0.3/misc.c	2009-12-31 21:27:34.324375000 +0900
++++ src/screen-4.0.3/misc.c	2018-05-07 14:31:53.221756400 +0900
+@@ -52,7 +52,7 @@ register const char *str;
+   register char *cp;
+ 
+   if ((cp = malloc(strlen(str) + 1)) == NULL)
+-    Panic(0, strnomem);
++    Panic(0, strarg, strnomem);
+   else
+     strcpy(cp, str);
+   return cp;
+@@ -66,7 +66,7 @@ int n;
+   register char *cp;
+ 
+   if ((cp = malloc(n + 1)) == NULL)
+-    Panic(0, strnomem);
++    Panic(0, strarg, strnomem);
+   else
+     {
+       bcopy((char *)str, cp, n);
+@@ -590,7 +590,7 @@ char *value;
+   if ((buf = (char *)malloc((l = strlen(var)) +
+ 			    strlen(value) + 2)) == NULL)
+     {
+-      Msg(0, strnomem);
++      Msg(0, strarg, strnomem);
+       return;
+     }
+   strcpy(buf, var);
 @@ -613,11 +613,11 @@ char *value;
     */
  # endif /* NEEDSETENV */
@@ -790,7 +882,7 @@
    static short osp2pad[] = {
      0,2000,1333,909,743,666,500,333,166,83,55,41,20,10,5,2,1,1
 --- origsrc/screen-4.0.3/os.h	2002-01-09 00:42:33.000000000 +0900
-+++ src/screen-4.0.3/os.h	2009-12-31 21:27:34.371250000 +0900
++++ src/screen-4.0.3/os.h	2018-05-07 14:30:36.026037600 +0900
 @@ -32,9 +32,9 @@
  # define hpux
  #endif
@@ -822,7 +914,7 @@
  #endif
  
 --- origsrc/screen-4.0.3/osdef.sh	2001-06-19 02:08:15.000000000 +0900
-+++ src/screen-4.0.3/osdef.sh	2009-12-31 21:27:34.402500000 +0900
++++ src/screen-4.0.3/osdef.sh	2018-05-07 14:30:36.046039600 +0900
 @@ -24,7 +24,7 @@ cat << EOF > osdef0.c
  #ifndef sun
  #include <sys/ioctl.h>
@@ -832,8 +924,8 @@
  #include <string.h>
  #include <stdlib.h>
  #endif
---- origsrc/screen-4.0.3/process.c	2003-09-18 21:53:54.000000000 +0900
-+++ src/screen-4.0.3/process.c	2009-12-31 21:27:34.558750000 +0900
+--- origsrc/screen-4.0.3/process.c	2018-05-07 14:38:21.557586100 +0900
++++ src/screen-4.0.3/process.c	2018-05-07 14:38:25.650995400 +0900
 @@ -57,7 +57,7 @@ extern int log_flush, logtstamp_on, logt
  extern char *VisualBellString;
  extern int VBellWait, MsgWait, MsgMinWait, SilenceWait;
@@ -853,6 +945,15 @@
  
  static int  CheckArgNum __P((int, char **));
  static void ClearAction __P((struct action *));
+@@ -594,7 +597,7 @@ int create;
+       kp = malloc(sizeof(*kp));
+       if (kp == 0)
+ 	{
+-	  Msg(0, strnomem);
++	  Msg(0, strarg, strnomem);
+ 	  return 0;
+ 	}
+       kp->name = SaveStr(class);
 @@ -1494,6 +1497,7 @@ int key;
  	      break;
  	    }
@@ -878,6 +979,24 @@
        break;
      case RC_HISTORY:
        {
+@@ -2189,7 +2194,7 @@ int key;
+ 	 */
+         if ((dbuf = (char *)malloc(l)) == 0)
+           {
+-	    Msg(0, strnomem);
++	    Msg(0, strarg, strnomem);
+ 	    break;
+           }
+         l = 0;
+@@ -2276,7 +2281,7 @@ int key;
+ 		  newbuf = malloc(l + 1);
+ 		  if (!newbuf)
+ 		    {
+-		      Msg(0, strnomem);
++		      Msg(0, strarg, strnomem);
+ 		      break;
+ 		    }
+ 		  user->u_plop.len = RecodeBuf((unsigned char *)oldplop.buf, oldplop.len, oldplop.enc, enc, (unsigned char *)newbuf);
 @@ -3419,6 +3424,7 @@ int key;
  	    {
  	      WinSwitchEncoding(fore, n);
@@ -938,8 +1057,56 @@
      default:
  #ifdef HAVE_BRAILLE
        /* key == -2: input from braille keybord, msgok always 0 */
+@@ -3875,9 +3919,9 @@ int *argl;
+       return;
+     }
+   if ((pp = (char **)malloc((unsigned)(argc + 1) * sizeof(char **))) == 0)
+-    Panic(0, strnomem);
++    Panic(0, strarg, strnomem);
+   if ((lp = (int *)malloc((unsigned)(argc) * sizeof(int *))) == 0)
+-    Panic(0, strnomem);
++    Panic(0, strarg, strnomem);
+   act->nr = nr;
+   act->args = pp;
+   act->argl = lp;
+@@ -3899,7 +3943,7 @@ char **args;
+   while (args[argc])
+     argc++;
+   if ((pp = ap = (char **)malloc((unsigned)(argc + 1) * sizeof(char **))) == 0)
+-    Panic(0, strnomem);
++    Panic(0, strarg, strnomem);
+   while (argc--)
+     *pp++ = SaveStr(*args++);
+   *pp = 0;
+@@ -5393,7 +5437,7 @@ char *data;	/* dummy */
+     {
+       if ((pp->buf = (char *)malloc(D_user->u_plop.len)) == NULL)
+ 	{
+-	  Msg(0, strnomem);
++	  Msg(0, strarg, strnomem);
+ 	  return;
+ 	}
+       bcopy(D_user->u_plop.buf, pp->buf, D_user->u_plop.len);
+@@ -5600,7 +5644,7 @@ char *data;
+ #endif
+       if (!(u->u_plop.buf = SaveStr(u->u_password)))
+ 	{
+-	  Msg(0, strnomem);
++	  Msg(0, strarg, strnomem);
+           D_user->u_plop.len = 0;
+ 	}
+       else
+@@ -5832,7 +5876,7 @@ void (*hand) __P((struct comm *, char **
+   else
+     commtab = (struct commt *)malloc(sizeof(*commtab) * (ncommtab + n));
+   if (!commtab)
+-    Panic(0, strnomem);
++    Panic(0, strarg, strnomem);
+   for (i = 0; i < n; i++)
+     {
+       for (j = 0; j < ncommtab; j++)
 --- origsrc/screen-4.0.3/pty.c	2003-09-08 23:26:18.000000000 +0900
-+++ src/screen-4.0.3/pty.c	2009-12-31 21:27:34.574375000 +0900
++++ src/screen-4.0.3/pty.c	2018-05-07 14:30:36.089043900 +0900
 @@ -34,7 +34,7 @@
  #endif
  
@@ -975,7 +1142,7 @@
  #else
    if ((f = open(PtyName, O_RDWR | O_NOCTTY)) == -1)
 --- origsrc/screen-4.0.3/resize.c	2003-09-08 23:26:31.000000000 +0900
-+++ src/screen-4.0.3/resize.c	2009-12-31 21:27:34.652500000 +0900
++++ src/screen-4.0.3/resize.c	2018-05-07 14:33:02.524686000 +0900
 @@ -52,6 +52,7 @@ extern struct mline mline_blank, mline_n
  extern struct win *windows;
  extern int Z0width, Z1width;
@@ -984,6 +1151,15 @@
  
  #if defined(TIOCGWINSZ) || defined(TIOCSWINSZ)
  struct winsize glwz;
+@@ -557,7 +558,7 @@ int wi;
+ # endif
+ #endif
+   if (!(blank && null && mline_old.image && mline_old.attr IFFONT(&& mline_old.font) IFCOLOR(&& mline_old.color) IFCOLORX(&& mline_old.colorx)))
+-    Panic(0, strnomem);
++    Panic(0, strarg, strnomem);
+ 
+   MakeBlankLine(blank, maxwidth);
+   bzero((char *)null, maxwidth);
 @@ -682,6 +683,17 @@ int wi, he, hi;
    if (wi == 0)
      he = hi = 0;
@@ -1002,6 +1178,24 @@
    if (p->w_width == wi && p->w_height == he && p->w_histheight == hi)
      {
        debug("ChangeWindowSize: No change.\n");
+@@ -719,7 +731,7 @@ int wi, he, hi;
+ 	  if ((nmlines = (struct mline *)calloc(he, sizeof(struct mline))) == 0)
+ 	    {
+ 	      KillWindow(p);
+-	      Msg(0, strnomem);
++	      Msg(0, strarg, strnomem);
+ 	      return -1;
+ 	    }
+ 	}
+@@ -952,7 +964,7 @@ int wi, he, hi;
+ #endif
+ 		}
+ 	      KillWindow(p);
+-	      Msg(0, strnomem);
++	      Msg(0, strarg, strnomem);
+ 	      return -1;
+ 	    }
+ 	  for (; t < wi; t++)
 @@ -993,7 +1005,11 @@ int wi, he, hi;
  
    /* signal new size to window */
@@ -1038,7 +1232,7 @@
 +    FreeAltScreen(p);
  }
 --- origsrc/screen-4.0.3/screen.c	2003-09-08 23:26:41.000000000 +0900
-+++ src/screen-4.0.3/screen.c	2009-12-31 21:27:34.777500000 +0900
++++ src/screen-4.0.3/screen.c	2018-05-07 14:33:13.219755400 +0900
 @@ -221,6 +221,10 @@ char *preselect = NULL;		/* only used in
  char *screenencodings;
  #endif
@@ -1050,7 +1244,15 @@
  #ifdef NETHACK
  int nethackflag = 0;
  #endif
-@@ -468,6 +472,9 @@ char **av;
+@@ -239,6 +243,7 @@ struct win *console_window;
+  */
+ #include "extern.h"
+ 
++char strarg[] = "%s";
+ char strnomem[] = "Out of memory.";
+ 
+ 
+@@ -468,6 +473,9 @@ char **av;
    InitBuiltinTabs();
    screenencodings = SaveStr(SCREENENCODINGS);
  #endif
@@ -1060,7 +1262,7 @@
    nwin = nwin_undef;
    nwin_options = nwin_undef;
    strcpy(screenterm, "screen");
-@@ -762,6 +769,19 @@ char **av;
+@@ -762,6 +770,19 @@ char **av;
        debug1("environment says encoding=%d\n", nwin_options.encoding);
  #endif
      }
@@ -1080,7 +1282,7 @@
  #endif
    if (SockMatch && strlen(SockMatch) >= MAXSTR)
      Panic(0, "Ridiculously long socketname - try again.");
-@@ -890,7 +910,7 @@ char **av;
+@@ -890,7 +911,7 @@ char **av;
    if (!detached && !lsflag && !cmdflag && !(dflag && !mflag && !rflag && !xflag))
      {
        /* ttyname implies isatty */
@@ -1089,7 +1291,7 @@
          Panic(0, "Must be connected to a terminal.");
        if (strlen(attach_tty) >= MAXPATHLEN)
  	Panic(0, "TtyName too long - sorry.");
-@@ -992,8 +1012,10 @@ char **av;
+@@ -992,8 +1013,10 @@ char **av;
  	      n = (eff_uid == 0 && (real_uid || (st.st_mode & 0775) != 0775)) ? 0755 :
  	          (eff_gid == (int)st.st_gid && eff_gid != real_gid) ? 0775 :
  		  0777;
@@ -1100,7 +1302,7 @@
  	    }
  	  sprintf(SockPath, "%s/S-%s", SockDir, LoginName);
  	  if (access(SockPath, F_OK))
-@@ -1023,8 +1045,10 @@ char **av;
+@@ -1023,8 +1046,10 @@ char **av;
        if ((int)st.st_uid != real_uid)
  	Panic(0, "You are not the owner of %s.", SockPath);
      }
@@ -1111,7 +1313,7 @@
    if (SockMatch && index(SockMatch, '/'))
      Panic(0, "Bad session name '%s'", SockMatch);
    SockName = SockPath + strlen(SockPath) + 1;
-@@ -1070,7 +1094,7 @@ char **av;
+@@ -1070,7 +1095,7 @@ char **av;
        char *sty = 0;
  
        /* attach_tty is not mandatory */
@@ -1120,7 +1322,7 @@
          attach_tty = "";
        if (strlen(attach_tty) >= MAXPATHLEN)
  	Panic(0, "TtyName too long - sorry.");
-@@ -1418,7 +1442,7 @@ SigChldHandler()
+@@ -1418,7 +1443,7 @@ SigChldHandler()
        signal(SIGCHLD, SigChld);
  #endif
      }
@@ -1129,7 +1331,7 @@
      {
        debug1("SigChldHandler: Yuck! cannot stat '%s'\n", SockPath);
        if (!RecoverSocket())
-@@ -1637,7 +1661,7 @@ int i;
+@@ -1637,7 +1662,7 @@ int i;
        xseteuid(real_uid);
        xsetegid(real_gid);
  #endif
@@ -1138,7 +1340,7 @@
  #ifdef USE_SETEUID
        xseteuid(eff_uid);
        xsetegid(eff_gid);
-@@ -1675,7 +1699,7 @@ int e;
+@@ -1675,7 +1700,7 @@ int e;
        debug1("we unlink(%s)\n", SockPath);
        setgid(real_gid);
        setuid(real_uid);
@@ -1147,7 +1349,34 @@
      }
    exit(e);
  }
-@@ -2564,6 +2588,18 @@ int rec;
+@@ -1859,7 +1884,7 @@ MakeNewEnv()
+     free((char *)NewEnv);
+   NewEnv = np = (char **) malloc((unsigned) (op - environ + 7 + 1) * sizeof(char **));
+   if (!NewEnv)
+-    Panic(0, strnomem);
++    Panic(0, strarg, strnomem);
+   sprintf(stybuf, "STY=%s", strlen(SockName) <= MAXSTR - 5 ? SockName : "?");
+   *np++ = stybuf;	                /* NewEnv[0] */
+   *np++ = Term;	                /* NewEnv[1] */
+@@ -2187,7 +2212,7 @@ char **cmdv;
+       bt = (struct backtick *)malloc(sizeof *bt);
+       if (!bt)
+ 	{
+-	  Msg(0, strnomem);
++	  Msg(0, strarg, strnomem);
+           return;
+ 	}
+       bzero(bt, sizeof(*bt));
+@@ -2209,7 +2234,7 @@ char **cmdv;
+       bt->buf = (char *)malloc(MAXSTR);
+       if (bt->buf == 0)
+ 	{
+-	  Msg(0, strnomem);
++	  Msg(0, strarg, strnomem);
+ 	  setbacktick(num, 0, 0, (char **)0);
+           return;
+ 	}
+@@ -2564,6 +2589,18 @@ int rec;
  	    }
  	  p += strlen(p) - 1;
  	  break;
@@ -1166,8 +1395,28 @@
  	case '{':
            {
  	    char rbuf[128];
+--- origsrc/screen-4.0.3/screen.h	2003-08-22 21:28:43.000000000 +0900
++++ src/screen-4.0.3/screen.h	2018-05-07 14:33:22.652698600 +0900
+@@ -259,7 +259,17 @@ struct msg
+ #define SILENCE_OFF	0
+ #define SILENCE_ON	1
+ 
++extern char strarg[];
+ extern char strnomem[];
++#include <string.h>
++#ifdef bzero
++#undef bzero
++#endif
++#define bzero(s,n) memset(s,0,n)
++#ifdef bcopy
++#undef bcopy
++#endif
++#define bcopy(s,d,n) memmove(d,s,n)
+ 
+ /*
+  * line modes used by Input()
 --- origsrc/screen-4.0.3/search.c	2003-09-08 23:26:45.000000000 +0900
-+++ src/screen-4.0.3/search.c	2009-12-31 21:27:34.824375000 +0900
++++ src/screen-4.0.3/search.c	2018-05-07 14:30:36.158050800 +0900
 @@ -50,13 +50,23 @@ Search(dir)
  int dir;
  {
@@ -1232,7 +1481,7 @@
        break;
      case '\013':	/* CTRL-K */
 --- origsrc/screen-4.0.3/socket.c	2003-09-08 23:26:50.000000000 +0900
-+++ src/screen-4.0.3/socket.c	2009-12-31 21:27:34.855625000 +0900
++++ src/screen-4.0.3/socket.c	2018-05-07 14:33:30.607494000 +0900
 @@ -181,7 +181,7 @@ char *match;
        errno = 0;
        debug2("uid = %d, gid = %d\n", getuid(), getgid());
@@ -1333,6 +1582,15 @@
  
    if ((ServerSocket = MakeServerSocket()) < 0)
      return 0;
+@@ -1260,7 +1264,7 @@ struct msg *m;
+   ASSERT(display);
+   pwdata = (struct pwdata *)malloc(sizeof(struct pwdata));
+   if (!pwdata)
+-    Panic(0, strnomem);
++    Panic(0, strarg, strnomem);
+   pwdata->l = 0;
+   pwdata->m = *m;
+   D_processinputdata = (char *)pwdata;
 @@ -1424,3 +1428,160 @@ struct msg *mp;
    EffectiveAclUser = 0;
  #endif
@@ -1422,7 +1680,7 @@
 +
 +  keypath = malloc(strlen(path) + 7);
 +  if (keypath == NULL) {
-+    Panic (0, strnomem);
++    Panic (0, strarg, strnomem);
 +    return NULL;
 +  }
 +  base = strrchr(path, '/');
@@ -1494,8 +1752,46 @@
 +  return 0;
 +}
 +#endif /* CYGWIN_FILEMODE */
+--- origsrc/screen-4.0.3/termcap.c	2003-09-08 23:45:36.000000000 +0900
++++ src/screen-4.0.3/termcap.c	2018-05-07 14:33:38.599293100 +0900
+@@ -133,7 +133,7 @@ int he;
+ 
+   if ((D_tentry = (char *)malloc(TERMCAP_BUFSIZE + (extra_incap ? strlen(extra_incap) + 1 : 0))) == 0)
+     {
+-      Msg(0, strnomem);
++      Msg(0, strarg, strnomem);
+       return -1;
+     }
+ 
+@@ -1192,7 +1192,7 @@ char *s;
+ 
+   if ((D_xtable = (char ***)malloc(256 * sizeof(char **))) == 0)
+     {
+-      Msg(0, strnomem);
++      Msg(0, strarg, strnomem);
+       return -1;
+     }
+   bzero((char *)D_xtable, 256 * sizeof(char **));
+@@ -1211,7 +1211,7 @@ char *s;
+         {
+           if ((D_xtable[curchar] = (char **)malloc(257 * sizeof(char *))) == 0)
+ 	    {
+-	      Msg(0, strnomem);
++	      Msg(0, strarg, strnomem);
+ 	      FreeTransTable();
+ 	      return -1;
+ 	    }
+@@ -1246,7 +1246,7 @@ char *s;
+ 	    l = l * templnsub + templlen;
+ 	  if ((ctable[c] = (char *)malloc(l + 1)) == 0)
+ 	    {
+-	      Msg(0, strnomem);
++	      Msg(0, strarg, strnomem);
+ 	      FreeTransTable();
+ 	      return -1;
+ 	    }
 --- origsrc/screen-4.0.3/utmp.c	2003-09-08 23:27:17.000000000 +0900
-+++ src/screen-4.0.3/utmp.c	2009-12-31 21:27:34.965000000 +0900
++++ src/screen-4.0.3/utmp.c	2018-05-07 14:33:45.974030500 +0900
 @@ -89,7 +89,7 @@ static void endutent __P((void));
  static int  initutmp __P((void));
  static void setutent __P((void));
@@ -1505,6 +1801,15 @@
  static struct utmp *xpututline __P((struct utmp *utmp));
  # define pututline xpututline
  #endif
+@@ -263,7 +263,7 @@ InitUtmp()
+   if ((utmpfd = open(UtmpName, O_RDWR)) == -1)
+     {
+       if (errno != EACCES)
+-	Msg(errno, UtmpName);
++	Msg(errno, strarg, UtmpName);
+       debug("InitUtmp failed.\n");
+       utmpok = 0;
+       return;
 @@ -589,7 +589,7 @@ makedead(u)
  struct utmp *u;
  {
@@ -1523,6 +1828,15 @@
    strncpy(u->ut_id, line + 3, sizeof(u->ut_id));
  #else /* sgi */
  # ifdef _IBMR2
+@@ -786,7 +786,7 @@ setttyent()
+       if ((f = open(ttys, O_RDONLY)) == -1 || fstat(f, &s) == -1)
+ 	Panic(errno, ttys);
+       if ((tt = malloc((unsigned) s.st_size + 1)) == 0)
+-	Panic(0, strnomem);
++	Panic(0, strarg, strnomem);
+       if (read(f, tt, s.st_size) != s.st_size)
+ 	Panic(errno, ttys);
+       close(f);
 @@ -858,7 +858,7 @@ getlogin()
  }
  # endif /* BUGGYGETLOGIN */
@@ -1533,7 +1847,25 @@
  
  /* aargh, linux' pututline returns void! */
 --- origsrc/screen-4.0.3/window.c	2003-12-05 22:45:41.000000000 +0900
-+++ src/screen-4.0.3/window.c	2014-05-04 14:28:49.953154600 +0900
++++ src/screen-4.0.3/window.c	2018-05-07 14:33:57.347167700 +0900
+@@ -588,7 +588,7 @@ struct NewWindow *newwin;
+   if ((p = (struct win *)malloc(sizeof(struct win))) == 0)
+     {
+       close(f);
+-      Msg(0, strnomem);
++      Msg(0, strarg, strnomem);
+       return -1;
+     }
+   bzero((char *)p, (int)sizeof(struct win));
+@@ -620,7 +620,7 @@ struct NewWindow *newwin;
+     {
+       free((char *)p);
+       close(f);
+-      Msg(0, strnomem);
++      Msg(0, strarg, strnomem);
+       return -1;
+     }
+ #endif
 @@ -928,6 +928,9 @@ struct win *wp;
    RemoveUtmp(wp);
  #endif
@@ -1548,7 +1880,7 @@
    return pid;
  }
  
-+#ifndef __CYGWIN__
++#if !defined(__CYGWIN__)
  void
  execvpe(prog, args, env)
  char *prog, **args, **env;
@@ -1560,3 +1892,12 @@
  
  #ifdef PSEUDOS
  
+@@ -1462,7 +1467,7 @@ char **av;
+     }
+   if (!(pwin = (struct pseudowin *)malloc(sizeof(struct pseudowin))))
+     {
+-      Msg(0, strnomem);
++      Msg(0, strarg, strnomem);
+       return -1;
+     }
+   bzero((char *)pwin, (int)sizeof(*pwin));

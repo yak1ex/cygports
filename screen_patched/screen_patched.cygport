@@ -4,8 +4,12 @@
 
 inherit usrlocal
 
+# FIXME: proper package name handling
 P_=`echo $P | sed 's,_[a-z0-9]*-,-,'`
 PN_=`echo $PN | sed 's,_[a-z0-9]*,,'`
+NAME=screen_patched
+VERSION=4.0.3
+RELEASE=4
 
 DESCRIPTION="Run separate screens on a single terminal"
 HOMEPAGE="http://directory.fsf.org/screen.html"
@@ -17,7 +21,7 @@ src_compile() {
 	cd ${S}
 	autoconf || error "autoconf failed"
 	cd ${B}
-	mycygconf --with-sys-screenrc=${sysconfdir}/screenrc --enable-colors256
+	mycygconf --with-sys-screenrc=${sysconfdir}/screenrc --enable-colors256 --datarootdir=${prefix}/share
 	cygmake
 }
 

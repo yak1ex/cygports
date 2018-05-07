@@ -1,6 +1,6 @@
 --- origsrc/screen-4.0.3/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
-+++ src/screen-4.0.3/CYGWIN-PATCHES/README	2018-04-27 13:11:43.569711500 +0900
-@@ -0,0 +1,176 @@
++++ src/screen-4.0.3/CYGWIN-PATCHES/README	2018-05-07 14:18:12.557698200 +0900
+@@ -0,0 +1,180 @@
 +============
 +screen_cp932
 +============
@@ -95,7 +95,7 @@
 +Runtime requirements:
 +  crypt
 +  cygwin
-+  libncurses10
++  libncursesw10
 +
 +Build requirements:
 +  binutils
@@ -104,19 +104,20 @@
 +  cygport-usrlocal
 +  gcc
 +  make
++  sharutils
 +
 +Build instructions:
-+  tar -jxf screen_patched-4.0.3-5-src.tar.bz2
++  tar -Jxf screen_cp932-4.0.3-6-src.tar.xz
 +    if you use setup to install this src package, it will be
 +    unpacked under /usr/src automatically
 +  cd /usr/src
-+  cygport screen_patched-4.0.3-5.cygport all
++  cygport screen_cp932.cygport all
 +
 +This will create:
-+  /usr/src/screen_patched-4.0.3-5.tar.bz2
-+  /usr/src/screen_patched-4.0.3-5-src.tar.bz2
++  screen_cp932-4.0.3-6.tar.xz
++  screen_cp932-4.0.3-6-src.tar.xz
 +
-+Or use 'cygport screen_patched-4.0.3-5.cygport prep' to get a patched source
++Or use 'cygport screen_cp932.cygport prep' to get a patched source
 +directory.
 +
 +-------------------------------------------------------------------------
@@ -165,6 +166,9 @@
 +
 +Cygwin version history:
 +
++4.0.3-6:
++* Adjust and rebuild for the latest Cygwin environment.
++
 +4.0.3-5:
 +* Rebuild for the latest Cygwin environment.
 +
@@ -178,7 +182,7 @@
 +http://cygwin.com/ml/cygwin/2006-09/msg00102.html).
 +* Patch: signal processes to exit when a window is killed.
 --- origsrc/screen-4.0.3/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/screen-4.0.3/CYGWIN-PATCHES/setup.hint	2018-04-27 13:11:43.591712700 +0900
++++ src/screen-4.0.3/CYGWIN-PATCHES/setup.hint	2018-05-07 11:14:48.567287000 +0900
 @@ -0,0 +1,16 @@
 +sdesc: "Run separate screens on a single terminal with several patches (incl. cp932 support)"
 +ldesc: "screen is a terminal multiplexer and window manager that runs
@@ -193,6 +197,6 @@
 +different host.
 +This port includes several additional patches including cp932 support."
 +category: Utils
-+requires: cygwin crypt libncurses10
-+curr: 4.0.3-5
-+prev: 4.0.3-4
++requires: cygwin crypt libncursesw10
++curr: 4.0.3-6
++prev: 4.0.3-5
