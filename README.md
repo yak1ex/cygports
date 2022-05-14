@@ -1,7 +1,7 @@
 Cygwin ports by Yak!
 ====================
 
-Sources of Cygwin ports distributed at http://yak3.myhome.cx:8080/junks/index.html#cygwin
+Sources of Cygwin ports distributed at http://yak3.mydns.jp:8080/junks/index.html#cygwin
 
 They are distributed under the same licenses as upstream packages and/or original sources.
 
