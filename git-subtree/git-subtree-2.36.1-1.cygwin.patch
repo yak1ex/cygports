@@ -1,6 +1,6 @@
 --- origsrc/git/CYGWIN-PATCHES/README	1970-01-01 09:00:00.000000000 +0900
-+++ src/git/CYGWIN-PATCHES/README	2014-08-26 12:20:55.701337700 +0900
-@@ -0,0 +1,61 @@
++++ src/git/CYGWIN-PATCHES/README	2022-05-21 05:59:28.378329600 +0900
+@@ -0,0 +1,64 @@
 +git-subtree
 +------------------------------------------------------------------------
 +Merge subtrees together and split repository into subtrees
@@ -15,6 +15,7 @@
 +Build requirements:
 +  asciidoc
 +  bash
++  cygport-usrlocal
 +  docbook-xml45
 +  make
 +  xmlto
@@ -23,7 +24,7 @@
 +  https://github.com/git/git/tree/master/contrib/subtree
 +
 +Canonical download:
-+  https://github.com/git/git/archive/v2.0.4.tar.gz
++  https://github.com/git/git/archive/v2.36.1.tar.gz
 +
 +License:
 +  GPLv2
@@ -34,16 +35,15 @@
 +------------------------------------------------------------------------
 +
 +Build instructions:
-+  unpack git-subtree-2.0.4-1-src.tar.xz
++  unpack git-subtree-2.36.1-1-src.tar.xz
 +    if you use setup to install this src package, it will be
 +	 unpacked under /usr/src automatically
-+  If you want to set prefix as /usr/local, set environment variable USRLOCAL.
 +  cd /usr/src
 +  cygport git-subtree.cygport all
 +
 +This will create:
-+  git-subtree-2.0.4-1.tar.xz
-+  git-subtree-2.0.4-1-src.tar.xz
++  git-subtree-2.36.1-1.tar.xz
++  git-subtree-2.36.1-1-src.tar.xz
 +
 +Or use 'cygport git-subtree.cygport prep' to get a patched source directory
 +
@@ -54,6 +54,9 @@
 +
 +Port Notes:
 +
++----------  git-subtree-2.36.1-1 -- 2022/05/21 ----------------------------
++Routine update with adjustment for the latest cygport changes.
++
 +----------  git-subtree-2.0.4-1 -- 2014/08/26 ----------------------------
 +Initial release.
 +
@@ -62,14 +65,3 @@
 +
 +This private port maintained by: Yak! <yak_ex@mx.scn.tv>
 +Please address all questions to the above address, NOT to the Cygwin mailing list.
---- origsrc/git/CYGWIN-PATCHES/setup.hint	1970-01-01 09:00:00.000000000 +0900
-+++ src/git/CYGWIN-PATCHES/setup.hint	2014-08-26 11:51:30.214806700 +0900
-@@ -0,0 +1,8 @@
-+@ git-subtree
-+sdesc: "Merge subtrees together and split repository into subtrees"
-+ldesc: "Subtrees allow subprojects to be included within a subdirectory
-+of the main project, optionally including the subproject's
-+entire history."
-+category: Devel
-+requires: bash git
-+curr: 2.0.4-1

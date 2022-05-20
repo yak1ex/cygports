@@ -1,7 +1,7 @@
 inherit initial
 
 NAME="git-subtree"
-VERSION="2.0.4"
+VERSION="2.36.1"
 RELEASE=1
 SUMMARY="Merge subtrees together and split repository into subtrees"
 LDESCRIPTION="Subtrees allow subprojects to be included within a subdirectory
@@ -12,6 +12,10 @@ HOMEPAGE="https://github.com/git/git/tree/master/contrib/subtree"
 #SRC_URI=https://github.com/git/git/archive/v${PV}.tar.gz
 LICENSE="  GPLv2"
 LANGUAGE="Shell"
+
+ARCH=noarch
+BUILD_REQUIRES="asciidoc cygport-usrlocal docbook-xml45 make xmlto"
+REQUIRES="git"
 
 #GIT_URI="git://git.kernel.org/pub/scm/git/git.git"
 GIT_URI="https://github.com/git/git.git"
