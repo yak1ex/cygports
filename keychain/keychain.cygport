@@ -11,7 +11,9 @@ system."
 ARCH=noarch
 REQUIRES="openssh"
 HOMEPAGE="http://docs.funtoo.org/wiki/Keychain"
-SRC_URI="http://www.funtoo.org/archive/keychain/${P}.tar.bz2"
+GIT_URI="https://github.com/funtoo/keychain.git"
+GIT_TAG="${VERSION}"
+inherit git
 
 src_compile() { :; }
 
