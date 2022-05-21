@@ -1,5 +1,5 @@
 NAME="keychain"
-VERSION=2.7.1
+VERSION=2.8.5
 RELEASE=1
 CATEGORY="Utils"
 SUMMARY="SSH key manager"
