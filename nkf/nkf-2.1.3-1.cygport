@@ -19,7 +19,7 @@ PKG_HINTS="nkf"
 else
 PKG_NAMES="${PN} ${PN}-perl"
 PKG_HINTS="nkf perl"
-PKG_CONTENTS[1]="${prefix#/}/lib/perl5/site_perl"
+PKG_CONTENTS[1]="${prefix#/}/lib/perl5/vendor_perl"
 fi
 PKG_CONTENTS[0]="${prefix#/}/bin/nkf.exe usr/share/doc ${mandir#/}"
 
@@ -32,8 +32,9 @@ src_compile() {
 
     if ! defined USRLOCAL; then
         cd ${B}/NKF.mod
-        perl Makefile.PL
-        cygmake
+        # ref perl.cygclass
+        perl Makefile.PL PREFIX=$(__host_prefix) INSTALLDIRS=vendor
+        cygmake all manifypods OPTIMIZE="${CFLAGS}"
     fi
 }
 
