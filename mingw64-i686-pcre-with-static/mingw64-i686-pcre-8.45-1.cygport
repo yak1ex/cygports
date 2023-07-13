@@ -1,0 +1,47 @@
+# -*- mode: sh; sh-shell: bash -*-
+CROSS_HOST="i686-w64-mingw32"
+inherit cross
+
+ORIGINAL_NAME="pcre"
+NAME="mingw64-i686-pcre"
+VERSION="8.45"
+RELEASE="1"
+CATEGORY="Devel"
+SUMMARY="Perl Compatible Regular Expressions for Win64 toolchain"
+DESCRIPTION="This package does NOT contain cygwin binaries.  Instead, it
+contains msvcrt-linked binaries (aka 'mingw').  It is for use with the
+mingw64-i686-gcc cross compiler, and installs into the
+/usr/i686-w64-mingw32/sys-root/mingw/{lib,include} directories."
+HOMEPAGE="http://www.pcre.org/"
+SRC_URI="ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-${VERSION}.tar.bz2 \
+	 ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-${VERSION}.tar.bz2.sig"
+SRC_DIR="pcre-${VERSION}"
+FEDORA="https://src.fedoraproject.org/rpms/pcre/raw/25c98b9ed0137a5752bcb61cc9a59f7eac3f287b/f"
+PATCH_URI="
+	${FEDORA}/pcre-8.21-multilib.patch
+	${FEDORA}/pcre-8.41-fix_stack_estimator.patch
+	${FEDORA}/pcre-8.42-Declare-POSIX-regex-function-names-as-macros-to-PCRE.patch
+	${FEDORA}/pcre-8.44-Inicialize-name-table-memory-region.patch
+"
+
+ARCH=noarch
+
+NO_AUTOHEADER=1
+CYGCONF_ARGS="
+	--enable-pcre16 \
+	--enable-pcre32 \
+	--enable-newline-is-anycrlf \
+	--enable-unicode-properties --enable-utf8 \
+	--disable-pcregrep-libbz2 \
+	--disable-pcregrep-libz \
+	--disable-pcretest-libreadline \
+	--disable-stack-for-recursion
+"
+
+src_install() {
+	cd ${B}
+	# docs already provided by libpcre-doc
+	cyginstall bin_PROGRAMS= dist_doc_DATA= dist_html_DATA= html_DATA=
+	# install-data-hook creates symlinks here
+	rm -fr ${D}${CROSS_DATADIR}/man/
+}
