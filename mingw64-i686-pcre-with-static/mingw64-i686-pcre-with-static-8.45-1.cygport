@@ -3,7 +3,7 @@ CROSS_HOST="i686-w64-mingw32"
 inherit cross
 
 ORIGINAL_NAME="pcre"
-NAME="mingw64-i686-pcre"
+NAME="mingw64-i686-pcre-with-static"
 VERSION="8.45"
 RELEASE="1"
 CATEGORY="Devel"
@@ -13,8 +13,8 @@ contains msvcrt-linked binaries (aka 'mingw').  It is for use with the
 mingw64-i686-gcc cross compiler, and installs into the
 /usr/i686-w64-mingw32/sys-root/mingw/{lib,include} directories."
 HOMEPAGE="http://www.pcre.org/"
-SRC_URI="ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-${VERSION}.tar.bz2 \
-	 ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-${VERSION}.tar.bz2.sig"
+SRC_URI="mirror://sourceforge/pcre/pcre-${VERSION}.tar.bz2 \
+	 mirror://sourceforge/pcre/pcre-${VERSION}.tar.bz2.sig"
 SRC_DIR="pcre-${VERSION}"
 FEDORA="https://src.fedoraproject.org/rpms/pcre/raw/25c98b9ed0137a5752bcb61cc9a59f7eac3f287b/f"
 PATCH_URI="
@@ -23,11 +23,13 @@ PATCH_URI="
 	${FEDORA}/pcre-8.42-Declare-POSIX-regex-function-names-as-macros-to-PCRE.patch
 	${FEDORA}/pcre-8.44-Inicialize-name-table-memory-region.patch
 "
+CONFLICTS="mingw64-i686-pcre"
 
 ARCH=noarch
 
 NO_AUTOHEADER=1
 CYGCONF_ARGS="
+        --enable-static \
 	--enable-pcre16 \
 	--enable-pcre32 \
 	--enable-newline-is-anycrlf \
