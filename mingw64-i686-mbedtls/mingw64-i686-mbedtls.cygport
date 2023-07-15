@@ -1,0 +1,52 @@
+CROSS_HOST="i686-w64-mingw32"
+inherit cross
+inherit cmake
+
+NAME="mingw64-i686-mbedtls"
+VERSION=2.23.0
+RELEASE=1
+CATEGORY="Net"
+SUMMARY="Light-weight cryptographic and SSL/TLS library"
+DESCRIPTION="A light-weight open source cryptographic and SSL/TLS library written in C.
+Mbed TLS makes it easy for developers to include
+cryptographic and SSL/TLS capabilities in their (embedded)
+applications with as little hassle as possible."
+HOMEPAGE="https://tls.mbed.org/"
+SRC_URI="https://github.com/ARMmbed/mbedtls/archive/mbedtls-${VERSION}.tar.gz"
+SRC_DIR="mbedtls-mbedtls-${VERSION}"
+DEPEND="perl python3"
+
+ARCH=noarch
+
+CYGCMAKE_ARGS="
+	-DUSE_STATIC_MBEDTLS_LIBRARY=ON
+	-DUSE_SHARED_MBEDTLS_LIBRARY=ON
+	-DENABLE_PROGRAMS=OFF
+        -DMBEDTLS_FATAL_WARNINGS=OFF
+        -DCMAKE_SHARED_LIBRARY_NAME_WITH_VERSION=1
+"
+
+src_compile() {
+	cd ${B}
+	cygcmake
+	cygmake
+}
+
+src_install() {
+	cd ${B}
+	cyginstall
+
+	# https://github.com/ARMmbed/mbedtls/issues/574
+	install -d ${D}${CROSS_BINDIR}
+	mv ${D}${CROSS_LIBDIR}/libmbedcrypto-5.dll ${D}${CROSS_LIBDIR}/libmbedtls-13.dll ${D}${CROSS_LIBDIR}/libmbedx509-1.dll ${D}${CROSS_BINDIR}
+}
+
+src_test() {
+	cd ${B}
+	PATH=${B}/library:$PATH cygtest
+}
+
+DIFF_EXCLUDES="
+	apidoc
+	tests
+"
