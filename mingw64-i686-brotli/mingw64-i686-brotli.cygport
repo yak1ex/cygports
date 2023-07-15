@@ -1,0 +1,49 @@
+CROSS_HOST="i686-w64-mingw32"
+CYGCMAKE_GENERATOR="Ninja"
+PYTHON_WHEEL_VERSIONS="3.8:3.9"
+inherit cross cmake python-wheel
+
+NAME="mingw64-i686-brotli"
+VERSION=1.0.9
+RELEASE=3
+CATEGORY="Libs"
+SUMMARY="Brotli compression format library"
+DESCRIPTION="Brotli is a generic-purpose lossless compression algorithm that
+compresses data using a combination of a modern variant of the LZ77 algorithm,
+Huffman coding and 2nd order context modeling, with a compression ratio
+comparable to the best currently available general-purpose compression methods.
+It is similar in speed with deflate but offers more dense compression."
+HOMEPAGE="https://github.com/google/brotli"
+
+LICENSE="MIT"
+# cf. https://www.cygwin.com/packaging-hint-files.html#pvr-src.hint
+#     https://spdx.org/licenses/MIT.html
+
+SRC_URI="${HOMEPAGE}/archive/v${VERSION}/brotli-v${VERSION}.tar.gz"
+SRC_DIR="brotli-${VERSION}"
+PATCH_URI="${HOMEPAGE}/commit/09b0992b6acb7faa6fd3b23f9bc036ea117230fc.patch"
+
+BUILD_REQUIRES="\
+  cmake\
+  ninja\
+"
+
+CYGCMAKE_ARGS="
+        -DCMAKE_SHARED_LIBRARY_NAME_WITH_VERSION=1
+"
+
+src_compile() {
+	lndirs
+	cd ${B}
+	cygcmake
+	cygninja
+}
+
+src_install() {
+	cd ${B}
+	ninja_install
+
+        for name in common dec enc; do
+		mv ${D}${CROSS_LIBDIR}/libbrotli${name}-static.a ${D}${CROSS_LIBDIR}/libbrotli${name}.a
+	done
+}
