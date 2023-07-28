@@ -1,0 +1,11 @@
+--- origsrc/libiconv-1.14/lib/iconv.c	2011-01-30 02:28:09.000000000 +0900
++++ src/libiconv-1.14/lib/iconv.c	2023-07-29 05:32:34.428807900 +0900
+@@ -179,7 +179,7 @@ static const struct alias sysdep_aliases
+ #ifdef __GNUC__
+ __inline
+ #endif
+-const struct alias *
++static const struct alias *
+ aliases2_lookup (register const char *str)
+ {
+   const struct alias * ptr;

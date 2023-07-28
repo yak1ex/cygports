@@ -1,6 +1,11 @@
 # for variant
 inherit usrlocal
 
+NAME=libiconv_ja
+VERSION=1.14
+RELEASE=3
+CATEGORY=Libs
+SUMMARY="Unicode iconv() implementation"
 DESCRIPTION="Provides an implementation of iconv() for conversion between character set encodings"
 HOMEPAGE="http://www.gnu.org/software/libiconv/"
 SRC_URI="http://ftp.gnu.org/gnu/libiconv/${PN_}-${PV}.tar.gz"
@@ -8,7 +13,8 @@ SRC_DIR=${PN_}-${PV}
 PATCH_URI="00-wchar-libiconv-1.14.patch
 	01-reloc-libiconv-1.14.patch
 	02-reloc-libiconv-1.14.patch
-	http://apolloron.org/software/libiconv-1.14-ja/libiconv-1.14-ja-1.patch"
+	http://apolloron.org/software/libiconv-1.14-ja/libiconv-1.14-ja-1.patch
+	fix-link-error-libiconv-1.14.patch"
 
 PKG_NAMES="${PN} libiconv2_ja libcharset1_ja"
 PKG_HINTS="${PN_} libiconv2 libcharset1"
