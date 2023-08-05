@@ -1,6 +1,6 @@
 diff -urN origsrc/libiconv-1.17/NEWS src/libiconv-1.17/NEWS
 --- origsrc/libiconv-1.17/NEWS	2022-01-24 12:29:36.000000000 +0900
-+++ src/libiconv-1.17/NEWS	2023-07-30 05:36:47.647658500 +0900
++++ src/libiconv-1.17/NEWS	2023-07-30 16:33:48.189186486 +0900
 @@ -30,6 +30,25 @@
  * Fixed a bug in the conversion to wchar_t.
  * Fixed a small bug in the CP1258 converter.
@@ -29,7 +29,7 @@ diff -urN origsrc/libiconv-1.17/NEWS src/libiconv-1.17/NEWS
    for better compatibility with the platform's own iconv_open function.
 diff -urN origsrc/libiconv-1.17/README src/libiconv-1.17/README
 --- origsrc/libiconv-1.17/README	2022-02-12 22:14:59.000000000 +0900
-+++ src/libiconv-1.17/README	2023-07-30 05:36:47.655604000 +0900
++++ src/libiconv-1.17/README	2023-07-30 16:33:48.189186486 +0900
 @@ -16,7 +16,7 @@
          ISO-8859-{6,8}, CP{1255,1256}, CP862, Mac{Hebrew,Arabic}
      Japanese
@@ -48,9 +48,20 @@ diff -urN origsrc/libiconv-1.17/README src/libiconv-1.17/README
          C99, JAVA
      Full Unicode, in terms of 'uint16_t' or 'uint32_t'
          (with machine dependent endianness and alignment)
+diff -urN origsrc/libiconv-1.17/lib/Makefile.in src/libiconv-1.17/lib/Makefile.in
+--- origsrc/libiconv-1.17/lib/Makefile.in	2022-02-12 22:13:33.000000000 +0900
++++ src/libiconv-1.17/lib/Makefile.in	2023-07-30 16:33:48.189186486 +0900
+@@ -276,6 +276,7 @@
+       iso2022_jpms.h \
+         cp50221_0208_ext.h \
+         cp50221_0212_ext.h \
++      iso2022_jpmspatch.h \
+       euc_cn.h \
+       ces_gbk.h \
+       cp936.h \
 diff -urN origsrc/libiconv-1.17/lib/converters.h src/libiconv-1.17/lib/converters.h
 --- origsrc/libiconv-1.17/lib/converters.h	2022-01-24 08:47:43.000000000 +0900
-+++ src/libiconv-1.17/lib/converters.h	2023-07-30 05:36:47.663602500 +0900
++++ src/libiconv-1.17/lib/converters.h	2023-07-30 16:33:48.189186486 +0900
 @@ -134,6 +134,7 @@
  #include "utf32be.h"
  #include "utf32le.h"
@@ -59,7 +70,7 @@ diff -urN origsrc/libiconv-1.17/lib/converters.h src/libiconv-1.17/lib/converter
  #include "ucs2internal.h"
  #include "ucs2swapped.h"
  #include "ucs4internal.h"
-@@ -227,10 +228,12 @@
+@@ -227,11 +228,14 @@
  
  #include "euc_jp.h"
  #include "sjis.h"
@@ -71,11 +82,13 @@ diff -urN origsrc/libiconv-1.17/lib/converters.h src/libiconv-1.17/lib/converter
 +#include "cp51932.h"
 +#include "eucjp_ms.h"
  #include "iso2022_jpms.h"
++#include "iso2022_jpmspatch.h"
  
  #include "euc_cn.h"
+ #include "ces_gbk.h"
 diff -urN origsrc/libiconv-1.17/lib/cp51932.h src/libiconv-1.17/lib/cp51932.h
 --- origsrc/libiconv-1.17/lib/cp51932.h	1970-01-01 09:00:00.000000000 +0900
-+++ src/libiconv-1.17/lib/cp51932.h	2023-07-30 05:36:47.666608000 +0900
++++ src/libiconv-1.17/lib/cp51932.h	2023-07-30 16:33:48.189186486 +0900
 @@ -0,0 +1,161 @@
 +/*
 + * Copyright (C) 1999-2004 Free Software Foundation, Inc.
@@ -240,7 +253,7 @@ diff -urN origsrc/libiconv-1.17/lib/cp51932.h src/libiconv-1.17/lib/cp51932.h
 +}
 diff -urN origsrc/libiconv-1.17/lib/cp932.h src/libiconv-1.17/lib/cp932.h
 --- origsrc/libiconv-1.17/lib/cp932.h	2021-06-06 18:50:48.000000000 +0900
-+++ src/libiconv-1.17/lib/cp932.h	2023-07-30 05:36:47.674603800 +0900
++++ src/libiconv-1.17/lib/cp932.h	2023-07-30 16:33:48.189186486 +0900
 @@ -40,11 +40,8 @@
   *    0x8192  0x00A3 # POUND SIGN            0xFFE1 # FULLWIDTH POUND SIGN
   *    0x81CA  0x00AC # NOT SIGN              0xFFE2 # FULLWIDTH NOT SIGN
@@ -329,7 +342,7 @@ diff -urN origsrc/libiconv-1.17/lib/cp932.h src/libiconv-1.17/lib/cp932.h
  }
 diff -urN origsrc/libiconv-1.17/lib/cp932ext.h src/libiconv-1.17/lib/cp932ext.h
 --- origsrc/libiconv-1.17/lib/cp932ext.h	2021-06-06 18:50:48.000000000 +0900
-+++ src/libiconv-1.17/lib/cp932ext.h	2023-07-30 05:36:47.685602800 +0900
++++ src/libiconv-1.17/lib/cp932ext.h	2023-07-30 16:33:48.189186486 +0900
 @@ -21,6 +21,33 @@
   * CP932 extensions
   */
@@ -1297,7 +1310,7 @@ diff -urN origsrc/libiconv-1.17/lib/cp932ext.h src/libiconv-1.17/lib/cp932ext.h
        summary = &cp932ext_uni2indx_page32[(wc>>4)-0x320];
 diff -urN origsrc/libiconv-1.17/lib/encodings.def src/libiconv-1.17/lib/encodings.def
 --- origsrc/libiconv-1.17/lib/encodings.def	2021-06-06 18:50:48.000000000 +0900
-+++ src/libiconv-1.17/lib/encodings.def	2023-07-30 05:36:47.695603900 +0900
++++ src/libiconv-1.17/lib/encodings.def	2023-07-30 16:33:48.189186486 +0900
 @@ -148,6 +148,12 @@
              utf7,
              { utf7_mbtowc, NULL },        { utf7_wctomb, utf7_reset })
@@ -1357,9 +1370,21 @@ diff -urN origsrc/libiconv-1.17/lib/encodings.def src/libiconv-1.17/lib/encoding
              ),
              cp932,
              { cp932_mbtowc, NULL },       { cp932_wctomb, NULL })
+@@ -875,6 +904,11 @@
+             iso2022_jpms,
+             { iso2022_jpms_mbtowc, NULL }, { iso2022_jpms_wctomb, iso2022_jpms_reset })
+ 
++DEFENCODING(( "ISO-2022-JP-MS-PATCH",
++            ),
++            iso2022_jpmspatch,
++            { iso2022_jpmspatch_mbtowc, NULL }, { iso2022_jpmspatch_wctomb, iso2022_jpmspatch_reset })
++
+ DEFENCODING(( "EUC-CN",                 /* glibc */
+               "EUCCN",                  /* glibc, IRIX */
+               "GB2312",                 /* IANA */
 diff -urN origsrc/libiconv-1.17/lib/euc_jp.h src/libiconv-1.17/lib/euc_jp.h
 --- origsrc/libiconv-1.17/lib/euc_jp.h	2021-06-06 18:50:48.000000000 +0900
-+++ src/libiconv-1.17/lib/euc_jp.h	2023-07-30 05:36:47.705602700 +0900
++++ src/libiconv-1.17/lib/euc_jp.h	2023-07-30 16:33:48.189186486 +0900
 @@ -40,16 +40,8 @@
          return jisx0208_mbtowc(conv,pwc,buf,2);
        } else
@@ -1431,7 +1456,7 @@ diff -urN origsrc/libiconv-1.17/lib/euc_jp.h src/libiconv-1.17/lib/euc_jp.h
  }
 diff -urN origsrc/libiconv-1.17/lib/eucjp_ms.h src/libiconv-1.17/lib/eucjp_ms.h
 --- origsrc/libiconv-1.17/lib/eucjp_ms.h	1970-01-01 09:00:00.000000000 +0900
-+++ src/libiconv-1.17/lib/eucjp_ms.h	2023-07-30 05:36:47.708606100 +0900
++++ src/libiconv-1.17/lib/eucjp_ms.h	2023-07-30 16:33:48.189186486 +0900
 @@ -0,0 +1,273 @@
 +/*
 + * Copyright (C) 1999-2003 Free Software Foundation, Inc.
@@ -1708,7 +1733,7 @@ diff -urN origsrc/libiconv-1.17/lib/eucjp_ms.h src/libiconv-1.17/lib/eucjp_ms.h
 +}
 diff -urN origsrc/libiconv-1.17/lib/eucjp_msext.h src/libiconv-1.17/lib/eucjp_msext.h
 --- origsrc/libiconv-1.17/lib/eucjp_msext.h	1970-01-01 09:00:00.000000000 +0900
-+++ src/libiconv-1.17/lib/eucjp_msext.h	2023-07-30 05:36:47.710603300 +0900
++++ src/libiconv-1.17/lib/eucjp_msext.h	2023-07-30 16:33:48.199186491 +0900
 @@ -0,0 +1,405 @@
 +/*
 + * Copyright (C) 1999-2003 Free Software Foundation, Inc.
@@ -2115,9 +2140,389 @@ diff -urN origsrc/libiconv-1.17/lib/eucjp_msext.h src/libiconv-1.17/lib/eucjp_ms
 +  }
 +  return RET_TOOSMALL;
 +}
+diff -urN origsrc/libiconv-1.17/lib/iso2022_jpms.h src/libiconv-1.17/lib/iso2022_jpms.h
+--- origsrc/libiconv-1.17/lib/iso2022_jpms.h	2021-06-06 18:50:48.000000000 +0900
++++ src/libiconv-1.17/lib/iso2022_jpms.h	2023-07-30 16:33:48.199186491 +0900
+@@ -206,7 +206,15 @@
+               ret = RET_ILSEQ;
+           } else {
+             /* JIS X 0208.  */
+-            ret = jisx0208_mbtowc(conv,pwc,s,2);
++            /* Japanese patch replaces the table value that 0x213d maps to
++               from U+2015 to U+2014.
++               Preserve original behaviour here */
++            if (s[0] == 0x21 && s[1] == 0x3d) {
++              *pwc = 0x2015;
++              ret = 2;
++            } else {
++              ret = jisx0208_mbtowc(conv,pwc,s,2);
++            }
+           }
+         } else {
+           /* Extension of JIS X 0208.
+@@ -334,6 +342,11 @@
+     buf[1] = (i % 94) + 0x21;
+     ret = 2;
+   } else {
++    /* Japanese patch replaces the table value that 0x213d maps to
++       from U+2015 to U+2014.
++       Preserve original behaviour here */
++    if (wc == 0x2014 || wc == 0x2015)
++        wc ^= 1; /* swap 0x2014 and 0x2015  */
+     ret = jisx0208_wctomb(conv,buf,wc,2);
+     if (ret == RET_ILUNI) {
+       /* Extension of JIS X 0208.  */
+diff -urN origsrc/libiconv-1.17/lib/iso2022_jpmspatch.h src/libiconv-1.17/lib/iso2022_jpmspatch.h
+--- origsrc/libiconv-1.17/lib/iso2022_jpmspatch.h	1970-01-01 09:00:00.000000000 +0900
++++ src/libiconv-1.17/lib/iso2022_jpmspatch.h	2023-07-30 16:33:48.199186491 +0900
+@@ -0,0 +1,344 @@
++/*
++ * Copyright (C) 1999-2004 Free Software Foundation, Inc.
++ * This file is part of the GNU LIBICONV Library.
++ *
++ * The GNU LIBICONV Library is free software; you can redistribute it
++ * and/or modify it under the terms of the GNU Library General Public
++ * License as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * The GNU LIBICONV Library is distributed in the hope that it will be
++ * useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * Library General Public License for more details.
++ *
++ * You should have received a copy of the GNU Library General Public
++ * License along with the GNU LIBICONV Library; see the file COPYING.LIB.
++ * If not, write to the Free Software Foundation, Inc., 59 Temple Place -
++ * Suite 330, Boston, MA 02111-1307, USA.
++ */
++
++/*
++ * iso2022_jpms
++ */
++
++#define ESC 0x1b
++
++/*
++ * The state can be one of the following values.
++ */
++#define STATE_ASCII         0
++#define STATE_JISX0201KANA  1
++#define STATE_JISX0208      2
++#define STATE_UDC           3
++
++static int
++iso2022_jpmspatch_mbtowc (conv_t conv, ucs4_t *pwc, const unsigned char *s, size_t n)
++{
++  state_t state = conv->istate;
++  int count = 0;
++  unsigned char c;
++  for (;;) {
++    c = *s;
++    if (c == ESC) {
++      if (n < count+3)
++        goto none;
++      if (s[1] == '(') {
++        if (s[2] == 'B' || s[2] == 'J') {
++          state = STATE_ASCII;
++          s += 3; count += 3;
++          if (n < count+1)
++            goto none;
++          continue;
++        }
++        if (s[2] == 'I') {
++          state = STATE_JISX0201KANA;
++          s += 3; count += 3;
++          if (n < count+1)
++            goto none;
++          continue;
++        }
++        return RET_ILSEQ;
++      }
++      if (s[1] == '$') {
++        if (s[2] == '@' || s[2] == 'B') {
++          /* We don't distinguish JIS X 0208-1978 and JIS X 0208-1983. */
++          state = STATE_JISX0208;
++          s += 3; count += 3;
++          if (n < count+1)
++            goto none;
++          continue;
++        }
++        else if (s[2] == '(') {
++          if (n <count+4)
++            goto none;
++          if (s[3] == '?') {
++            state = STATE_UDC;
++            s += 4; count += 4;
++            if (n < count+1)
++              goto none;
++            continue;
++          }
++        }
++        return RET_ILSEQ;
++      }
++      return RET_ILSEQ;
++    }
++    break;
++  }
++
++  switch (state) {
++    int ret;
++    unsigned char c1, c2;
++    case STATE_ASCII:
++      if (c < 0x80) {
++        ret = ascii_mbtowc(conv,pwc,s,1);
++        if (ret == RET_ILSEQ)
++          return RET_ILSEQ;
++        if (ret != 1) abort();
++        conv->istate = state;
++        return count+1;
++      } /*else
++         *return RET_ILSEQ;*/
++    case STATE_JISX0201KANA:
++      if (c > 0x20)
++        c |= 0x80;
++      ret = jisx0201_mbtowc(conv,pwc,&c,1);
++      if (ret == RET_ILSEQ)
++        return RET_ILSEQ;
++      if (ret != 1) abort();
++      conv->istate = state;
++      return count+1;
++    case STATE_JISX0208:
++      if (n < count+2)
++        goto none;
++      if (s[0] == 0x21 || s[0] == 0x22 || s[0] == 0x2d
++               || (0x79 <= s[0] && s[0] <= 0x7c))
++      {
++        /* iso2022_jpms Rows 1,2,13,89-92 */
++        c1 = s[0];
++        c2 = s[1];
++        if (0x21 <= c2 && c2 <= 0x7e) {
++          unsigned char t1 = (c1 - 0x21) >> 1;
++          unsigned char t2 = (((c1 - 0x21) & 1) ? 0x5e : 0) + (c2 - 0x21);
++          unsigned char buf[2];
++          buf[0] = (t1 < 0x1f ? t1+0x81 : t1+0xc1);
++          buf[1] = (t2 < 0x3f ? t2+0x40 : t2+0x41);
++          ret = cp932ext_mbtowc(conv,pwc,buf,2);
++          if (ret == RET_ILSEQ)
++            return RET_ILSEQ;
++          if (ret != 2) abort();
++          conv->istate = state;
++          return count+2;
++        } else
++          return RET_ILSEQ;
++      }
++      else if (0x21 <= s[0] && s[0] <= 0x7e) {
++        /* JIS X 0208 Rows 3-12,14-94 */
++        if (0x21 <= s[1] && s[1] <= 0x7e) {
++          ret = jisx0208_mbtowc(conv,pwc,s,2);
++          if (ret == RET_ILSEQ)
++            return RET_ILSEQ;
++          if (ret != 2) abort();
++          conv->istate = state;
++          return count+2;
++        } else
++          return RET_ILSEQ;
++      } else
++        return RET_ILSEQ;
++    case STATE_UDC:
++      if (n < count+2)
++        goto none;
++      if (0x21 <= s[0] && s[0] <= 0x34) {
++        if (0x21 <= s[1] && s[1] <= 0x7e) {
++          *pwc = (s[0] - 0x21) * 94 + (s[1] - 0x21) + 0xe000;
++          conv->istate = state;
++          return count+2;
++        } else
++          return RET_ILSEQ;
++      } else
++        return RET_ILSEQ;
++    default: abort();
++  }
++
++none:
++  conv->istate = state;
++  return RET_TOOFEW(count);
++}
++
++static int
++iso2022_jpmspatch_wctomb (conv_t conv, unsigned char *r, ucs4_t wc, size_t n)
++{
++  state_t state = conv->ostate;
++  unsigned char buf[2];
++  int ret;
++
++  switch (wc) {
++    case 0x2014: wc = 0x2015; break;
++  }
++
++  switch (wc) {
++    /* JIS X 0201 Roman to ASCII */
++    case 0x00a5: wc = 0x005c; break;
++    case 0x203e: wc = 0x007e; break;
++    /* JIS to Microsoft */
++    case 0x2014: wc = 0x2015; break;
++  }
++
++  /* Try ASCII. */
++  ret = ascii_wctomb(conv,buf,wc,1);
++  if (ret != RET_ILUNI) {
++    if (ret != 1) abort();
++    if (buf[0] < 0x80) {
++      int count = (state == STATE_ASCII ? 1 : 4);
++      if (n < count)
++        return RET_TOOSMALL;
++      if (state != STATE_ASCII) {
++        r[0] = ESC;
++        r[1] = '(';
++        r[2] = 'B';
++        r += 3;
++        state = STATE_ASCII;
++      }
++      r[0] = buf[0];
++      conv->ostate = state;
++      return count;
++    }
++  }
++
++  /* Try JIS X 0208-1990 in place of JIS X 0208-1978 and JIS X 0208-1983. */
++  ret = jisx0208_wctomb(conv,buf,wc,2);
++  if (ret != RET_ILUNI) {
++    if (ret != 2) abort();
++    if (buf[0] < 0x80 && buf[1] < 0x80) {
++      int count = 2;
++      if (n < count)
++        return RET_TOOSMALL;
++      if (state != STATE_JISX0208) {
++        count = 5;
++        if (n < count)
++          return RET_TOOSMALL;
++        r[0] = ESC;
++        r[1] = '$';
++        r[2] = 'B';
++        r += 3;
++        state = STATE_JISX0208;
++      }
++      r[0] = buf[0];
++      r[1] = buf[1];
++      conv->ostate = state;
++      return count;
++    }
++  }
++
++  /* Try cp932ext */
++  ret = cp932ext_wctomb(conv,buf,wc,2);
++  if (ret != RET_ILUNI) {
++    unsigned char s1, s2;
++    int count = 2;
++    if (ret != 2) abort();
++    if (n < count)
++      return RET_TOOSMALL;
++    if (state != STATE_JISX0208) {
++      count = 5;
++      if (n < count)
++        return RET_TOOSMALL;
++      r[0] = ESC;
++      r[1] = '$';
++      r[2] = 'B';
++      r += 3;
++      state = STATE_JISX0208;
++    }
++    s1 = buf[0];
++    s2 = buf[1];
++    if (s1 < 0xf0) {
++      unsigned char t1 = (s1 < 0xe0 ? s1-0x81 : s1-0xc1);
++      unsigned char t2 = (s2 < 0x80 ? s2-0x40 : s2-0x41);
++      r[0] = 2*t1 + (t2 < 0x5e ? 0 : 1) + 0x21;
++      r[1] = (t2 < 0x5e ? t2 : t2-0x5e) + 0x21;
++      conv->ostate = state;
++      return count;
++    }
++    else if (s1 >= 0xfa) {
++      unsigned short linear = 188 * s1 + (s2 < 0x7f ? s2-0x40 : s2-0x41);
++      if (0xb7b4 <= linear)
++        linear -= 0xb7b4 - 0xae0c;
++      else if (0xb7ad <= linear)
++        linear -= 0xb7ad - 0xaf81;
++      else
++        linear -= 0xb798 - 0xaf76;
++      r[0] = (linear - 0x819e) / 94;
++      r[1] = linear % 94 + 0x21;
++      conv->ostate = state;
++      return count;
++    }
++    else
++      return RET_ILUNI;
++  }
++
++  /* Try JIS X 0201-1976 Kana. */
++  ret = jisx0201_wctomb(conv,buf,wc,1);
++  if (ret != RET_ILUNI) {
++    if (ret != 1) abort();
++    if (buf[0] > 0x80) {
++      int count = (state == STATE_JISX0201KANA ? 1 : 4);
++      if (n < count)
++        return RET_TOOSMALL;
++      if (state != STATE_JISX0201KANA) {
++        r[0] = ESC;
++        r[1] = '(';
++        r[2] = 'I';
++        r += 3;
++        state = STATE_JISX0201KANA;
++      }
++      r[0] = buf[0] & 0x7f;
++      conv->ostate = state;
++      return count;
++    }
++  }
++
++  /* User-defined range */
++  if (wc >= 0xe000 && wc < 0xe758) {
++    unsigned char c1, c2;
++    int count = (state == STATE_UDC  ? 2 : 6);
++    c1 = (unsigned char)((wc - 0xe000) / 94 + 0x21);
++    c2 = (unsigned char)((wc - 0xe000) % 94 + 0x21);
++    if (n < count)
++      return RET_TOOSMALL;
++    if (state != STATE_UDC) {
++      r[0] = ESC;
++      r[1] = '$';
++      r[2] = '(';
++      r[3] = '?';
++      r += 4;
++      state = STATE_UDC;
++    }
++    r[0] = c1;
++    r[1] = c2;
++    conv->ostate = state;
++    return count;
++  }
++
++  return RET_ILUNI;
++}
++
++static int
++iso2022_jpmspatch_reset (conv_t conv, unsigned char *r, size_t n)
++{
++  state_t state = conv->ostate;
++  if (state != STATE_ASCII) {
++    if (n < 3)
++      return RET_TOOSMALL;
++    r[0] = ESC;
++    r[1] = '(';
++    r[2] = 'B';
++    /* conv->ostate = 0; will be done by the caller */
++    return 3;
++  } else
++    return 0;
++}
++
++#undef STATE_UDC
++#undef STATE_JISX0208
++#undef STATE_JISX0201KANA
++#undef STATE_ASCII
 diff -urN origsrc/libiconv-1.17/lib/jisx0201.h src/libiconv-1.17/lib/jisx0201.h
 --- origsrc/libiconv-1.17/lib/jisx0201.h	2021-06-06 18:50:48.000000000 +0900
-+++ src/libiconv-1.17/lib/jisx0201.h	2023-07-30 05:36:47.719659500 +0900
++++ src/libiconv-1.17/lib/jisx0201.h	2023-07-30 16:33:48.199186491 +0900
 @@ -26,12 +26,7 @@
  {
    unsigned char c = *s;
@@ -2154,7 +2559,7 @@ diff -urN origsrc/libiconv-1.17/lib/jisx0201.h src/libiconv-1.17/lib/jisx0201.h
      return 1;
 diff -urN origsrc/libiconv-1.17/lib/jisx0208.h src/libiconv-1.17/lib/jisx0208.h
 --- origsrc/libiconv-1.17/lib/jisx0208.h	2021-06-06 18:50:48.000000000 +0900
-+++ src/libiconv-1.17/lib/jisx0208.h	2023-07-30 05:36:47.728603400 +0900
++++ src/libiconv-1.17/lib/jisx0208.h	2023-07-30 16:33:48.199186491 +0900
 @@ -26,7 +26,7 @@
    0x3000, 0x3001, 0x3002, 0xff0c, 0xff0e, 0x30fb, 0xff1a, 0xff1b,
    0xff1f, 0xff01, 0x309b, 0x309c, 0x00b4, 0xff40, 0x00a8, 0xff3e,
@@ -2175,7 +2580,7 @@ diff -urN origsrc/libiconv-1.17/lib/jisx0208.h src/libiconv-1.17/lib/jisx0208.h
    {  140, 0x0000 }, {  140, 0x0000 }, {  140, 0x0000 }, {  140, 0x0000 },
 diff -urN origsrc/libiconv-1.17/lib/shift_jisx0213.h src/libiconv-1.17/lib/shift_jisx0213.h
 --- origsrc/libiconv-1.17/lib/shift_jisx0213.h	2021-06-06 18:50:48.000000000 +0900
-+++ src/libiconv-1.17/lib/shift_jisx0213.h	2023-07-30 05:36:47.738602900 +0900
++++ src/libiconv-1.17/lib/shift_jisx0213.h	2023-07-30 16:33:48.199186491 +0900
 @@ -49,14 +49,9 @@
      return 0; /* Don't advance the input pointer. */
    } else {
@@ -2224,7 +2629,7 @@ diff -urN origsrc/libiconv-1.17/lib/shift_jisx0213.h src/libiconv-1.17/lib/shift
      /* Half-width katakana. */
 diff -urN origsrc/libiconv-1.17/lib/sjis.h src/libiconv-1.17/lib/sjis.h
 --- origsrc/libiconv-1.17/lib/sjis.h	2021-06-06 18:50:48.000000000 +0900
-+++ src/libiconv-1.17/lib/sjis.h	2023-07-30 05:36:47.747602800 +0900
++++ src/libiconv-1.17/lib/sjis.h	2023-07-30 16:33:48.199186491 +0900
 @@ -63,16 +63,6 @@
          buf[1] = (t2 < 0x5e ? t2 : t2-0x5e) + 0x21;
          return jisx0208_mbtowc(conv,pwc,buf,2);
@@ -2263,7 +2668,7 @@ diff -urN origsrc/libiconv-1.17/lib/sjis.h src/libiconv-1.17/lib/sjis.h
  }
 diff -urN origsrc/libiconv-1.17/lib/utf7imap.h src/libiconv-1.17/lib/utf7imap.h
 --- origsrc/libiconv-1.17/lib/utf7imap.h	1970-01-01 09:00:00.000000000 +0900
-+++ src/libiconv-1.17/lib/utf7imap.h	2023-07-30 05:36:47.750604400 +0900
++++ src/libiconv-1.17/lib/utf7imap.h	2023-07-30 16:33:48.199186491 +0900
 @@ -0,0 +1,352 @@
 +/*
 +
@@ -2619,7 +3024,7 @@ diff -urN origsrc/libiconv-1.17/lib/utf7imap.h src/libiconv-1.17/lib/utf7imap.h
 +
 diff -urN origsrc/libiconv-1.17/man/iconv_open.3 src/libiconv-1.17/man/iconv_open.3
 --- origsrc/libiconv-1.17/man/iconv_open.3	2022-01-24 05:23:42.000000000 +0900
-+++ src/libiconv-1.17/man/iconv_open.3	2023-07-30 05:36:47.758603200 +0900
++++ src/libiconv-1.17/man/iconv_open.3	2023-07-30 16:33:48.199186491 +0900
 @@ -45,8 +45,8 @@
  Japanese
  .nf
@@ -2633,7 +3038,7 @@ diff -urN origsrc/libiconv-1.17/man/iconv_open.3 src/libiconv-1.17/man/iconv_ope
  .nf
 diff -urN origsrc/libiconv-1.17/man/iconv_open.3.html src/libiconv-1.17/man/iconv_open.3.html
 --- origsrc/libiconv-1.17/man/iconv_open.3.html	2022-05-15 21:59:08.000000000 +0900
-+++ src/libiconv-1.17/man/iconv_open.3.html	2023-07-30 05:36:47.769603400 +0900
++++ src/libiconv-1.17/man/iconv_open.3.html	2023-07-30 16:33:48.199186491 +0900
 @@ -82,10 +82,11 @@
  
  <p style="margin-left:11%;">Japanese</p>
@@ -2650,7 +3055,7 @@ diff -urN origsrc/libiconv-1.17/man/iconv_open.3.html src/libiconv-1.17/man/icon
  
 diff -urN origsrc/libiconv-1.17/tests/CP51932.IRREVERSIBLE.TXT src/libiconv-1.17/tests/CP51932.IRREVERSIBLE.TXT
 --- origsrc/libiconv-1.17/tests/CP51932.IRREVERSIBLE.TXT	1970-01-01 09:00:00.000000000 +0900
-+++ src/libiconv-1.17/tests/CP51932.IRREVERSIBLE.TXT	2023-07-30 05:36:47.771604300 +0900
++++ src/libiconv-1.17/tests/CP51932.IRREVERSIBLE.TXT	2023-07-30 16:33:48.199186491 +0900
 @@ -0,0 +1,19 @@
 +0x5C	0x00A5
 +0x7E	0x203E
@@ -2673,7 +3078,7 @@ diff -urN origsrc/libiconv-1.17/tests/CP51932.IRREVERSIBLE.TXT src/libiconv-1.17
 +0xFCFB	0xFFE2
 diff -urN origsrc/libiconv-1.17/tests/CP51932.TXT src/libiconv-1.17/tests/CP51932.TXT
 --- origsrc/libiconv-1.17/tests/CP51932.TXT	1970-01-01 09:00:00.000000000 +0900
-+++ src/libiconv-1.17/tests/CP51932.TXT	2023-07-30 05:36:47.781604600 +0900
++++ src/libiconv-1.17/tests/CP51932.TXT	2023-07-30 16:33:48.199186491 +0900
 @@ -0,0 +1,7527 @@
 +0x00	0x0000
 +0x01	0x0001
@@ -10204,7 +10609,7 @@ diff -urN origsrc/libiconv-1.17/tests/CP51932.TXT src/libiconv-1.17/tests/CP5193
 +0xFCFE	0xFF02
 diff -urN origsrc/libiconv-1.17/tests/CP932.IRREVERSIBLE.TXT src/libiconv-1.17/tests/CP932.IRREVERSIBLE.TXT
 --- origsrc/libiconv-1.17/tests/CP932.IRREVERSIBLE.TXT	2009-06-21 20:17:33.000000000 +0900
-+++ src/libiconv-1.17/tests/CP932.IRREVERSIBLE.TXT	2023-07-30 05:36:47.794605200 +0900
++++ src/libiconv-1.17/tests/CP932.IRREVERSIBLE.TXT	2023-07-30 16:33:48.199186491 +0900
 @@ -1,21 +1,10 @@
 -0x8160	0xFF5E
 -0x8161	0x2225
@@ -10255,7 +10660,7 @@ diff -urN origsrc/libiconv-1.17/tests/CP932.IRREVERSIBLE.TXT src/libiconv-1.17/t
  0xFA5B	0x2235
 diff -urN origsrc/libiconv-1.17/tests/CP932.TXT src/libiconv-1.17/tests/CP932.TXT
 --- origsrc/libiconv-1.17/tests/CP932.TXT	2009-06-21 20:17:33.000000000 +0900
-+++ src/libiconv-1.17/tests/CP932.TXT	2023-07-30 05:36:47.804603800 +0900
++++ src/libiconv-1.17/tests/CP932.TXT	2023-07-30 16:33:48.199186491 +0900
 @@ -158,8 +158,8 @@
  0x815D	0x2010
  0x815E	0xFF0F
@@ -10298,7 +10703,7 @@ diff -urN origsrc/libiconv-1.17/tests/CP932.TXT src/libiconv-1.17/tests/CP932.TX
  0x81CD	0x2200
 diff -urN origsrc/libiconv-1.17/tests/DEC-KANJI.TXT src/libiconv-1.17/tests/DEC-KANJI.TXT
 --- origsrc/libiconv-1.17/tests/DEC-KANJI.TXT	2009-06-21 20:17:33.000000000 +0900
-+++ src/libiconv-1.17/tests/DEC-KANJI.TXT	2023-07-30 05:36:47.826605700 +0900
++++ src/libiconv-1.17/tests/DEC-KANJI.TXT	2023-07-30 16:33:48.199186491 +0900
 @@ -154,7 +154,7 @@
  0xA1BA	0x3006
  0xA1BB	0x3007
@@ -10310,7 +10715,7 @@ diff -urN origsrc/libiconv-1.17/tests/DEC-KANJI.TXT src/libiconv-1.17/tests/DEC-
  0xA1C0	0xFF3C
 diff -urN origsrc/libiconv-1.17/tests/EUC-JP.TXT src/libiconv-1.17/tests/EUC-JP.TXT
 --- origsrc/libiconv-1.17/tests/EUC-JP.TXT	2009-06-21 20:17:33.000000000 +0900
-+++ src/libiconv-1.17/tests/EUC-JP.TXT	2023-07-30 05:36:47.837605800 +0900
++++ src/libiconv-1.17/tests/EUC-JP.TXT	2023-07-30 16:33:48.199186491 +0900
 @@ -6256,946 +6256,6 @@
  0x8FEDE1	0x9FA2
  0x8FEDE2	0x9FA3
@@ -12213,7 +12618,7 @@ diff -urN origsrc/libiconv-1.17/tests/EUC-JP.TXT src/libiconv-1.17/tests/EUC-JP.
 -0xFEFE	0xE3AB
 diff -urN origsrc/libiconv-1.17/tests/EUCJP-MS.IRREVERSIBLE.TXT src/libiconv-1.17/tests/EUCJP-MS.IRREVERSIBLE.TXT
 --- origsrc/libiconv-1.17/tests/EUCJP-MS.IRREVERSIBLE.TXT	1970-01-01 09:00:00.000000000 +0900
-+++ src/libiconv-1.17/tests/EUCJP-MS.IRREVERSIBLE.TXT	2023-07-30 05:36:47.840605600 +0900
++++ src/libiconv-1.17/tests/EUCJP-MS.IRREVERSIBLE.TXT	2023-07-30 16:33:48.199186491 +0900
 @@ -0,0 +1,34 @@
 +0x5C	0x00A5
 +0x7E	0x203E
@@ -12251,7 +12656,7 @@ diff -urN origsrc/libiconv-1.17/tests/EUCJP-MS.IRREVERSIBLE.TXT src/libiconv-1.1
 +0xADFC	0x222A
 diff -urN origsrc/libiconv-1.17/tests/EUCJP-MS.TXT src/libiconv-1.17/tests/EUCJP-MS.TXT
 --- origsrc/libiconv-1.17/tests/EUCJP-MS.TXT	1970-01-01 09:00:00.000000000 +0900
-+++ src/libiconv-1.17/tests/EUCJP-MS.TXT	2023-07-30 05:36:47.859603800 +0900
++++ src/libiconv-1.17/tests/EUCJP-MS.TXT	2023-07-30 16:33:48.209186496 +0900
 @@ -0,0 +1,15206 @@
 +0x00	0x0000
 +0x01	0x0001
@@ -27461,7 +27866,7 @@ diff -urN origsrc/libiconv-1.17/tests/EUCJP-MS.TXT src/libiconv-1.17/tests/EUCJP
 +0xFEFE	0xE3AB
 diff -urN origsrc/libiconv-1.17/tests/ISO-2022-JP-3-snippet.UTF-8 src/libiconv-1.17/tests/ISO-2022-JP-3-snippet.UTF-8
 --- origsrc/libiconv-1.17/tests/ISO-2022-JP-3-snippet.UTF-8	2009-06-21 20:17:33.000000000 +0900
-+++ src/libiconv-1.17/tests/ISO-2022-JP-3-snippet.UTF-8	2023-07-30 05:36:47.868605400 +0900
++++ src/libiconv-1.17/tests/ISO-2022-JP-3-snippet.UTF-8	2023-07-30 16:33:48.209186496 +0900
 @@ -9,7 +9,7 @@
  ﾀ ﾁ ﾂ ﾃ ﾄ ﾅ ﾆ ﾇ ﾈ ﾉ ﾊ ﾋ ﾌ ﾍ ﾎ ﾏ
  ﾐ ﾑ ﾒ ﾓ ﾔ ﾕ ﾖ ﾗ ﾘ ﾙ ﾚ ﾛ ﾜ ﾝ ﾞ ﾟ
@@ -27471,9 +27876,1245 @@ diff -urN origsrc/libiconv-1.17/tests/ISO-2022-JP-3-snippet.UTF-8 src/libiconv-1
  ＼ 〜 ‖ ｜ … ‥ ‘ ’ “ ” （ ） 〔 〕 ［ ］
  ｛ ｝ 〈 〉 《 》 「 」 『 』 【 】 ＋ − ± ×
  ÷ ＝ ≠ ＜ ＞ ≦ ≧ ∞ ∴ ♂ ♀ ° ′ ″ ℃ ￥
+diff -urN origsrc/libiconv-1.17/tests/ISO-2022-JP-MS-PATCH-snippet src/libiconv-1.17/tests/ISO-2022-JP-MS-PATCH-snippet
+--- origsrc/libiconv-1.17/tests/ISO-2022-JP-MS-PATCH-snippet	1970-01-01 09:00:00.000000000 +0900
++++ src/libiconv-1.17/tests/ISO-2022-JP-MS-PATCH-snippet	2023-07-30 16:33:48.209186496 +0900
+@@ -0,0 +1,614 @@
++  ! " # $ % & ' ( ) * + , - . /
++0 1 2 3 4 5 6 7 8 9 : ; < = > ?
++@ A B C D E F G H I J K L M N O
++P Q R S T U V W X Y Z [ \ ] ^ _
++` a b c d e f g h i j k l m n o
++p q r s t u v w x y z { | } ~
++   (I!(B (I"(B (I#(B (I$(B (I%(B (I&(B (I'(B (I((B (I)(B (I*(B (I+(B (I,(B (I-(B (I.(B (I/(B
++(I0(B (I1(B (I2(B (I3(B (I4(B (I5(B (I6(B (I7(B (I8(B (I9(B (I:(B (I;(B (I<(B (I=(B (I>(B (I?(B
++(I@(B (IA(B (IB(B (IC(B (ID(B (IE(B (IF(B (IG(B (IH(B (II(B (IJ(B (IK(B (IL(B (IM(B (IN(B (IO(B
++(IP(B (IQ(B (IR(B (IS(B (IT(B (IU(B (IV(B (IW(B (IX(B (IY(B (IZ(B (I[(B (I\(B (I](B (I^(B (I_(B
++  $B!!(B $B!"(B $B!#(B $B!$(B $B!%(B $B!&(B $B!'(B $B!((B $B!)(B $B!*(B $B!+(B $B!,(B $B!-(B $B!.(B $B!/(B
++$B!0(B $B!1(B $B!2(B $B!3(B $B!4(B $B!5(B $B!6(B $B!7(B $B!8(B $B!9(B $B!:(B $B!;(B $B!<(B $B!=(B $B!>(B $B!?(B
++  $B!A(B $B!B(B $B!C(B $B!D(B $B!E(B $B!F(B $B!G(B $B!H(B $B!I(B $B!J(B $B!K(B $B!L(B $B!M(B $B!N(B $B!O(B
++$B!P(B $B!Q(B $B!R(B $B!S(B $B!T(B $B!U(B $B!V(B $B!W(B $B!X(B $B!Y(B $B!Z(B $B![(B $B!\(B $B!](B $B!^(B $B!_(B
++$B!`(B $B!a(B $B!b(B $B!c(B $B!d(B $B!e(B $B!f(B $B!g(B $B!h(B $B!i(B $B!j(B $B!k(B $B!l(B $B!m(B $B!n(B $B!o(B
++$B!p(B $B!q(B $B!r(B $B!s(B $B!t(B $B!u(B $B!v(B $B!w(B $B!x(B $B!y(B $B!z(B $B!{(B $B!|(B $B!}(B $B!~(B
++  $B"!(B $B""(B $B"#(B $B"$(B $B"%(B $B"&(B $B"'(B $B"((B $B")(B $B"*(B $B"+(B $B",(B $B"-(B $B".(B
++                    $B":(B $B";(B $B"<(B $B"=(B $B">(B $B"?(B
++$B"@(B $B"A(B                 $B"J(B $B"K(B $B"L(B $B"M(B $B"N(B $B"O(B
++$B"P(B                       $B"\(B $B"](B $B"^(B $B"_(B
++$B"`(B $B"a(B $B"b(B $B"c(B $B"d(B $B"e(B $B"f(B $B"g(B $B"h(B $B"i(B $B"j(B
++    $B"r(B $B"s(B $B"t(B $B"u(B $B"v(B $B"w(B $B"x(B $B"y(B         $B"~(B
++$B#0(B $B#1(B $B#2(B $B#3(B $B#4(B $B#5(B $B#6(B $B#7(B $B#8(B $B#9(B
++   $B#A(B $B#B(B $B#C(B $B#D(B $B#E(B $B#F(B $B#G(B $B#H(B $B#I(B $B#J(B $B#K(B $B#L(B $B#M(B $B#N(B $B#O(B
++$B#P(B $B#Q(B $B#R(B $B#S(B $B#T(B $B#U(B $B#V(B $B#W(B $B#X(B $B#Y(B $B#Z(B
++   $B#a(B $B#b(B $B#c(B $B#d(B $B#e(B $B#f(B $B#g(B $B#h(B $B#i(B $B#j(B $B#k(B $B#l(B $B#m(B $B#n(B $B#o(B
++$B#p(B $B#q(B $B#r(B $B#s(B $B#t(B $B#u(B $B#v(B $B#w(B $B#x(B $B#y(B $B#z(B
++   $B$!(B $B$"(B $B$#(B $B$$(B $B$%(B $B$&(B $B$'(B $B$((B $B$)(B $B$*(B $B$+(B $B$,(B $B$-(B $B$.(B $B$/(B
++$B$0(B $B$1(B $B$2(B $B$3(B $B$4(B $B$5(B $B$6(B $B$7(B $B$8(B $B$9(B $B$:(B $B$;(B $B$<(B $B$=(B $B$>(B $B$?(B
++$B$@(B $B$A(B $B$B(B $B$C(B $B$D(B $B$E(B $B$F(B $B$G(B $B$H(B $B$I(B $B$J(B $B$K(B $B$L(B $B$M(B $B$N(B $B$O(B
++$B$P(B $B$Q(B $B$R(B $B$S(B $B$T(B $B$U(B $B$V(B $B$W(B $B$X(B $B$Y(B $B$Z(B $B$[(B $B$\(B $B$](B $B$^(B $B$_(B
++$B$`(B $B$a(B $B$b(B $B$c(B $B$d(B $B$e(B $B$f(B $B$g(B $B$h(B $B$i(B $B$j(B $B$k(B $B$l(B $B$m(B $B$n(B $B$o(B
++$B$p(B $B$q(B $B$r(B $B$s(B
++   $B%!(B $B%"(B $B%#(B $B%$(B $B%%(B $B%&(B $B%'(B $B%((B $B%)(B $B%*(B $B%+(B $B%,(B $B%-(B $B%.(B $B%/(B
++$B%0(B $B%1(B $B%2(B $B%3(B $B%4(B $B%5(B $B%6(B $B%7(B $B%8(B $B%9(B $B%:(B $B%;(B $B%<(B $B%=(B $B%>(B $B%?(B
++$B%@(B $B%A(B $B%B(B $B%C(B $B%D(B $B%E(B $B%F(B $B%G(B $B%H(B $B%I(B $B%J(B $B%K(B $B%L(B $B%M(B $B%N(B $B%O(B
++$B%P(B $B%Q(B $B%R(B $B%S(B $B%T(B $B%U(B $B%V(B $B%W(B $B%X(B $B%Y(B $B%Z(B $B%[(B $B%\(B $B%](B $B%^(B $B%_(B
++$B%`(B $B%a(B $B%b(B $B%c(B $B%d(B $B%e(B $B%f(B $B%g(B $B%h(B $B%i(B $B%j(B $B%k(B $B%l(B $B%m(B $B%n(B $B%o(B
++$B%p(B $B%q(B $B%r(B $B%s(B $B%t(B $B%u(B $B%v(B
++  $B&!(B $B&"(B $B&#(B $B&$(B $B&%(B $B&&(B $B&'(B $B&((B $B&)(B $B&*(B $B&+(B $B&,(B $B&-(B $B&.(B $B&/(B
++$B&0(B $B&1(B $B&2(B $B&3(B $B&4(B $B&5(B $B&6(B $B&7(B $B&8(B
++  $B&A(B $B&B(B $B&C(B $B&D(B $B&E(B $B&F(B $B&G(B $B&H(B $B&I(B $B&J(B $B&K(B $B&L(B $B&M(B $B&N(B $B&O(B
++$B&P(B $B&Q(B $B&R(B $B&S(B $B&T(B $B&U(B $B&V(B $B&W(B $B&X(B
++  $B'!(B $B'"(B $B'#(B $B'$(B $B'%(B $B'&(B $B''(B $B'((B $B')(B $B'*(B $B'+(B $B',(B $B'-(B $B'.(B $B'/(B
++$B'0(B $B'1(B $B'2(B $B'3(B $B'4(B $B'5(B $B'6(B $B'7(B $B'8(B $B'9(B $B':(B $B';(B $B'<(B $B'=(B $B'>(B $B'?(B
++$B'@(B $B'A(B
++  $B'Q(B $B'R(B $B'S(B $B'T(B $B'U(B $B'V(B $B'W(B $B'X(B $B'Y(B $B'Z(B $B'[(B $B'\(B $B'](B $B'^(B $B'_(B
++$B'`(B $B'a(B $B'b(B $B'c(B $B'd(B $B'e(B $B'f(B $B'g(B $B'h(B $B'i(B $B'j(B $B'k(B $B'l(B $B'm(B $B'n(B $B'o(B
++$B'p(B $B'q(B
++  $B(!(B $B("(B $B(#(B $B($(B $B(%(B $B(&(B $B('(B $B(((B $B()(B $B(*(B $B(+(B $B(,(B $B(-(B $B(.(B $B(/(B
++$B(0(B $B(1(B $B(2(B $B(3(B $B(4(B $B(5(B $B(6(B $B(7(B $B(8(B $B(9(B $B(:(B $B(;(B $B(<(B $B(=(B $B(>(B $B(?(B
++$B(@(B
++   $B-!(B $B-"(B $B-#(B $B-$(B $B-%(B $B-&(B $B-'(B $B-((B $B-)(B $B-*(B $B-+(B $B-,(B $B--(B $B-.(B $B-/(B
++$B-0(B $B-1(B $B-2(B $B-3(B $B-4(B $B-5(B $B-6(B $B-7(B $B-8(B $B-9(B $B-:(B $B-;(B $B-<(B $B-=(B $B->(B   
++$B-@(B $B-A(B $B-B(B $B-C(B $B-D(B $B-E(B $B-F(B $B-G(B $B-H(B $B-I(B $B-J(B $B-K(B $B-L(B $B-M(B $B-N(B $B-O(B
++$B-P(B $B-Q(B $B-R(B $B-S(B $B-T(B $B-U(B $B-V(B                         $B-_(B
++$B-`(B $B-a(B $B-b(B $B-c(B $B-d(B $B-e(B $B-f(B $B-g(B $B-h(B $B-i(B $B-j(B $B-k(B $B-l(B $B-m(B $B-n(B $B-o(B
++$B"b(B $B"a(B $B"i(B $B-s(B $B-t(B $B"e(B $B"](B $B"\(B $B-x(B $B-y(B $B"h(B $B"A(B $B"@(B      
++   $B0!(B $B0"(B $B0#(B $B0$(B $B0%(B $B0&(B $B0'(B $B0((B $B0)(B $B0*(B $B0+(B $B0,(B $B0-(B $B0.(B $B0/(B
++$B00(B $B01(B $B02(B $B03(B $B04(B $B05(B $B06(B $B07(B $B08(B $B09(B $B0:(B $B0;(B $B0<(B $B0=(B $B0>(B $B0?(B
++$B0@(B $B0A(B $B0B(B $B0C(B $B0D(B $B0E(B $B0F(B $B0G(B $B0H(B $B0I(B $B0J(B $B0K(B $B0L(B $B0M(B $B0N(B $B0O(B
++$B0P(B $B0Q(B $B0R(B $B0S(B $B0T(B $B0U(B $B0V(B $B0W(B $B0X(B $B0Y(B $B0Z(B $B0[(B $B0\(B $B0](B $B0^(B $B0_(B
++$B0`(B $B0a(B $B0b(B $B0c(B $B0d(B $B0e(B $B0f(B $B0g(B $B0h(B $B0i(B $B0j(B $B0k(B $B0l(B $B0m(B $B0n(B $B0o(B
++$B0p(B $B0q(B $B0r(B $B0s(B $B0t(B $B0u(B $B0v(B $B0w(B $B0x(B $B0y(B $B0z(B $B0{(B $B0|(B $B0}(B $B0~(B
++   $B1!(B $B1"(B $B1#(B $B1$(B $B1%(B $B1&(B $B1'(B $B1((B $B1)(B $B1*(B $B1+(B $B1,(B $B1-(B $B1.(B $B1/(B
++$B10(B $B11(B $B12(B $B13(B $B14(B $B15(B $B16(B $B17(B $B18(B $B19(B $B1:(B $B1;(B $B1<(B $B1=(B $B1>(B $B1?(B
++$B1@(B $B1A(B $B1B(B $B1C(B $B1D(B $B1E(B $B1F(B $B1G(B $B1H(B $B1I(B $B1J(B $B1K(B $B1L(B $B1M(B $B1N(B $B1O(B
++$B1P(B $B1Q(B $B1R(B $B1S(B $B1T(B $B1U(B $B1V(B $B1W(B $B1X(B $B1Y(B $B1Z(B $B1[(B $B1\(B $B1](B $B1^(B $B1_(B
++$B1`(B $B1a(B $B1b(B $B1c(B $B1d(B $B1e(B $B1f(B $B1g(B $B1h(B $B1i(B $B1j(B $B1k(B $B1l(B $B1m(B $B1n(B $B1o(B
++$B1p(B $B1q(B $B1r(B $B1s(B $B1t(B $B1u(B $B1v(B $B1w(B $B1x(B $B1y(B $B1z(B $B1{(B $B1|(B $B1}(B $B1~(B
++   $B2!(B $B2"(B $B2#(B $B2$(B $B2%(B $B2&(B $B2'(B $B2((B $B2)(B $B2*(B $B2+(B $B2,(B $B2-(B $B2.(B $B2/(B
++$B20(B $B21(B $B22(B $B23(B $B24(B $B25(B $B26(B $B27(B $B28(B $B29(B $B2:(B $B2;(B $B2<(B $B2=(B $B2>(B $B2?(B
++$B2@(B $B2A(B $B2B(B $B2C(B $B2D(B $B2E(B $B2F(B $B2G(B $B2H(B $B2I(B $B2J(B $B2K(B $B2L(B $B2M(B $B2N(B $B2O(B
++$B2P(B $B2Q(B $B2R(B $B2S(B $B2T(B $B2U(B $B2V(B $B2W(B $B2X(B $B2Y(B $B2Z(B $B2[(B $B2\(B $B2](B $B2^(B $B2_(B
++$B2`(B $B2a(B $B2b(B $B2c(B $B2d(B $B2e(B $B2f(B $B2g(B $B2h(B $B2i(B $B2j(B $B2k(B $B2l(B $B2m(B $B2n(B $B2o(B
++$B2p(B $B2q(B $B2r(B $B2s(B $B2t(B $B2u(B $B2v(B $B2w(B $B2x(B $B2y(B $B2z(B $B2{(B $B2|(B $B2}(B $B2~(B
++   $B3!(B $B3"(B $B3#(B $B3$(B $B3%(B $B3&(B $B3'(B $B3((B $B3)(B $B3*(B $B3+(B $B3,(B $B3-(B $B3.(B $B3/(B
++$B30(B $B31(B $B32(B $B33(B $B34(B $B35(B $B36(B $B37(B $B38(B $B39(B $B3:(B $B3;(B $B3<(B $B3=(B $B3>(B $B3?(B
++$B3@(B $B3A(B $B3B(B $B3C(B $B3D(B $B3E(B $B3F(B $B3G(B $B3H(B $B3I(B $B3J(B $B3K(B $B3L(B $B3M(B $B3N(B $B3O(B
++$B3P(B $B3Q(B $B3R(B $B3S(B $B3T(B $B3U(B $B3V(B $B3W(B $B3X(B $B3Y(B $B3Z(B $B3[(B $B3\(B $B3](B $B3^(B $B3_(B
++$B3`(B $B3a(B $B3b(B $B3c(B $B3d(B $B3e(B $B3f(B $B3g(B $B3h(B $B3i(B $B3j(B $B3k(B $B3l(B $B3m(B $B3n(B $B3o(B
++$B3p(B $B3q(B $B3r(B $B3s(B $B3t(B $B3u(B $B3v(B $B3w(B $B3x(B $B3y(B $B3z(B $B3{(B $B3|(B $B3}(B $B3~(B
++   $B4!(B $B4"(B $B4#(B $B4$(B $B4%(B $B4&(B $B4'(B $B4((B $B4)(B $B4*(B $B4+(B $B4,(B $B4-(B $B4.(B $B4/(B
++$B40(B $B41(B $B42(B $B43(B $B44(B $B45(B $B46(B $B47(B $B48(B $B49(B $B4:(B $B4;(B $B4<(B $B4=(B $B4>(B $B4?(B
++$B4@(B $B4A(B $B4B(B $B4C(B $B4D(B $B4E(B $B4F(B $B4G(B $B4H(B $B4I(B $B4J(B $B4K(B $B4L(B $B4M(B $B4N(B $B4O(B
++$B4P(B $B4Q(B $B4R(B $B4S(B $B4T(B $B4U(B $B4V(B $B4W(B $B4X(B $B4Y(B $B4Z(B $B4[(B $B4\(B $B4](B $B4^(B $B4_(B
++$B4`(B $B4a(B $B4b(B $B4c(B $B4d(B $B4e(B $B4f(B $B4g(B $B4h(B $B4i(B $B4j(B $B4k(B $B4l(B $B4m(B $B4n(B $B4o(B
++$B4p(B $B4q(B $B4r(B $B4s(B $B4t(B $B4u(B $B4v(B $B4w(B $B4x(B $B4y(B $B4z(B $B4{(B $B4|(B $B4}(B $B4~(B
++   $B5!(B $B5"(B $B5#(B $B5$(B $B5%(B $B5&(B $B5'(B $B5((B $B5)(B $B5*(B $B5+(B $B5,(B $B5-(B $B5.(B $B5/(B
++$B50(B $B51(B $B52(B $B53(B $B54(B $B55(B $B56(B $B57(B $B58(B $B59(B $B5:(B $B5;(B $B5<(B $B5=(B $B5>(B $B5?(B
++$B5@(B $B5A(B $B5B(B $B5C(B $B5D(B $B5E(B $B5F(B $B5G(B $B5H(B $B5I(B $B5J(B $B5K(B $B5L(B $B5M(B $B5N(B $B5O(B
++$B5P(B $B5Q(B $B5R(B $B5S(B $B5T(B $B5U(B $B5V(B $B5W(B $B5X(B $B5Y(B $B5Z(B $B5[(B $B5\(B $B5](B $B5^(B $B5_(B
++$B5`(B $B5a(B $B5b(B $B5c(B $B5d(B $B5e(B $B5f(B $B5g(B $B5h(B $B5i(B $B5j(B $B5k(B $B5l(B $B5m(B $B5n(B $B5o(B
++$B5p(B $B5q(B $B5r(B $B5s(B $B5t(B $B5u(B $B5v(B $B5w(B $B5x(B $B5y(B $B5z(B $B5{(B $B5|(B $B5}(B $B5~(B
++   $B6!(B $B6"(B $B6#(B $B6$(B $B6%(B $B6&(B $B6'(B $B6((B $B6)(B $B6*(B $B6+(B $B6,(B $B6-(B $B6.(B $B6/(B
++$B60(B $B61(B $B62(B $B63(B $B64(B $B65(B $B66(B $B67(B $B68(B $B69(B $B6:(B $B6;(B $B6<(B $B6=(B $B6>(B $B6?(B
++$B6@(B $B6A(B $B6B(B $B6C(B $B6D(B $B6E(B $B6F(B $B6G(B $B6H(B $B6I(B $B6J(B $B6K(B $B6L(B $B6M(B $B6N(B $B6O(B
++$B6P(B $B6Q(B $B6R(B $B6S(B $B6T(B $B6U(B $B6V(B $B6W(B $B6X(B $B6Y(B $B6Z(B $B6[(B $B6\(B $B6](B $B6^(B $B6_(B
++$B6`(B $B6a(B $B6b(B $B6c(B $B6d(B $B6e(B $B6f(B $B6g(B $B6h(B $B6i(B $B6j(B $B6k(B $B6l(B $B6m(B $B6n(B $B6o(B
++$B6p(B $B6q(B $B6r(B $B6s(B $B6t(B $B6u(B $B6v(B $B6w(B $B6x(B $B6y(B $B6z(B $B6{(B $B6|(B $B6}(B $B6~(B
++   $B7!(B $B7"(B $B7#(B $B7$(B $B7%(B $B7&(B $B7'(B $B7((B $B7)(B $B7*(B $B7+(B $B7,(B $B7-(B $B7.(B $B7/(B
++$B70(B $B71(B $B72(B $B73(B $B74(B $B75(B $B76(B $B77(B $B78(B $B79(B $B7:(B $B7;(B $B7<(B $B7=(B $B7>(B $B7?(B
++$B7@(B $B7A(B $B7B(B $B7C(B $B7D(B $B7E(B $B7F(B $B7G(B $B7H(B $B7I(B $B7J(B $B7K(B $B7L(B $B7M(B $B7N(B $B7O(B
++$B7P(B $B7Q(B $B7R(B $B7S(B $B7T(B $B7U(B $B7V(B $B7W(B $B7X(B $B7Y(B $B7Z(B $B7[(B $B7\(B $B7](B $B7^(B $B7_(B
++$B7`(B $B7a(B $B7b(B $B7c(B $B7d(B $B7e(B $B7f(B $B7g(B $B7h(B $B7i(B $B7j(B $B7k(B $B7l(B $B7m(B $B7n(B $B7o(B
++$B7p(B $B7q(B $B7r(B $B7s(B $B7t(B $B7u(B $B7v(B $B7w(B $B7x(B $B7y(B $B7z(B $B7{(B $B7|(B $B7}(B $B7~(B
++   $B8!(B $B8"(B $B8#(B $B8$(B $B8%(B $B8&(B $B8'(B $B8((B $B8)(B $B8*(B $B8+(B $B8,(B $B8-(B $B8.(B $B8/(B
++$B80(B $B81(B $B82(B $B83(B $B84(B $B85(B $B86(B $B87(B $B88(B $B89(B $B8:(B $B8;(B $B8<(B $B8=(B $B8>(B $B8?(B
++$B8@(B $B8A(B $B8B(B $B8C(B $B8D(B $B8E(B $B8F(B $B8G(B $B8H(B $B8I(B $B8J(B $B8K(B $B8L(B $B8M(B $B8N(B $B8O(B
++$B8P(B $B8Q(B $B8R(B $B8S(B $B8T(B $B8U(B $B8V(B $B8W(B $B8X(B $B8Y(B $B8Z(B $B8[(B $B8\(B $B8](B $B8^(B $B8_(B
++$B8`(B $B8a(B $B8b(B $B8c(B $B8d(B $B8e(B $B8f(B $B8g(B $B8h(B $B8i(B $B8j(B $B8k(B $B8l(B $B8m(B $B8n(B $B8o(B
++$B8p(B $B8q(B $B8r(B $B8s(B $B8t(B $B8u(B $B8v(B $B8w(B $B8x(B $B8y(B $B8z(B $B8{(B $B8|(B $B8}(B $B8~(B
++   $B9!(B $B9"(B $B9#(B $B9$(B $B9%(B $B9&(B $B9'(B $B9((B $B9)(B $B9*(B $B9+(B $B9,(B $B9-(B $B9.(B $B9/(B
++$B90(B $B91(B $B92(B $B93(B $B94(B $B95(B $B96(B $B97(B $B98(B $B99(B $B9:(B $B9;(B $B9<(B $B9=(B $B9>(B $B9?(B
++$B9@(B $B9A(B $B9B(B $B9C(B $B9D(B $B9E(B $B9F(B $B9G(B $B9H(B $B9I(B $B9J(B $B9K(B $B9L(B $B9M(B $B9N(B $B9O(B
++$B9P(B $B9Q(B $B9R(B $B9S(B $B9T(B $B9U(B $B9V(B $B9W(B $B9X(B $B9Y(B $B9Z(B $B9[(B $B9\(B $B9](B $B9^(B $B9_(B
++$B9`(B $B9a(B $B9b(B $B9c(B $B9d(B $B9e(B $B9f(B $B9g(B $B9h(B $B9i(B $B9j(B $B9k(B $B9l(B $B9m(B $B9n(B $B9o(B
++$B9p(B $B9q(B $B9r(B $B9s(B $B9t(B $B9u(B $B9v(B $B9w(B $B9x(B $B9y(B $B9z(B $B9{(B $B9|(B $B9}(B $B9~(B
++   $B:!(B $B:"(B $B:#(B $B:$(B $B:%(B $B:&(B $B:'(B $B:((B $B:)(B $B:*(B $B:+(B $B:,(B $B:-(B $B:.(B $B:/(B
++$B:0(B $B:1(B $B:2(B $B:3(B $B:4(B $B:5(B $B:6(B $B:7(B $B:8(B $B:9(B $B::(B $B:;(B $B:<(B $B:=(B $B:>(B $B:?(B
++$B:@(B $B:A(B $B:B(B $B:C(B $B:D(B $B:E(B $B:F(B $B:G(B $B:H(B $B:I(B $B:J(B $B:K(B $B:L(B $B:M(B $B:N(B $B:O(B
++$B:P(B $B:Q(B $B:R(B $B:S(B $B:T(B $B:U(B $B:V(B $B:W(B $B:X(B $B:Y(B $B:Z(B $B:[(B $B:\(B $B:](B $B:^(B $B:_(B
++$B:`(B $B:a(B $B:b(B $B:c(B $B:d(B $B:e(B $B:f(B $B:g(B $B:h(B $B:i(B $B:j(B $B:k(B $B:l(B $B:m(B $B:n(B $B:o(B
++$B:p(B $B:q(B $B:r(B $B:s(B $B:t(B $B:u(B $B:v(B $B:w(B $B:x(B $B:y(B $B:z(B $B:{(B $B:|(B $B:}(B $B:~(B
++   $B;!(B $B;"(B $B;#(B $B;$(B $B;%(B $B;&(B $B;'(B $B;((B $B;)(B $B;*(B $B;+(B $B;,(B $B;-(B $B;.(B $B;/(B
++$B;0(B $B;1(B $B;2(B $B;3(B $B;4(B $B;5(B $B;6(B $B;7(B $B;8(B $B;9(B $B;:(B $B;;(B $B;<(B $B;=(B $B;>(B $B;?(B
++$B;@(B $B;A(B $B;B(B $B;C(B $B;D(B $B;E(B $B;F(B $B;G(B $B;H(B $B;I(B $B;J(B $B;K(B $B;L(B $B;M(B $B;N(B $B;O(B
++$B;P(B $B;Q(B $B;R(B $B;S(B $B;T(B $B;U(B $B;V(B $B;W(B $B;X(B $B;Y(B $B;Z(B $B;[(B $B;\(B $B;](B $B;^(B $B;_(B
++$B;`(B $B;a(B $B;b(B $B;c(B $B;d(B $B;e(B $B;f(B $B;g(B $B;h(B $B;i(B $B;j(B $B;k(B $B;l(B $B;m(B $B;n(B $B;o(B
++$B;p(B $B;q(B $B;r(B $B;s(B $B;t(B $B;u(B $B;v(B $B;w(B $B;x(B $B;y(B $B;z(B $B;{(B $B;|(B $B;}(B $B;~(B
++   $B<!(B $B<"(B $B<#(B $B<$(B $B<%(B $B<&(B $B<'(B $B<((B $B<)(B $B<*(B $B<+(B $B<,(B $B<-(B $B<.(B $B</(B
++$B<0(B $B<1(B $B<2(B $B<3(B $B<4(B $B<5(B $B<6(B $B<7(B $B<8(B $B<9(B $B<:(B $B<;(B $B<<(B $B<=(B $B<>(B $B<?(B
++$B<@(B $B<A(B $B<B(B $B<C(B $B<D(B $B<E(B $B<F(B $B<G(B $B<H(B $B<I(B $B<J(B $B<K(B $B<L(B $B<M(B $B<N(B $B<O(B
++$B<P(B $B<Q(B $B<R(B $B<S(B $B<T(B $B<U(B $B<V(B $B<W(B $B<X(B $B<Y(B $B<Z(B $B<[(B $B<\(B $B<](B $B<^(B $B<_(B
++$B<`(B $B<a(B $B<b(B $B<c(B $B<d(B $B<e(B $B<f(B $B<g(B $B<h(B $B<i(B $B<j(B $B<k(B $B<l(B $B<m(B $B<n(B $B<o(B
++$B<p(B $B<q(B $B<r(B $B<s(B $B<t(B $B<u(B $B<v(B $B<w(B $B<x(B $B<y(B $B<z(B $B<{(B $B<|(B $B<}(B $B<~(B
++   $B=!(B $B="(B $B=#(B $B=$(B $B=%(B $B=&(B $B='(B $B=((B $B=)(B $B=*(B $B=+(B $B=,(B $B=-(B $B=.(B $B=/(B
++$B=0(B $B=1(B $B=2(B $B=3(B $B=4(B $B=5(B $B=6(B $B=7(B $B=8(B $B=9(B $B=:(B $B=;(B $B=<(B $B==(B $B=>(B $B=?(B
++$B=@(B $B=A(B $B=B(B $B=C(B $B=D(B $B=E(B $B=F(B $B=G(B $B=H(B $B=I(B $B=J(B $B=K(B $B=L(B $B=M(B $B=N(B $B=O(B
++$B=P(B $B=Q(B $B=R(B $B=S(B $B=T(B $B=U(B $B=V(B $B=W(B $B=X(B $B=Y(B $B=Z(B $B=[(B $B=\(B $B=](B $B=^(B $B=_(B
++$B=`(B $B=a(B $B=b(B $B=c(B $B=d(B $B=e(B $B=f(B $B=g(B $B=h(B $B=i(B $B=j(B $B=k(B $B=l(B $B=m(B $B=n(B $B=o(B
++$B=p(B $B=q(B $B=r(B $B=s(B $B=t(B $B=u(B $B=v(B $B=w(B $B=x(B $B=y(B $B=z(B $B={(B $B=|(B $B=}(B $B=~(B
++   $B>!(B $B>"(B $B>#(B $B>$(B $B>%(B $B>&(B $B>'(B $B>((B $B>)(B $B>*(B $B>+(B $B>,(B $B>-(B $B>.(B $B>/(B
++$B>0(B $B>1(B $B>2(B $B>3(B $B>4(B $B>5(B $B>6(B $B>7(B $B>8(B $B>9(B $B>:(B $B>;(B $B><(B $B>=(B $B>>(B $B>?(B
++$B>@(B $B>A(B $B>B(B $B>C(B $B>D(B $B>E(B $B>F(B $B>G(B $B>H(B $B>I(B $B>J(B $B>K(B $B>L(B $B>M(B $B>N(B $B>O(B
++$B>P(B $B>Q(B $B>R(B $B>S(B $B>T(B $B>U(B $B>V(B $B>W(B $B>X(B $B>Y(B $B>Z(B $B>[(B $B>\(B $B>](B $B>^(B $B>_(B
++$B>`(B $B>a(B $B>b(B $B>c(B $B>d(B $B>e(B $B>f(B $B>g(B $B>h(B $B>i(B $B>j(B $B>k(B $B>l(B $B>m(B $B>n(B $B>o(B
++$B>p(B $B>q(B $B>r(B $B>s(B $B>t(B $B>u(B $B>v(B $B>w(B $B>x(B $B>y(B $B>z(B $B>{(B $B>|(B $B>}(B $B>~(B
++   $B?!(B $B?"(B $B?#(B $B?$(B $B?%(B $B?&(B $B?'(B $B?((B $B?)(B $B?*(B $B?+(B $B?,(B $B?-(B $B?.(B $B?/(B
++$B?0(B $B?1(B $B?2(B $B?3(B $B?4(B $B?5(B $B?6(B $B?7(B $B?8(B $B?9(B $B?:(B $B?;(B $B?<(B $B?=(B $B?>(B $B??(B
++$B?@(B $B?A(B $B?B(B $B?C(B $B?D(B $B?E(B $B?F(B $B?G(B $B?H(B $B?I(B $B?J(B $B?K(B $B?L(B $B?M(B $B?N(B $B?O(B
++$B?P(B $B?Q(B $B?R(B $B?S(B $B?T(B $B?U(B $B?V(B $B?W(B $B?X(B $B?Y(B $B?Z(B $B?[(B $B?\(B $B?](B $B?^(B $B?_(B
++$B?`(B $B?a(B $B?b(B $B?c(B $B?d(B $B?e(B $B?f(B $B?g(B $B?h(B $B?i(B $B?j(B $B?k(B $B?l(B $B?m(B $B?n(B $B?o(B
++$B?p(B $B?q(B $B?r(B $B?s(B $B?t(B $B?u(B $B?v(B $B?w(B $B?x(B $B?y(B $B?z(B $B?{(B $B?|(B $B?}(B $B?~(B
++   $B@!(B $B@"(B $B@#(B $B@$(B $B@%(B $B@&(B $B@'(B $B@((B $B@)(B $B@*(B $B@+(B $B@,(B $B@-(B $B@.(B $B@/(B
++$B@0(B $B@1(B $B@2(B $B@3(B $B@4(B $B@5(B $B@6(B $B@7(B $B@8(B $B@9(B $B@:(B $B@;(B $B@<(B $B@=(B $B@>(B $B@?(B
++$B@@(B $B@A(B $B@B(B $B@C(B $B@D(B $B@E(B $B@F(B $B@G(B $B@H(B $B@I(B $B@J(B $B@K(B $B@L(B $B@M(B $B@N(B $B@O(B
++$B@P(B $B@Q(B $B@R(B $B@S(B $B@T(B $B@U(B $B@V(B $B@W(B $B@X(B $B@Y(B $B@Z(B $B@[(B $B@\(B $B@](B $B@^(B $B@_(B
++$B@`(B $B@a(B $B@b(B $B@c(B $B@d(B $B@e(B $B@f(B $B@g(B $B@h(B $B@i(B $B@j(B $B@k(B $B@l(B $B@m(B $B@n(B $B@o(B
++$B@p(B $B@q(B $B@r(B $B@s(B $B@t(B $B@u(B $B@v(B $B@w(B $B@x(B $B@y(B $B@z(B $B@{(B $B@|(B $B@}(B $B@~(B
++   $BA!(B $BA"(B $BA#(B $BA$(B $BA%(B $BA&(B $BA'(B $BA((B $BA)(B $BA*(B $BA+(B $BA,(B $BA-(B $BA.(B $BA/(B
++$BA0(B $BA1(B $BA2(B $BA3(B $BA4(B $BA5(B $BA6(B $BA7(B $BA8(B $BA9(B $BA:(B $BA;(B $BA<(B $BA=(B $BA>(B $BA?(B
++$BA@(B $BAA(B $BAB(B $BAC(B $BAD(B $BAE(B $BAF(B $BAG(B $BAH(B $BAI(B $BAJ(B $BAK(B $BAL(B $BAM(B $BAN(B $BAO(B
++$BAP(B $BAQ(B $BAR(B $BAS(B $BAT(B $BAU(B $BAV(B $BAW(B $BAX(B $BAY(B $BAZ(B $BA[(B $BA\(B $BA](B $BA^(B $BA_(B
++$BA`(B $BAa(B $BAb(B $BAc(B $BAd(B $BAe(B $BAf(B $BAg(B $BAh(B $BAi(B $BAj(B $BAk(B $BAl(B $BAm(B $BAn(B $BAo(B
++$BAp(B $BAq(B $BAr(B $BAs(B $BAt(B $BAu(B $BAv(B $BAw(B $BAx(B $BAy(B $BAz(B $BA{(B $BA|(B $BA}(B $BA~(B
++   $BB!(B $BB"(B $BB#(B $BB$(B $BB%(B $BB&(B $BB'(B $BB((B $BB)(B $BB*(B $BB+(B $BB,(B $BB-(B $BB.(B $BB/(B
++$BB0(B $BB1(B $BB2(B $BB3(B $BB4(B $BB5(B $BB6(B $BB7(B $BB8(B $BB9(B $BB:(B $BB;(B $BB<(B $BB=(B $BB>(B $BB?(B
++$BB@(B $BBA(B $BBB(B $BBC(B $BBD(B $BBE(B $BBF(B $BBG(B $BBH(B $BBI(B $BBJ(B $BBK(B $BBL(B $BBM(B $BBN(B $BBO(B
++$BBP(B $BBQ(B $BBR(B $BBS(B $BBT(B $BBU(B $BBV(B $BBW(B $BBX(B $BBY(B $BBZ(B $BB[(B $BB\(B $BB](B $BB^(B $BB_(B
++$BB`(B $BBa(B $BBb(B $BBc(B $BBd(B $BBe(B $BBf(B $BBg(B $BBh(B $BBi(B $BBj(B $BBk(B $BBl(B $BBm(B $BBn(B $BBo(B
++$BBp(B $BBq(B $BBr(B $BBs(B $BBt(B $BBu(B $BBv(B $BBw(B $BBx(B $BBy(B $BBz(B $BB{(B $BB|(B $BB}(B $BB~(B
++   $BC!(B $BC"(B $BC#(B $BC$(B $BC%(B $BC&(B $BC'(B $BC((B $BC)(B $BC*(B $BC+(B $BC,(B $BC-(B $BC.(B $BC/(B
++$BC0(B $BC1(B $BC2(B $BC3(B $BC4(B $BC5(B $BC6(B $BC7(B $BC8(B $BC9(B $BC:(B $BC;(B $BC<(B $BC=(B $BC>(B $BC?(B
++$BC@(B $BCA(B $BCB(B $BCC(B $BCD(B $BCE(B $BCF(B $BCG(B $BCH(B $BCI(B $BCJ(B $BCK(B $BCL(B $BCM(B $BCN(B $BCO(B
++$BCP(B $BCQ(B $BCR(B $BCS(B $BCT(B $BCU(B $BCV(B $BCW(B $BCX(B $BCY(B $BCZ(B $BC[(B $BC\(B $BC](B $BC^(B $BC_(B
++$BC`(B $BCa(B $BCb(B $BCc(B $BCd(B $BCe(B $BCf(B $BCg(B $BCh(B $BCi(B $BCj(B $BCk(B $BCl(B $BCm(B $BCn(B $BCo(B
++$BCp(B $BCq(B $BCr(B $BCs(B $BCt(B $BCu(B $BCv(B $BCw(B $BCx(B $BCy(B $BCz(B $BC{(B $BC|(B $BC}(B $BC~(B
++   $BD!(B $BD"(B $BD#(B $BD$(B $BD%(B $BD&(B $BD'(B $BD((B $BD)(B $BD*(B $BD+(B $BD,(B $BD-(B $BD.(B $BD/(B
++$BD0(B $BD1(B $BD2(B $BD3(B $BD4(B $BD5(B $BD6(B $BD7(B $BD8(B $BD9(B $BD:(B $BD;(B $BD<(B $BD=(B $BD>(B $BD?(B
++$BD@(B $BDA(B $BDB(B $BDC(B $BDD(B $BDE(B $BDF(B $BDG(B $BDH(B $BDI(B $BDJ(B $BDK(B $BDL(B $BDM(B $BDN(B $BDO(B
++$BDP(B $BDQ(B $BDR(B $BDS(B $BDT(B $BDU(B $BDV(B $BDW(B $BDX(B $BDY(B $BDZ(B $BD[(B $BD\(B $BD](B $BD^(B $BD_(B
++$BD`(B $BDa(B $BDb(B $BDc(B $BDd(B $BDe(B $BDf(B $BDg(B $BDh(B $BDi(B $BDj(B $BDk(B $BDl(B $BDm(B $BDn(B $BDo(B
++$BDp(B $BDq(B $BDr(B $BDs(B $BDt(B $BDu(B $BDv(B $BDw(B $BDx(B $BDy(B $BDz(B $BD{(B $BD|(B $BD}(B $BD~(B
++   $BE!(B $BE"(B $BE#(B $BE$(B $BE%(B $BE&(B $BE'(B $BE((B $BE)(B $BE*(B $BE+(B $BE,(B $BE-(B $BE.(B $BE/(B
++$BE0(B $BE1(B $BE2(B $BE3(B $BE4(B $BE5(B $BE6(B $BE7(B $BE8(B $BE9(B $BE:(B $BE;(B $BE<(B $BE=(B $BE>(B $BE?(B
++$BE@(B $BEA(B $BEB(B $BEC(B $BED(B $BEE(B $BEF(B $BEG(B $BEH(B $BEI(B $BEJ(B $BEK(B $BEL(B $BEM(B $BEN(B $BEO(B
++$BEP(B $BEQ(B $BER(B $BES(B $BET(B $BEU(B $BEV(B $BEW(B $BEX(B $BEY(B $BEZ(B $BE[(B $BE\(B $BE](B $BE^(B $BE_(B
++$BE`(B $BEa(B $BEb(B $BEc(B $BEd(B $BEe(B $BEf(B $BEg(B $BEh(B $BEi(B $BEj(B $BEk(B $BEl(B $BEm(B $BEn(B $BEo(B
++$BEp(B $BEq(B $BEr(B $BEs(B $BEt(B $BEu(B $BEv(B $BEw(B $BEx(B $BEy(B $BEz(B $BE{(B $BE|(B $BE}(B $BE~(B
++   $BF!(B $BF"(B $BF#(B $BF$(B $BF%(B $BF&(B $BF'(B $BF((B $BF)(B $BF*(B $BF+(B $BF,(B $BF-(B $BF.(B $BF/(B
++$BF0(B $BF1(B $BF2(B $BF3(B $BF4(B $BF5(B $BF6(B $BF7(B $BF8(B $BF9(B $BF:(B $BF;(B $BF<(B $BF=(B $BF>(B $BF?(B
++$BF@(B $BFA(B $BFB(B $BFC(B $BFD(B $BFE(B $BFF(B $BFG(B $BFH(B $BFI(B $BFJ(B $BFK(B $BFL(B $BFM(B $BFN(B $BFO(B
++$BFP(B $BFQ(B $BFR(B $BFS(B $BFT(B $BFU(B $BFV(B $BFW(B $BFX(B $BFY(B $BFZ(B $BF[(B $BF\(B $BF](B $BF^(B $BF_(B
++$BF`(B $BFa(B $BFb(B $BFc(B $BFd(B $BFe(B $BFf(B $BFg(B $BFh(B $BFi(B $BFj(B $BFk(B $BFl(B $BFm(B $BFn(B $BFo(B
++$BFp(B $BFq(B $BFr(B $BFs(B $BFt(B $BFu(B $BFv(B $BFw(B $BFx(B $BFy(B $BFz(B $BF{(B $BF|(B $BF}(B $BF~(B
++   $BG!(B $BG"(B $BG#(B $BG$(B $BG%(B $BG&(B $BG'(B $BG((B $BG)(B $BG*(B $BG+(B $BG,(B $BG-(B $BG.(B $BG/(B
++$BG0(B $BG1(B $BG2(B $BG3(B $BG4(B $BG5(B $BG6(B $BG7(B $BG8(B $BG9(B $BG:(B $BG;(B $BG<(B $BG=(B $BG>(B $BG?(B
++$BG@(B $BGA(B $BGB(B $BGC(B $BGD(B $BGE(B $BGF(B $BGG(B $BGH(B $BGI(B $BGJ(B $BGK(B $BGL(B $BGM(B $BGN(B $BGO(B
++$BGP(B $BGQ(B $BGR(B $BGS(B $BGT(B $BGU(B $BGV(B $BGW(B $BGX(B $BGY(B $BGZ(B $BG[(B $BG\(B $BG](B $BG^(B $BG_(B
++$BG`(B $BGa(B $BGb(B $BGc(B $BGd(B $BGe(B $BGf(B $BGg(B $BGh(B $BGi(B $BGj(B $BGk(B $BGl(B $BGm(B $BGn(B $BGo(B
++$BGp(B $BGq(B $BGr(B $BGs(B $BGt(B $BGu(B $BGv(B $BGw(B $BGx(B $BGy(B $BGz(B $BG{(B $BG|(B $BG}(B $BG~(B
++   $BH!(B $BH"(B $BH#(B $BH$(B $BH%(B $BH&(B $BH'(B $BH((B $BH)(B $BH*(B $BH+(B $BH,(B $BH-(B $BH.(B $BH/(B
++$BH0(B $BH1(B $BH2(B $BH3(B $BH4(B $BH5(B $BH6(B $BH7(B $BH8(B $BH9(B $BH:(B $BH;(B $BH<(B $BH=(B $BH>(B $BH?(B
++$BH@(B $BHA(B $BHB(B $BHC(B $BHD(B $BHE(B $BHF(B $BHG(B $BHH(B $BHI(B $BHJ(B $BHK(B $BHL(B $BHM(B $BHN(B $BHO(B
++$BHP(B $BHQ(B $BHR(B $BHS(B $BHT(B $BHU(B $BHV(B $BHW(B $BHX(B $BHY(B $BHZ(B $BH[(B $BH\(B $BH](B $BH^(B $BH_(B
++$BH`(B $BHa(B $BHb(B $BHc(B $BHd(B $BHe(B $BHf(B $BHg(B $BHh(B $BHi(B $BHj(B $BHk(B $BHl(B $BHm(B $BHn(B $BHo(B
++$BHp(B $BHq(B $BHr(B $BHs(B $BHt(B $BHu(B $BHv(B $BHw(B $BHx(B $BHy(B $BHz(B $BH{(B $BH|(B $BH}(B $BH~(B
++   $BI!(B $BI"(B $BI#(B $BI$(B $BI%(B $BI&(B $BI'(B $BI((B $BI)(B $BI*(B $BI+(B $BI,(B $BI-(B $BI.(B $BI/(B
++$BI0(B $BI1(B $BI2(B $BI3(B $BI4(B $BI5(B $BI6(B $BI7(B $BI8(B $BI9(B $BI:(B $BI;(B $BI<(B $BI=(B $BI>(B $BI?(B
++$BI@(B $BIA(B $BIB(B $BIC(B $BID(B $BIE(B $BIF(B $BIG(B $BIH(B $BII(B $BIJ(B $BIK(B $BIL(B $BIM(B $BIN(B $BIO(B
++$BIP(B $BIQ(B $BIR(B $BIS(B $BIT(B $BIU(B $BIV(B $BIW(B $BIX(B $BIY(B $BIZ(B $BI[(B $BI\(B $BI](B $BI^(B $BI_(B
++$BI`(B $BIa(B $BIb(B $BIc(B $BId(B $BIe(B $BIf(B $BIg(B $BIh(B $BIi(B $BIj(B $BIk(B $BIl(B $BIm(B $BIn(B $BIo(B
++$BIp(B $BIq(B $BIr(B $BIs(B $BIt(B $BIu(B $BIv(B $BIw(B $BIx(B $BIy(B $BIz(B $BI{(B $BI|(B $BI}(B $BI~(B
++   $BJ!(B $BJ"(B $BJ#(B $BJ$(B $BJ%(B $BJ&(B $BJ'(B $BJ((B $BJ)(B $BJ*(B $BJ+(B $BJ,(B $BJ-(B $BJ.(B $BJ/(B
++$BJ0(B $BJ1(B $BJ2(B $BJ3(B $BJ4(B $BJ5(B $BJ6(B $BJ7(B $BJ8(B $BJ9(B $BJ:(B $BJ;(B $BJ<(B $BJ=(B $BJ>(B $BJ?(B
++$BJ@(B $BJA(B $BJB(B $BJC(B $BJD(B $BJE(B $BJF(B $BJG(B $BJH(B $BJI(B $BJJ(B $BJK(B $BJL(B $BJM(B $BJN(B $BJO(B
++$BJP(B $BJQ(B $BJR(B $BJS(B $BJT(B $BJU(B $BJV(B $BJW(B $BJX(B $BJY(B $BJZ(B $BJ[(B $BJ\(B $BJ](B $BJ^(B $BJ_(B
++$BJ`(B $BJa(B $BJb(B $BJc(B $BJd(B $BJe(B $BJf(B $BJg(B $BJh(B $BJi(B $BJj(B $BJk(B $BJl(B $BJm(B $BJn(B $BJo(B
++$BJp(B $BJq(B $BJr(B $BJs(B $BJt(B $BJu(B $BJv(B $BJw(B $BJx(B $BJy(B $BJz(B $BJ{(B $BJ|(B $BJ}(B $BJ~(B
++   $BK!(B $BK"(B $BK#(B $BK$(B $BK%(B $BK&(B $BK'(B $BK((B $BK)(B $BK*(B $BK+(B $BK,(B $BK-(B $BK.(B $BK/(B
++$BK0(B $BK1(B $BK2(B $BK3(B $BK4(B $BK5(B $BK6(B $BK7(B $BK8(B $BK9(B $BK:(B $BK;(B $BK<(B $BK=(B $BK>(B $BK?(B
++$BK@(B $BKA(B $BKB(B $BKC(B $BKD(B $BKE(B $BKF(B $BKG(B $BKH(B $BKI(B $BKJ(B $BKK(B $BKL(B $BKM(B $BKN(B $BKO(B
++$BKP(B $BKQ(B $BKR(B $BKS(B $BKT(B $BKU(B $BKV(B $BKW(B $BKX(B $BKY(B $BKZ(B $BK[(B $BK\(B $BK](B $BK^(B $BK_(B
++$BK`(B $BKa(B $BKb(B $BKc(B $BKd(B $BKe(B $BKf(B $BKg(B $BKh(B $BKi(B $BKj(B $BKk(B $BKl(B $BKm(B $BKn(B $BKo(B
++$BKp(B $BKq(B $BKr(B $BKs(B $BKt(B $BKu(B $BKv(B $BKw(B $BKx(B $BKy(B $BKz(B $BK{(B $BK|(B $BK}(B $BK~(B
++   $BL!(B $BL"(B $BL#(B $BL$(B $BL%(B $BL&(B $BL'(B $BL((B $BL)(B $BL*(B $BL+(B $BL,(B $BL-(B $BL.(B $BL/(B
++$BL0(B $BL1(B $BL2(B $BL3(B $BL4(B $BL5(B $BL6(B $BL7(B $BL8(B $BL9(B $BL:(B $BL;(B $BL<(B $BL=(B $BL>(B $BL?(B
++$BL@(B $BLA(B $BLB(B $BLC(B $BLD(B $BLE(B $BLF(B $BLG(B $BLH(B $BLI(B $BLJ(B $BLK(B $BLL(B $BLM(B $BLN(B $BLO(B
++$BLP(B $BLQ(B $BLR(B $BLS(B $BLT(B $BLU(B $BLV(B $BLW(B $BLX(B $BLY(B $BLZ(B $BL[(B $BL\(B $BL](B $BL^(B $BL_(B
++$BL`(B $BLa(B $BLb(B $BLc(B $BLd(B $BLe(B $BLf(B $BLg(B $BLh(B $BLi(B $BLj(B $BLk(B $BLl(B $BLm(B $BLn(B $BLo(B
++$BLp(B $BLq(B $BLr(B $BLs(B $BLt(B $BLu(B $BLv(B $BLw(B $BLx(B $BLy(B $BLz(B $BL{(B $BL|(B $BL}(B $BL~(B
++   $BM!(B $BM"(B $BM#(B $BM$(B $BM%(B $BM&(B $BM'(B $BM((B $BM)(B $BM*(B $BM+(B $BM,(B $BM-(B $BM.(B $BM/(B
++$BM0(B $BM1(B $BM2(B $BM3(B $BM4(B $BM5(B $BM6(B $BM7(B $BM8(B $BM9(B $BM:(B $BM;(B $BM<(B $BM=(B $BM>(B $BM?(B
++$BM@(B $BMA(B $BMB(B $BMC(B $BMD(B $BME(B $BMF(B $BMG(B $BMH(B $BMI(B $BMJ(B $BMK(B $BML(B $BMM(B $BMN(B $BMO(B
++$BMP(B $BMQ(B $BMR(B $BMS(B $BMT(B $BMU(B $BMV(B $BMW(B $BMX(B $BMY(B $BMZ(B $BM[(B $BM\(B $BM](B $BM^(B $BM_(B
++$BM`(B $BMa(B $BMb(B $BMc(B $BMd(B $BMe(B $BMf(B $BMg(B $BMh(B $BMi(B $BMj(B $BMk(B $BMl(B $BMm(B $BMn(B $BMo(B
++$BMp(B $BMq(B $BMr(B $BMs(B $BMt(B $BMu(B $BMv(B $BMw(B $BMx(B $BMy(B $BMz(B $BM{(B $BM|(B $BM}(B $BM~(B
++   $BN!(B $BN"(B $BN#(B $BN$(B $BN%(B $BN&(B $BN'(B $BN((B $BN)(B $BN*(B $BN+(B $BN,(B $BN-(B $BN.(B $BN/(B
++$BN0(B $BN1(B $BN2(B $BN3(B $BN4(B $BN5(B $BN6(B $BN7(B $BN8(B $BN9(B $BN:(B $BN;(B $BN<(B $BN=(B $BN>(B $BN?(B
++$BN@(B $BNA(B $BNB(B $BNC(B $BND(B $BNE(B $BNF(B $BNG(B $BNH(B $BNI(B $BNJ(B $BNK(B $BNL(B $BNM(B $BNN(B $BNO(B
++$BNP(B $BNQ(B $BNR(B $BNS(B $BNT(B $BNU(B $BNV(B $BNW(B $BNX(B $BNY(B $BNZ(B $BN[(B $BN\(B $BN](B $BN^(B $BN_(B
++$BN`(B $BNa(B $BNb(B $BNc(B $BNd(B $BNe(B $BNf(B $BNg(B $BNh(B $BNi(B $BNj(B $BNk(B $BNl(B $BNm(B $BNn(B $BNo(B
++$BNp(B $BNq(B $BNr(B $BNs(B $BNt(B $BNu(B $BNv(B $BNw(B $BNx(B $BNy(B $BNz(B $BN{(B $BN|(B $BN}(B $BN~(B
++   $BO!(B $BO"(B $BO#(B $BO$(B $BO%(B $BO&(B $BO'(B $BO((B $BO)(B $BO*(B $BO+(B $BO,(B $BO-(B $BO.(B $BO/(B
++$BO0(B $BO1(B $BO2(B $BO3(B $BO4(B $BO5(B $BO6(B $BO7(B $BO8(B $BO9(B $BO:(B $BO;(B $BO<(B $BO=(B $BO>(B $BO?(B
++$BO@(B $BOA(B $BOB(B $BOC(B $BOD(B $BOE(B $BOF(B $BOG(B $BOH(B $BOI(B $BOJ(B $BOK(B $BOL(B $BOM(B $BON(B $BOO(B
++$BOP(B $BOQ(B $BOR(B $BOS(B
++   $BP!(B $BP"(B $BP#(B $BP$(B $BP%(B $BP&(B $BP'(B $BP((B $BP)(B $BP*(B $BP+(B $BP,(B $BP-(B $BP.(B $BP/(B
++$BP0(B $BP1(B $BP2(B $BP3(B $BP4(B $BP5(B $BP6(B $BP7(B $BP8(B $BP9(B $BP:(B $BP;(B $BP<(B $BP=(B $BP>(B $BP?(B
++$BP@(B $BPA(B $BPB(B $BPC(B $BPD(B $BPE(B $BPF(B $BPG(B $BPH(B $BPI(B $BPJ(B $BPK(B $BPL(B $BPM(B $BPN(B $BPO(B
++$BPP(B $BPQ(B $BPR(B $BPS(B $BPT(B $BPU(B $BPV(B $BPW(B $BPX(B $BPY(B $BPZ(B $BP[(B $BP\(B $BP](B $BP^(B $BP_(B
++$BP`(B $BPa(B $BPb(B $BPc(B $BPd(B $BPe(B $BPf(B $BPg(B $BPh(B $BPi(B $BPj(B $BPk(B $BPl(B $BPm(B $BPn(B $BPo(B
++$BPp(B $BPq(B $BPr(B $BPs(B $BPt(B $BPu(B $BPv(B $BPw(B $BPx(B $BPy(B $BPz(B $BP{(B $BP|(B $BP}(B $BP~(B
++   $BQ!(B $BQ"(B $BQ#(B $BQ$(B $BQ%(B $BQ&(B $BQ'(B $BQ((B $BQ)(B $BQ*(B $BQ+(B $BQ,(B $BQ-(B $BQ.(B $BQ/(B
++$BQ0(B $BQ1(B $BQ2(B $BQ3(B $BQ4(B $BQ5(B $BQ6(B $BQ7(B $BQ8(B $BQ9(B $BQ:(B $BQ;(B $BQ<(B $BQ=(B $BQ>(B $BQ?(B
++$BQ@(B $BQA(B $BQB(B $BQC(B $BQD(B $BQE(B $BQF(B $BQG(B $BQH(B $BQI(B $BQJ(B $BQK(B $BQL(B $BQM(B $BQN(B $BQO(B
++$BQP(B $BQQ(B $BQR(B $BQS(B $BQT(B $BQU(B $BQV(B $BQW(B $BQX(B $BQY(B $BQZ(B $BQ[(B $BQ\(B $BQ](B $BQ^(B $BQ_(B
++$BQ`(B $BQa(B $BQb(B $BQc(B $BQd(B $BQe(B $BQf(B $BQg(B $BQh(B $BQi(B $BQj(B $BQk(B $BQl(B $BQm(B $BQn(B $BQo(B
++$BQp(B $BQq(B $BQr(B $BQs(B $BQt(B $BQu(B $BQv(B $BQw(B $BQx(B $BQy(B $BQz(B $BQ{(B $BQ|(B $BQ}(B $BQ~(B
++   $BR!(B $BR"(B $BR#(B $BR$(B $BR%(B $BR&(B $BR'(B $BR((B $BR)(B $BR*(B $BR+(B $BR,(B $BR-(B $BR.(B $BR/(B
++$BR0(B $BR1(B $BR2(B $BR3(B $BR4(B $BR5(B $BR6(B $BR7(B $BR8(B $BR9(B $BR:(B $BR;(B $BR<(B $BR=(B $BR>(B $BR?(B
++$BR@(B $BRA(B $BRB(B $BRC(B $BRD(B $BRE(B $BRF(B $BRG(B $BRH(B $BRI(B $BRJ(B $BRK(B $BRL(B $BRM(B $BRN(B $BRO(B
++$BRP(B $BRQ(B $BRR(B $BRS(B $BRT(B $BRU(B $BRV(B $BRW(B $BRX(B $BRY(B $BRZ(B $BR[(B $BR\(B $BR](B $BR^(B $BR_(B
++$BR`(B $BRa(B $BRb(B $BRc(B $BRd(B $BRe(B $BRf(B $BRg(B $BRh(B $BRi(B $BRj(B $BRk(B $BRl(B $BRm(B $BRn(B $BRo(B
++$BRp(B $BRq(B $BRr(B $BRs(B $BRt(B $BRu(B $BRv(B $BRw(B $BRx(B $BRy(B $BRz(B $BR{(B $BR|(B $BR}(B $BR~(B
++   $BS!(B $BS"(B $BS#(B $BS$(B $BS%(B $BS&(B $BS'(B $BS((B $BS)(B $BS*(B $BS+(B $BS,(B $BS-(B $BS.(B $BS/(B
++$BS0(B $BS1(B $BS2(B $BS3(B $BS4(B $BS5(B $BS6(B $BS7(B $BS8(B $BS9(B $BS:(B $BS;(B $BS<(B $BS=(B $BS>(B $BS?(B
++$BS@(B $BSA(B $BSB(B $BSC(B $BSD(B $BSE(B $BSF(B $BSG(B $BSH(B $BSI(B $BSJ(B $BSK(B $BSL(B $BSM(B $BSN(B $BSO(B
++$BSP(B $BSQ(B $BSR(B $BSS(B $BST(B $BSU(B $BSV(B $BSW(B $BSX(B $BSY(B $BSZ(B $BS[(B $BS\(B $BS](B $BS^(B $BS_(B
++$BS`(B $BSa(B $BSb(B $BSc(B $BSd(B $BSe(B $BSf(B $BSg(B $BSh(B $BSi(B $BSj(B $BSk(B $BSl(B $BSm(B $BSn(B $BSo(B
++$BSp(B $BSq(B $BSr(B $BSs(B $BSt(B $BSu(B $BSv(B $BSw(B $BSx(B $BSy(B $BSz(B $BS{(B $BS|(B $BS}(B $BS~(B
++   $BT!(B $BT"(B $BT#(B $BT$(B $BT%(B $BT&(B $BT'(B $BT((B $BT)(B $BT*(B $BT+(B $BT,(B $BT-(B $BT.(B $BT/(B
++$BT0(B $BT1(B $BT2(B $BT3(B $BT4(B $BT5(B $BT6(B $BT7(B $BT8(B $BT9(B $BT:(B $BT;(B $BT<(B $BT=(B $BT>(B $BT?(B
++$BT@(B $BTA(B $BTB(B $BTC(B $BTD(B $BTE(B $BTF(B $BTG(B $BTH(B $BTI(B $BTJ(B $BTK(B $BTL(B $BTM(B $BTN(B $BTO(B
++$BTP(B $BTQ(B $BTR(B $BTS(B $BTT(B $BTU(B $BTV(B $BTW(B $BTX(B $BTY(B $BTZ(B $BT[(B $BT\(B $BT](B $BT^(B $BT_(B
++$BT`(B $BTa(B $BTb(B $BTc(B $BTd(B $BTe(B $BTf(B $BTg(B $BTh(B $BTi(B $BTj(B $BTk(B $BTl(B $BTm(B $BTn(B $BTo(B
++$BTp(B $BTq(B $BTr(B $BTs(B $BTt(B $BTu(B $BTv(B $BTw(B $BTx(B $BTy(B $BTz(B $BT{(B $BT|(B $BT}(B $BT~(B
++   $BU!(B $BU"(B $BU#(B $BU$(B $BU%(B $BU&(B $BU'(B $BU((B $BU)(B $BU*(B $BU+(B $BU,(B $BU-(B $BU.(B $BU/(B
++$BU0(B $BU1(B $BU2(B $BU3(B $BU4(B $BU5(B $BU6(B $BU7(B $BU8(B $BU9(B $BU:(B $BU;(B $BU<(B $BU=(B $BU>(B $BU?(B
++$BU@(B $BUA(B $BUB(B $BUC(B $BUD(B $BUE(B $BUF(B $BUG(B $BUH(B $BUI(B $BUJ(B $BUK(B $BUL(B $BUM(B $BUN(B $BUO(B
++$BUP(B $BUQ(B $BUR(B $BUS(B $BUT(B $BUU(B $BUV(B $BUW(B $BUX(B $BUY(B $BUZ(B $BU[(B $BU\(B $BU](B $BU^(B $BU_(B
++$BU`(B $BUa(B $BUb(B $BUc(B $BUd(B $BUe(B $BUf(B $BUg(B $BUh(B $BUi(B $BUj(B $BUk(B $BUl(B $BUm(B $BUn(B $BUo(B
++$BUp(B $BUq(B $BUr(B $BUs(B $BUt(B $BUu(B $BUv(B $BUw(B $BUx(B $BUy(B $BUz(B $BU{(B $BU|(B $BU}(B $BU~(B
++   $BV!(B $BV"(B $BV#(B $BV$(B $BV%(B $BV&(B $BV'(B $BV((B $BV)(B $BV*(B $BV+(B $BV,(B $BV-(B $BV.(B $BV/(B
++$BV0(B $BV1(B $BV2(B $BV3(B $BV4(B $BV5(B $BV6(B $BV7(B $BV8(B $BV9(B $BV:(B $BV;(B $BV<(B $BV=(B $BV>(B $BV?(B
++$BV@(B $BVA(B $BVB(B $BVC(B $BVD(B $BVE(B $BVF(B $BVG(B $BVH(B $BVI(B $BVJ(B $BVK(B $BVL(B $BVM(B $BVN(B $BVO(B
++$BVP(B $BVQ(B $BVR(B $BVS(B $BVT(B $BVU(B $BVV(B $BVW(B $BVX(B $BVY(B $BVZ(B $BV[(B $BV\(B $BV](B $BV^(B $BV_(B
++$BV`(B $BVa(B $BVb(B $BVc(B $BVd(B $BVe(B $BVf(B $BVg(B $BVh(B $BVi(B $BVj(B $BVk(B $BVl(B $BVm(B $BVn(B $BVo(B
++$BVp(B $BVq(B $BVr(B $BVs(B $BVt(B $BVu(B $BVv(B $BVw(B $BVx(B $BVy(B $BVz(B $BV{(B $BV|(B $BV}(B $BV~(B
++   $BW!(B $BW"(B $BW#(B $BW$(B $BW%(B $BW&(B $BW'(B $BW((B $BW)(B $BW*(B $BW+(B $BW,(B $BW-(B $BW.(B $BW/(B
++$BW0(B $BW1(B $BW2(B $BW3(B $BW4(B $BW5(B $BW6(B $BW7(B $BW8(B $BW9(B $BW:(B $BW;(B $BW<(B $BW=(B $BW>(B $BW?(B
++$BW@(B $BWA(B $BWB(B $BWC(B $BWD(B $BWE(B $BWF(B $BWG(B $BWH(B $BWI(B $BWJ(B $BWK(B $BWL(B $BWM(B $BWN(B $BWO(B
++$BWP(B $BWQ(B $BWR(B $BWS(B $BWT(B $BWU(B $BWV(B $BWW(B $BWX(B $BWY(B $BWZ(B $BW[(B $BW\(B $BW](B $BW^(B $BW_(B
++$BW`(B $BWa(B $BWb(B $BWc(B $BWd(B $BWe(B $BWf(B $BWg(B $BWh(B $BWi(B $BWj(B $BWk(B $BWl(B $BWm(B $BWn(B $BWo(B
++$BWp(B $BWq(B $BWr(B $BWs(B $BWt(B $BWu(B $BWv(B $BWw(B $BWx(B $BWy(B $BWz(B $BW{(B $BW|(B $BW}(B $BW~(B
++   $BX!(B $BX"(B $BX#(B $BX$(B $BX%(B $BX&(B $BX'(B $BX((B $BX)(B $BX*(B $BX+(B $BX,(B $BX-(B $BX.(B $BX/(B
++$BX0(B $BX1(B $BX2(B $BX3(B $BX4(B $BX5(B $BX6(B $BX7(B $BX8(B $BX9(B $BX:(B $BX;(B $BX<(B $BX=(B $BX>(B $BX?(B
++$BX@(B $BXA(B $BXB(B $BXC(B $BXD(B $BXE(B $BXF(B $BXG(B $BXH(B $BXI(B $BXJ(B $BXK(B $BXL(B $BXM(B $BXN(B $BXO(B
++$BXP(B $BXQ(B $BXR(B $BXS(B $BXT(B $BXU(B $BXV(B $BXW(B $BXX(B $BXY(B $BXZ(B $BX[(B $BX\(B $BX](B $BX^(B $BX_(B
++$BX`(B $BXa(B $BXb(B $BXc(B $BXd(B $BXe(B $BXf(B $BXg(B $BXh(B $BXi(B $BXj(B $BXk(B $BXl(B $BXm(B $BXn(B $BXo(B
++$BXp(B $BXq(B $BXr(B $BXs(B $BXt(B $BXu(B $BXv(B $BXw(B $BXx(B $BXy(B $BXz(B $BX{(B $BX|(B $BX}(B $BX~(B
++   $BY!(B $BY"(B $BY#(B $BY$(B $BY%(B $BY&(B $BY'(B $BY((B $BY)(B $BY*(B $BY+(B $BY,(B $BY-(B $BY.(B $BY/(B
++$BY0(B $BY1(B $BY2(B $BY3(B $BY4(B $BY5(B $BY6(B $BY7(B $BY8(B $BY9(B $BY:(B $BY;(B $BY<(B $BY=(B $BY>(B $BY?(B
++$BY@(B $BYA(B $BYB(B $BYC(B $BYD(B $BYE(B $BYF(B $BYG(B $BYH(B $BYI(B $BYJ(B $BYK(B $BYL(B $BYM(B $BYN(B $BYO(B
++$BYP(B $BYQ(B $BYR(B $BYS(B $BYT(B $BYU(B $BYV(B $BYW(B $BYX(B $BYY(B $BYZ(B $BY[(B $BY\(B $BY](B $BY^(B $BY_(B
++$BY`(B $BYa(B $BYb(B $BYc(B $BYd(B $BYe(B $BYf(B $BYg(B $BYh(B $BYi(B $BYj(B $BYk(B $BYl(B $BYm(B $BYn(B $BYo(B
++$BYp(B $BYq(B $BYr(B $BYs(B $BYt(B $BYu(B $BYv(B $BYw(B $BYx(B $BYy(B $BYz(B $BY{(B $BY|(B $BY}(B $BY~(B
++   $BZ!(B $BZ"(B $BZ#(B $BZ$(B $BZ%(B $BZ&(B $BZ'(B $BZ((B $BZ)(B $BZ*(B $BZ+(B $BZ,(B $BZ-(B $BZ.(B $BZ/(B
++$BZ0(B $BZ1(B $BZ2(B $BZ3(B $BZ4(B $BZ5(B $BZ6(B $BZ7(B $BZ8(B $BZ9(B $BZ:(B $BZ;(B $BZ<(B $BZ=(B $BZ>(B $BZ?(B
++$BZ@(B $BZA(B $BZB(B $BZC(B $BZD(B $BZE(B $BZF(B $BZG(B $BZH(B $BZI(B $BZJ(B $BZK(B $BZL(B $BZM(B $BZN(B $BZO(B
++$BZP(B $BZQ(B $BZR(B $BZS(B $BZT(B $BZU(B $BZV(B $BZW(B $BZX(B $BZY(B $BZZ(B $BZ[(B $BZ\(B $BZ](B $BZ^(B $BZ_(B
++$BZ`(B $BZa(B $BZb(B $BZc(B $BZd(B $BZe(B $BZf(B $BZg(B $BZh(B $BZi(B $BZj(B $BZk(B $BZl(B $BZm(B $BZn(B $BZo(B
++$BZp(B $BZq(B $BZr(B $BZs(B $BZt(B $BZu(B $BZv(B $BZw(B $BZx(B $BZy(B $BZz(B $BZ{(B $BZ|(B $BZ}(B $BZ~(B
++   $B[!(B $B["(B $B[#(B $B[$(B $B[%(B $B[&(B $B['(B $B[((B $B[)(B $B[*(B $B[+(B $B[,(B $B[-(B $B[.(B $B[/(B
++$B[0(B $B[1(B $B[2(B $B[3(B $B[4(B $B[5(B $B[6(B $B[7(B $B[8(B $B[9(B $B[:(B $B[;(B $B[<(B $B[=(B $B[>(B $B[?(B
++$B[@(B $B[A(B $B[B(B $B[C(B $B[D(B $B[E(B $B[F(B $B[G(B $B[H(B $B[I(B $B[J(B $B[K(B $B[L(B $B[M(B $B[N(B $B[O(B
++$B[P(B $B[Q(B $B[R(B $B[S(B $B[T(B $B[U(B $B[V(B $B[W(B $B[X(B $B[Y(B $B[Z(B $B[[(B $B[\(B $B[](B $B[^(B $B[_(B
++$B[`(B $B[a(B $B[b(B $B[c(B $B[d(B $B[e(B $B[f(B $B[g(B $B[h(B $B[i(B $B[j(B $B[k(B $B[l(B $B[m(B $B[n(B $B[o(B
++$B[p(B $B[q(B $B[r(B $B[s(B $B[t(B $B[u(B $B[v(B $B[w(B $B[x(B $B[y(B $B[z(B $B[{(B $B[|(B $B[}(B $B[~(B
++   $B\!(B $B\"(B $B\#(B $B\$(B $B\%(B $B\&(B $B\'(B $B\((B $B\)(B $B\*(B $B\+(B $B\,(B $B\-(B $B\.(B $B\/(B
++$B\0(B $B\1(B $B\2(B $B\3(B $B\4(B $B\5(B $B\6(B $B\7(B $B\8(B $B\9(B $B\:(B $B\;(B $B\<(B $B\=(B $B\>(B $B\?(B
++$B\@(B $B\A(B $B\B(B $B\C(B $B\D(B $B\E(B $B\F(B $B\G(B $B\H(B $B\I(B $B\J(B $B\K(B $B\L(B $B\M(B $B\N(B $B\O(B
++$B\P(B $B\Q(B $B\R(B $B\S(B $B\T(B $B\U(B $B\V(B $B\W(B $B\X(B $B\Y(B $B\Z(B $B\[(B $B\\(B $B\](B $B\^(B $B\_(B
++$B\`(B $B\a(B $B\b(B $B\c(B $B\d(B $B\e(B $B\f(B $B\g(B $B\h(B $B\i(B $B\j(B $B\k(B $B\l(B $B\m(B $B\n(B $B\o(B
++$B\p(B $B\q(B $B\r(B $B\s(B $B\t(B $B\u(B $B\v(B $B\w(B $B\x(B $B\y(B $B\z(B $B\{(B $B\|(B $B\}(B $B\~(B
++   $B]!(B $B]"(B $B]#(B $B]$(B $B]%(B $B]&(B $B]'(B $B]((B $B])(B $B]*(B $B]+(B $B],(B $B]-(B $B].(B $B]/(B
++$B]0(B $B]1(B $B]2(B $B]3(B $B]4(B $B]5(B $B]6(B $B]7(B $B]8(B $B]9(B $B]:(B $B];(B $B]<(B $B]=(B $B]>(B $B]?(B
++$B]@(B $B]A(B $B]B(B $B]C(B $B]D(B $B]E(B $B]F(B $B]G(B $B]H(B $B]I(B $B]J(B $B]K(B $B]L(B $B]M(B $B]N(B $B]O(B
++$B]P(B $B]Q(B $B]R(B $B]S(B $B]T(B $B]U(B $B]V(B $B]W(B $B]X(B $B]Y(B $B]Z(B $B][(B $B]\(B $B]](B $B]^(B $B]_(B
++$B]`(B $B]a(B $B]b(B $B]c(B $B]d(B $B]e(B $B]f(B $B]g(B $B]h(B $B]i(B $B]j(B $B]k(B $B]l(B $B]m(B $B]n(B $B]o(B
++$B]p(B $B]q(B $B]r(B $B]s(B $B]t(B $B]u(B $B]v(B $B]w(B $B]x(B $B]y(B $B]z(B $B]{(B $B]|(B $B]}(B $B]~(B
++   $B^!(B $B^"(B $B^#(B $B^$(B $B^%(B $B^&(B $B^'(B $B^((B $B^)(B $B^*(B $B^+(B $B^,(B $B^-(B $B^.(B $B^/(B
++$B^0(B $B^1(B $B^2(B $B^3(B $B^4(B $B^5(B $B^6(B $B^7(B $B^8(B $B^9(B $B^:(B $B^;(B $B^<(B $B^=(B $B^>(B $B^?(B
++$B^@(B $B^A(B $B^B(B $B^C(B $B^D(B $B^E(B $B^F(B $B^G(B $B^H(B $B^I(B $B^J(B $B^K(B $B^L(B $B^M(B $B^N(B $B^O(B
++$B^P(B $B^Q(B $B^R(B $B^S(B $B^T(B $B^U(B $B^V(B $B^W(B $B^X(B $B^Y(B $B^Z(B $B^[(B $B^\(B $B^](B $B^^(B $B^_(B
++$B^`(B $B^a(B $B^b(B $B^c(B $B^d(B $B^e(B $B^f(B $B^g(B $B^h(B $B^i(B $B^j(B $B^k(B $B^l(B $B^m(B $B^n(B $B^o(B
++$B^p(B $B^q(B $B^r(B $B^s(B $B^t(B $B^u(B $B^v(B $B^w(B $B^x(B $B^y(B $B^z(B $B^{(B $B^|(B $B^}(B $B^~(B
++   $B_!(B $B_"(B $B_#(B $B_$(B $B_%(B $B_&(B $B_'(B $B_((B $B_)(B $B_*(B $B_+(B $B_,(B $B_-(B $B_.(B $B_/(B
++$B_0(B $B_1(B $B_2(B $B_3(B $B_4(B $B_5(B $B_6(B $B_7(B $B_8(B $B_9(B $B_:(B $B_;(B $B_<(B $B_=(B $B_>(B $B_?(B
++$B_@(B $B_A(B $B_B(B $B_C(B $B_D(B $B_E(B $B_F(B $B_G(B $B_H(B $B_I(B $B_J(B $B_K(B $B_L(B $B_M(B $B_N(B $B_O(B
++$B_P(B $B_Q(B $B_R(B $B_S(B $B_T(B $B_U(B $B_V(B $B_W(B $B_X(B $B_Y(B $B_Z(B $B_[(B $B_\(B $B_](B $B_^(B $B__(B
++$B_`(B $B_a(B $B_b(B $B_c(B $B_d(B $B_e(B $B_f(B $B_g(B $B_h(B $B_i(B $B_j(B $B_k(B $B_l(B $B_m(B $B_n(B $B_o(B
++$B_p(B $B_q(B $B_r(B $B_s(B $B_t(B $B_u(B $B_v(B $B_w(B $B_x(B $B_y(B $B_z(B $B_{(B $B_|(B $B_}(B $B_~(B
++   $B`!(B $B`"(B $B`#(B $B`$(B $B`%(B $B`&(B $B`'(B $B`((B $B`)(B $B`*(B $B`+(B $B`,(B $B`-(B $B`.(B $B`/(B
++$B`0(B $B`1(B $B`2(B $B`3(B $B`4(B $B`5(B $B`6(B $B`7(B $B`8(B $B`9(B $B`:(B $B`;(B $B`<(B $B`=(B $B`>(B $B`?(B
++$B`@(B $B`A(B $B`B(B $B`C(B $B`D(B $B`E(B $B`F(B $B`G(B $B`H(B $B`I(B $B`J(B $B`K(B $B`L(B $B`M(B $B`N(B $B`O(B
++$B`P(B $B`Q(B $B`R(B $B`S(B $B`T(B $B`U(B $B`V(B $B`W(B $B`X(B $B`Y(B $B`Z(B $B`[(B $B`\(B $B`](B $B`^(B $B`_(B
++$B``(B $B`a(B $B`b(B $B`c(B $B`d(B $B`e(B $B`f(B $B`g(B $B`h(B $B`i(B $B`j(B $B`k(B $B`l(B $B`m(B $B`n(B $B`o(B
++$B`p(B $B`q(B $B`r(B $B`s(B $B`t(B $B`u(B $B`v(B $B`w(B $B`x(B $B`y(B $B`z(B $B`{(B $B`|(B $B`}(B $B`~(B
++   $Ba!(B $Ba"(B $Ba#(B $Ba$(B $Ba%(B $Ba&(B $Ba'(B $Ba((B $Ba)(B $Ba*(B $Ba+(B $Ba,(B $Ba-(B $Ba.(B $Ba/(B
++$Ba0(B $Ba1(B $Ba2(B $Ba3(B $Ba4(B $Ba5(B $Ba6(B $Ba7(B $Ba8(B $Ba9(B $Ba:(B $Ba;(B $Ba<(B $Ba=(B $Ba>(B $Ba?(B
++$Ba@(B $BaA(B $BaB(B $BaC(B $BaD(B $BaE(B $BaF(B $BaG(B $BaH(B $BaI(B $BaJ(B $BaK(B $BaL(B $BaM(B $BaN(B $BaO(B
++$BaP(B $BaQ(B $BaR(B $BaS(B $BaT(B $BaU(B $BaV(B $BaW(B $BaX(B $BaY(B $BaZ(B $Ba[(B $Ba\(B $Ba](B $Ba^(B $Ba_(B
++$Ba`(B $Baa(B $Bab(B $Bac(B $Bad(B $Bae(B $Baf(B $Bag(B $Bah(B $Bai(B $Baj(B $Bak(B $Bal(B $Bam(B $Ban(B $Bao(B
++$Bap(B $Baq(B $Bar(B $Bas(B $Bat(B $Bau(B $Bav(B $Baw(B $Bax(B $Bay(B $Baz(B $Ba{(B $Ba|(B $Ba}(B $Ba~(B
++   $Bb!(B $Bb"(B $Bb#(B $Bb$(B $Bb%(B $Bb&(B $Bb'(B $Bb((B $Bb)(B $Bb*(B $Bb+(B $Bb,(B $Bb-(B $Bb.(B $Bb/(B
++$Bb0(B $Bb1(B $Bb2(B $Bb3(B $Bb4(B $Bb5(B $Bb6(B $Bb7(B $Bb8(B $Bb9(B $Bb:(B $Bb;(B $Bb<(B $Bb=(B $Bb>(B $Bb?(B
++$Bb@(B $BbA(B $BbB(B $BbC(B $BbD(B $BbE(B $BbF(B $BbG(B $BbH(B $BbI(B $BbJ(B $BbK(B $BbL(B $BbM(B $BbN(B $BbO(B
++$BbP(B $BbQ(B $BbR(B $BbS(B $BbT(B $BbU(B $BbV(B $BbW(B $BbX(B $BbY(B $BbZ(B $Bb[(B $Bb\(B $Bb](B $Bb^(B $Bb_(B
++$Bb`(B $Bba(B $Bbb(B $Bbc(B $Bbd(B $Bbe(B $Bbf(B $Bbg(B $Bbh(B $Bbi(B $Bbj(B $Bbk(B $Bbl(B $Bbm(B $Bbn(B $Bbo(B
++$Bbp(B $Bbq(B $Bbr(B $Bbs(B $Bbt(B $Bbu(B $Bbv(B $Bbw(B $Bbx(B $Bby(B $Bbz(B $Bb{(B $Bb|(B $Bb}(B $Bb~(B
++   $Bc!(B $Bc"(B $Bc#(B $Bc$(B $Bc%(B $Bc&(B $Bc'(B $Bc((B $Bc)(B $Bc*(B $Bc+(B $Bc,(B $Bc-(B $Bc.(B $Bc/(B
++$Bc0(B $Bc1(B $Bc2(B $Bc3(B $Bc4(B $Bc5(B $Bc6(B $Bc7(B $Bc8(B $Bc9(B $Bc:(B $Bc;(B $Bc<(B $Bc=(B $Bc>(B $Bc?(B
++$Bc@(B $BcA(B $BcB(B $BcC(B $BcD(B $BcE(B $BcF(B $BcG(B $BcH(B $BcI(B $BcJ(B $BcK(B $BcL(B $BcM(B $BcN(B $BcO(B
++$BcP(B $BcQ(B $BcR(B $BcS(B $BcT(B $BcU(B $BcV(B $BcW(B $BcX(B $BcY(B $BcZ(B $Bc[(B $Bc\(B $Bc](B $Bc^(B $Bc_(B
++$Bc`(B $Bca(B $Bcb(B $Bcc(B $Bcd(B $Bce(B $Bcf(B $Bcg(B $Bch(B $Bci(B $Bcj(B $Bck(B $Bcl(B $Bcm(B $Bcn(B $Bco(B
++$Bcp(B $Bcq(B $Bcr(B $Bcs(B $Bct(B $Bcu(B $Bcv(B $Bcw(B $Bcx(B $Bcy(B $Bcz(B $Bc{(B $Bc|(B $Bc}(B $Bc~(B
++   $Bd!(B $Bd"(B $Bd#(B $Bd$(B $Bd%(B $Bd&(B $Bd'(B $Bd((B $Bd)(B $Bd*(B $Bd+(B $Bd,(B $Bd-(B $Bd.(B $Bd/(B
++$Bd0(B $Bd1(B $Bd2(B $Bd3(B $Bd4(B $Bd5(B $Bd6(B $Bd7(B $Bd8(B $Bd9(B $Bd:(B $Bd;(B $Bd<(B $Bd=(B $Bd>(B $Bd?(B
++$Bd@(B $BdA(B $BdB(B $BdC(B $BdD(B $BdE(B $BdF(B $BdG(B $BdH(B $BdI(B $BdJ(B $BdK(B $BdL(B $BdM(B $BdN(B $BdO(B
++$BdP(B $BdQ(B $BdR(B $BdS(B $BdT(B $BdU(B $BdV(B $BdW(B $BdX(B $BdY(B $BdZ(B $Bd[(B $Bd\(B $Bd](B $Bd^(B $Bd_(B
++$Bd`(B $Bda(B $Bdb(B $Bdc(B $Bdd(B $Bde(B $Bdf(B $Bdg(B $Bdh(B $Bdi(B $Bdj(B $Bdk(B $Bdl(B $Bdm(B $Bdn(B $Bdo(B
++$Bdp(B $Bdq(B $Bdr(B $Bds(B $Bdt(B $Bdu(B $Bdv(B $Bdw(B $Bdx(B $Bdy(B $Bdz(B $Bd{(B $Bd|(B $Bd}(B $Bd~(B
++   $Be!(B $Be"(B $Be#(B $Be$(B $Be%(B $Be&(B $Be'(B $Be((B $Be)(B $Be*(B $Be+(B $Be,(B $Be-(B $Be.(B $Be/(B
++$Be0(B $Be1(B $Be2(B $Be3(B $Be4(B $Be5(B $Be6(B $Be7(B $Be8(B $Be9(B $Be:(B $Be;(B $Be<(B $Be=(B $Be>(B $Be?(B
++$Be@(B $BeA(B $BeB(B $BeC(B $BeD(B $BeE(B $BeF(B $BeG(B $BeH(B $BeI(B $BeJ(B $BeK(B $BeL(B $BeM(B $BeN(B $BeO(B
++$BeP(B $BeQ(B $BeR(B $BeS(B $BeT(B $BeU(B $BeV(B $BeW(B $BeX(B $BeY(B $BeZ(B $Be[(B $Be\(B $Be](B $Be^(B $Be_(B
++$Be`(B $Bea(B $Beb(B $Bec(B $Bed(B $Bee(B $Bef(B $Beg(B $Beh(B $Bei(B $Bej(B $Bek(B $Bel(B $Bem(B $Ben(B $Beo(B
++$Bep(B $Beq(B $Ber(B $Bes(B $Bet(B $Beu(B $Bev(B $Bew(B $Bex(B $Bey(B $Bez(B $Be{(B $Be|(B $Be}(B $Be~(B
++   $Bf!(B $Bf"(B $Bf#(B $Bf$(B $Bf%(B $Bf&(B $Bf'(B $Bf((B $Bf)(B $Bf*(B $Bf+(B $Bf,(B $Bf-(B $Bf.(B $Bf/(B
++$Bf0(B $Bf1(B $Bf2(B $Bf3(B $Bf4(B $Bf5(B $Bf6(B $Bf7(B $Bf8(B $Bf9(B $Bf:(B $Bf;(B $Bf<(B $Bf=(B $Bf>(B $Bf?(B
++$Bf@(B $BfA(B $BfB(B $BfC(B $BfD(B $BfE(B $BfF(B $BfG(B $BfH(B $BfI(B $BfJ(B $BfK(B $BfL(B $BfM(B $BfN(B $BfO(B
++$BfP(B $BfQ(B $BfR(B $BfS(B $BfT(B $BfU(B $BfV(B $BfW(B $BfX(B $BfY(B $BfZ(B $Bf[(B $Bf\(B $Bf](B $Bf^(B $Bf_(B
++$Bf`(B $Bfa(B $Bfb(B $Bfc(B $Bfd(B $Bfe(B $Bff(B $Bfg(B $Bfh(B $Bfi(B $Bfj(B $Bfk(B $Bfl(B $Bfm(B $Bfn(B $Bfo(B
++$Bfp(B $Bfq(B $Bfr(B $Bfs(B $Bft(B $Bfu(B $Bfv(B $Bfw(B $Bfx(B $Bfy(B $Bfz(B $Bf{(B $Bf|(B $Bf}(B $Bf~(B
++   $Bg!(B $Bg"(B $Bg#(B $Bg$(B $Bg%(B $Bg&(B $Bg'(B $Bg((B $Bg)(B $Bg*(B $Bg+(B $Bg,(B $Bg-(B $Bg.(B $Bg/(B
++$Bg0(B $Bg1(B $Bg2(B $Bg3(B $Bg4(B $Bg5(B $Bg6(B $Bg7(B $Bg8(B $Bg9(B $Bg:(B $Bg;(B $Bg<(B $Bg=(B $Bg>(B $Bg?(B
++$Bg@(B $BgA(B $BgB(B $BgC(B $BgD(B $BgE(B $BgF(B $BgG(B $BgH(B $BgI(B $BgJ(B $BgK(B $BgL(B $BgM(B $BgN(B $BgO(B
++$BgP(B $BgQ(B $BgR(B $BgS(B $BgT(B $BgU(B $BgV(B $BgW(B $BgX(B $BgY(B $BgZ(B $Bg[(B $Bg\(B $Bg](B $Bg^(B $Bg_(B
++$Bg`(B $Bga(B $Bgb(B $Bgc(B $Bgd(B $Bge(B $Bgf(B $Bgg(B $Bgh(B $Bgi(B $Bgj(B $Bgk(B $Bgl(B $Bgm(B $Bgn(B $Bgo(B
++$Bgp(B $Bgq(B $Bgr(B $Bgs(B $Bgt(B $Bgu(B $Bgv(B $Bgw(B $Bgx(B $Bgy(B $Bgz(B $Bg{(B $Bg|(B $Bg}(B $Bg~(B
++   $Bh!(B $Bh"(B $Bh#(B $Bh$(B $Bh%(B $Bh&(B $Bh'(B $Bh((B $Bh)(B $Bh*(B $Bh+(B $Bh,(B $Bh-(B $Bh.(B $Bh/(B
++$Bh0(B $Bh1(B $Bh2(B $Bh3(B $Bh4(B $Bh5(B $Bh6(B $Bh7(B $Bh8(B $Bh9(B $Bh:(B $Bh;(B $Bh<(B $Bh=(B $Bh>(B $Bh?(B
++$Bh@(B $BhA(B $BhB(B $BhC(B $BhD(B $BhE(B $BhF(B $BhG(B $BhH(B $BhI(B $BhJ(B $BhK(B $BhL(B $BhM(B $BhN(B $BhO(B
++$BhP(B $BhQ(B $BhR(B $BhS(B $BhT(B $BhU(B $BhV(B $BhW(B $BhX(B $BhY(B $BhZ(B $Bh[(B $Bh\(B $Bh](B $Bh^(B $Bh_(B
++$Bh`(B $Bha(B $Bhb(B $Bhc(B $Bhd(B $Bhe(B $Bhf(B $Bhg(B $Bhh(B $Bhi(B $Bhj(B $Bhk(B $Bhl(B $Bhm(B $Bhn(B $Bho(B
++$Bhp(B $Bhq(B $Bhr(B $Bhs(B $Bht(B $Bhu(B $Bhv(B $Bhw(B $Bhx(B $Bhy(B $Bhz(B $Bh{(B $Bh|(B $Bh}(B $Bh~(B
++   $Bi!(B $Bi"(B $Bi#(B $Bi$(B $Bi%(B $Bi&(B $Bi'(B $Bi((B $Bi)(B $Bi*(B $Bi+(B $Bi,(B $Bi-(B $Bi.(B $Bi/(B
++$Bi0(B $Bi1(B $Bi2(B $Bi3(B $Bi4(B $Bi5(B $Bi6(B $Bi7(B $Bi8(B $Bi9(B $Bi:(B $Bi;(B $Bi<(B $Bi=(B $Bi>(B $Bi?(B
++$Bi@(B $BiA(B $BiB(B $BiC(B $BiD(B $BiE(B $BiF(B $BiG(B $BiH(B $BiI(B $BiJ(B $BiK(B $BiL(B $BiM(B $BiN(B $BiO(B
++$BiP(B $BiQ(B $BiR(B $BiS(B $BiT(B $BiU(B $BiV(B $BiW(B $BiX(B $BiY(B $BiZ(B $Bi[(B $Bi\(B $Bi](B $Bi^(B $Bi_(B
++$Bi`(B $Bia(B $Bib(B $Bic(B $Bid(B $Bie(B $Bif(B $Big(B $Bih(B $Bii(B $Bij(B $Bik(B $Bil(B $Bim(B $Bin(B $Bio(B
++$Bip(B $Biq(B $Bir(B $Bis(B $Bit(B $Biu(B $Biv(B $Biw(B $Bix(B $Biy(B $Biz(B $Bi{(B $Bi|(B $Bi}(B $Bi~(B
++   $Bj!(B $Bj"(B $Bj#(B $Bj$(B $Bj%(B $Bj&(B $Bj'(B $Bj((B $Bj)(B $Bj*(B $Bj+(B $Bj,(B $Bj-(B $Bj.(B $Bj/(B
++$Bj0(B $Bj1(B $Bj2(B $Bj3(B $Bj4(B $Bj5(B $Bj6(B $Bj7(B $Bj8(B $Bj9(B $Bj:(B $Bj;(B $Bj<(B $Bj=(B $Bj>(B $Bj?(B
++$Bj@(B $BjA(B $BjB(B $BjC(B $BjD(B $BjE(B $BjF(B $BjG(B $BjH(B $BjI(B $BjJ(B $BjK(B $BjL(B $BjM(B $BjN(B $BjO(B
++$BjP(B $BjQ(B $BjR(B $BjS(B $BjT(B $BjU(B $BjV(B $BjW(B $BjX(B $BjY(B $BjZ(B $Bj[(B $Bj\(B $Bj](B $Bj^(B $Bj_(B
++$Bj`(B $Bja(B $Bjb(B $Bjc(B $Bjd(B $Bje(B $Bjf(B $Bjg(B $Bjh(B $Bji(B $Bjj(B $Bjk(B $Bjl(B $Bjm(B $Bjn(B $Bjo(B
++$Bjp(B $Bjq(B $Bjr(B $Bjs(B $Bjt(B $Bju(B $Bjv(B $Bjw(B $Bjx(B $Bjy(B $Bjz(B $Bj{(B $Bj|(B $Bj}(B $Bj~(B
++   $Bk!(B $Bk"(B $Bk#(B $Bk$(B $Bk%(B $Bk&(B $Bk'(B $Bk((B $Bk)(B $Bk*(B $Bk+(B $Bk,(B $Bk-(B $Bk.(B $Bk/(B
++$Bk0(B $Bk1(B $Bk2(B $Bk3(B $Bk4(B $Bk5(B $Bk6(B $Bk7(B $Bk8(B $Bk9(B $Bk:(B $Bk;(B $Bk<(B $Bk=(B $Bk>(B $Bk?(B
++$Bk@(B $BkA(B $BkB(B $BkC(B $BkD(B $BkE(B $BkF(B $BkG(B $BkH(B $BkI(B $BkJ(B $BkK(B $BkL(B $BkM(B $BkN(B $BkO(B
++$BkP(B $BkQ(B $BkR(B $BkS(B $BkT(B $BkU(B $BkV(B $BkW(B $BkX(B $BkY(B $BkZ(B $Bk[(B $Bk\(B $Bk](B $Bk^(B $Bk_(B
++$Bk`(B $Bka(B $Bkb(B $Bkc(B $Bkd(B $Bke(B $Bkf(B $Bkg(B $Bkh(B $Bki(B $Bkj(B $Bkk(B $Bkl(B $Bkm(B $Bkn(B $Bko(B
++$Bkp(B $Bkq(B $Bkr(B $Bks(B $Bkt(B $Bku(B $Bkv(B $Bkw(B $Bkx(B $Bky(B $Bkz(B $Bk{(B $Bk|(B $Bk}(B $Bk~(B
++   $Bl!(B $Bl"(B $Bl#(B $Bl$(B $Bl%(B $Bl&(B $Bl'(B $Bl((B $Bl)(B $Bl*(B $Bl+(B $Bl,(B $Bl-(B $Bl.(B $Bl/(B
++$Bl0(B $Bl1(B $Bl2(B $Bl3(B $Bl4(B $Bl5(B $Bl6(B $Bl7(B $Bl8(B $Bl9(B $Bl:(B $Bl;(B $Bl<(B $Bl=(B $Bl>(B $Bl?(B
++$Bl@(B $BlA(B $BlB(B $BlC(B $BlD(B $BlE(B $BlF(B $BlG(B $BlH(B $BlI(B $BlJ(B $BlK(B $BlL(B $BlM(B $BlN(B $BlO(B
++$BlP(B $BlQ(B $BlR(B $BlS(B $BlT(B $BlU(B $BlV(B $BlW(B $BlX(B $BlY(B $BlZ(B $Bl[(B $Bl\(B $Bl](B $Bl^(B $Bl_(B
++$Bl`(B $Bla(B $Blb(B $Blc(B $Bld(B $Ble(B $Blf(B $Blg(B $Blh(B $Bli(B $Blj(B $Blk(B $Bll(B $Blm(B $Bln(B $Blo(B
++$Blp(B $Blq(B $Blr(B $Bls(B $Blt(B $Blu(B $Blv(B $Blw(B $Blx(B $Bly(B $Blz(B $Bl{(B $Bl|(B $Bl}(B $Bl~(B
++   $Bm!(B $Bm"(B $Bm#(B $Bm$(B $Bm%(B $Bm&(B $Bm'(B $Bm((B $Bm)(B $Bm*(B $Bm+(B $Bm,(B $Bm-(B $Bm.(B $Bm/(B
++$Bm0(B $Bm1(B $Bm2(B $Bm3(B $Bm4(B $Bm5(B $Bm6(B $Bm7(B $Bm8(B $Bm9(B $Bm:(B $Bm;(B $Bm<(B $Bm=(B $Bm>(B $Bm?(B
++$Bm@(B $BmA(B $BmB(B $BmC(B $BmD(B $BmE(B $BmF(B $BmG(B $BmH(B $BmI(B $BmJ(B $BmK(B $BmL(B $BmM(B $BmN(B $BmO(B
++$BmP(B $BmQ(B $BmR(B $BmS(B $BmT(B $BmU(B $BmV(B $BmW(B $BmX(B $BmY(B $BmZ(B $Bm[(B $Bm\(B $Bm](B $Bm^(B $Bm_(B
++$Bm`(B $Bma(B $Bmb(B $Bmc(B $Bmd(B $Bme(B $Bmf(B $Bmg(B $Bmh(B $Bmi(B $Bmj(B $Bmk(B $Bml(B $Bmm(B $Bmn(B $Bmo(B
++$Bmp(B $Bmq(B $Bmr(B $Bms(B $Bmt(B $Bmu(B $Bmv(B $Bmw(B $Bmx(B $Bmy(B $Bmz(B $Bm{(B $Bm|(B $Bm}(B $Bm~(B
++   $Bn!(B $Bn"(B $Bn#(B $Bn$(B $Bn%(B $Bn&(B $Bn'(B $Bn((B $Bn)(B $Bn*(B $Bn+(B $Bn,(B $Bn-(B $Bn.(B $Bn/(B
++$Bn0(B $Bn1(B $Bn2(B $Bn3(B $Bn4(B $Bn5(B $Bn6(B $Bn7(B $Bn8(B $Bn9(B $Bn:(B $Bn;(B $Bn<(B $Bn=(B $Bn>(B $Bn?(B
++$Bn@(B $BnA(B $BnB(B $BnC(B $BnD(B $BnE(B $BnF(B $BnG(B $BnH(B $BnI(B $BnJ(B $BnK(B $BnL(B $BnM(B $BnN(B $BnO(B
++$BnP(B $BnQ(B $BnR(B $BnS(B $BnT(B $BnU(B $BnV(B $BnW(B $BnX(B $BnY(B $BnZ(B $Bn[(B $Bn\(B $Bn](B $Bn^(B $Bn_(B
++$Bn`(B $Bna(B $Bnb(B $Bnc(B $Bnd(B $Bne(B $Bnf(B $Bng(B $Bnh(B $Bni(B $Bnj(B $Bnk(B $Bnl(B $Bnm(B $Bnn(B $Bno(B
++$Bnp(B $Bnq(B $Bnr(B $Bns(B $Bnt(B $Bnu(B $Bnv(B $Bnw(B $Bnx(B $Bny(B $Bnz(B $Bn{(B $Bn|(B $Bn}(B $Bn~(B
++   $Bo!(B $Bo"(B $Bo#(B $Bo$(B $Bo%(B $Bo&(B $Bo'(B $Bo((B $Bo)(B $Bo*(B $Bo+(B $Bo,(B $Bo-(B $Bo.(B $Bo/(B
++$Bo0(B $Bo1(B $Bo2(B $Bo3(B $Bo4(B $Bo5(B $Bo6(B $Bo7(B $Bo8(B $Bo9(B $Bo:(B $Bo;(B $Bo<(B $Bo=(B $Bo>(B $Bo?(B
++$Bo@(B $BoA(B $BoB(B $BoC(B $BoD(B $BoE(B $BoF(B $BoG(B $BoH(B $BoI(B $BoJ(B $BoK(B $BoL(B $BoM(B $BoN(B $BoO(B
++$BoP(B $BoQ(B $BoR(B $BoS(B $BoT(B $BoU(B $BoV(B $BoW(B $BoX(B $BoY(B $BoZ(B $Bo[(B $Bo\(B $Bo](B $Bo^(B $Bo_(B
++$Bo`(B $Boa(B $Bob(B $Boc(B $Bod(B $Boe(B $Bof(B $Bog(B $Boh(B $Boi(B $Boj(B $Bok(B $Bol(B $Bom(B $Bon(B $Boo(B
++$Bop(B $Boq(B $Bor(B $Bos(B $Bot(B $Bou(B $Bov(B $Bow(B $Box(B $Boy(B $Boz(B $Bo{(B $Bo|(B $Bo}(B $Bo~(B
++   $Bp!(B $Bp"(B $Bp#(B $Bp$(B $Bp%(B $Bp&(B $Bp'(B $Bp((B $Bp)(B $Bp*(B $Bp+(B $Bp,(B $Bp-(B $Bp.(B $Bp/(B
++$Bp0(B $Bp1(B $Bp2(B $Bp3(B $Bp4(B $Bp5(B $Bp6(B $Bp7(B $Bp8(B $Bp9(B $Bp:(B $Bp;(B $Bp<(B $Bp=(B $Bp>(B $Bp?(B
++$Bp@(B $BpA(B $BpB(B $BpC(B $BpD(B $BpE(B $BpF(B $BpG(B $BpH(B $BpI(B $BpJ(B $BpK(B $BpL(B $BpM(B $BpN(B $BpO(B
++$BpP(B $BpQ(B $BpR(B $BpS(B $BpT(B $BpU(B $BpV(B $BpW(B $BpX(B $BpY(B $BpZ(B $Bp[(B $Bp\(B $Bp](B $Bp^(B $Bp_(B
++$Bp`(B $Bpa(B $Bpb(B $Bpc(B $Bpd(B $Bpe(B $Bpf(B $Bpg(B $Bph(B $Bpi(B $Bpj(B $Bpk(B $Bpl(B $Bpm(B $Bpn(B $Bpo(B
++$Bpp(B $Bpq(B $Bpr(B $Bps(B $Bpt(B $Bpu(B $Bpv(B $Bpw(B $Bpx(B $Bpy(B $Bpz(B $Bp{(B $Bp|(B $Bp}(B $Bp~(B
++   $Bq!(B $Bq"(B $Bq#(B $Bq$(B $Bq%(B $Bq&(B $Bq'(B $Bq((B $Bq)(B $Bq*(B $Bq+(B $Bq,(B $Bq-(B $Bq.(B $Bq/(B
++$Bq0(B $Bq1(B $Bq2(B $Bq3(B $Bq4(B $Bq5(B $Bq6(B $Bq7(B $Bq8(B $Bq9(B $Bq:(B $Bq;(B $Bq<(B $Bq=(B $Bq>(B $Bq?(B
++$Bq@(B $BqA(B $BqB(B $BqC(B $BqD(B $BqE(B $BqF(B $BqG(B $BqH(B $BqI(B $BqJ(B $BqK(B $BqL(B $BqM(B $BqN(B $BqO(B
++$BqP(B $BqQ(B $BqR(B $BqS(B $BqT(B $BqU(B $BqV(B $BqW(B $BqX(B $BqY(B $BqZ(B $Bq[(B $Bq\(B $Bq](B $Bq^(B $Bq_(B
++$Bq`(B $Bqa(B $Bqb(B $Bqc(B $Bqd(B $Bqe(B $Bqf(B $Bqg(B $Bqh(B $Bqi(B $Bqj(B $Bqk(B $Bql(B $Bqm(B $Bqn(B $Bqo(B
++$Bqp(B $Bqq(B $Bqr(B $Bqs(B $Bqt(B $Bqu(B $Bqv(B $Bqw(B $Bqx(B $Bqy(B $Bqz(B $Bq{(B $Bq|(B $Bq}(B $Bq~(B
++   $Br!(B $Br"(B $Br#(B $Br$(B $Br%(B $Br&(B $Br'(B $Br((B $Br)(B $Br*(B $Br+(B $Br,(B $Br-(B $Br.(B $Br/(B
++$Br0(B $Br1(B $Br2(B $Br3(B $Br4(B $Br5(B $Br6(B $Br7(B $Br8(B $Br9(B $Br:(B $Br;(B $Br<(B $Br=(B $Br>(B $Br?(B
++$Br@(B $BrA(B $BrB(B $BrC(B $BrD(B $BrE(B $BrF(B $BrG(B $BrH(B $BrI(B $BrJ(B $BrK(B $BrL(B $BrM(B $BrN(B $BrO(B
++$BrP(B $BrQ(B $BrR(B $BrS(B $BrT(B $BrU(B $BrV(B $BrW(B $BrX(B $BrY(B $BrZ(B $Br[(B $Br\(B $Br](B $Br^(B $Br_(B
++$Br`(B $Bra(B $Brb(B $Brc(B $Brd(B $Bre(B $Brf(B $Brg(B $Brh(B $Bri(B $Brj(B $Brk(B $Brl(B $Brm(B $Brn(B $Bro(B
++$Brp(B $Brq(B $Brr(B $Brs(B $Brt(B $Bru(B $Brv(B $Brw(B $Brx(B $Bry(B $Brz(B $Br{(B $Br|(B $Br}(B $Br~(B
++   $Bs!(B $Bs"(B $Bs#(B $Bs$(B $Bs%(B $Bs&(B $Bs'(B $Bs((B $Bs)(B $Bs*(B $Bs+(B $Bs,(B $Bs-(B $Bs.(B $Bs/(B
++$Bs0(B $Bs1(B $Bs2(B $Bs3(B $Bs4(B $Bs5(B $Bs6(B $Bs7(B $Bs8(B $Bs9(B $Bs:(B $Bs;(B $Bs<(B $Bs=(B $Bs>(B $Bs?(B
++$Bs@(B $BsA(B $BsB(B $BsC(B $BsD(B $BsE(B $BsF(B $BsG(B $BsH(B $BsI(B $BsJ(B $BsK(B $BsL(B $BsM(B $BsN(B $BsO(B
++$BsP(B $BsQ(B $BsR(B $BsS(B $BsT(B $BsU(B $BsV(B $BsW(B $BsX(B $BsY(B $BsZ(B $Bs[(B $Bs\(B $Bs](B $Bs^(B $Bs_(B
++$Bs`(B $Bsa(B $Bsb(B $Bsc(B $Bsd(B $Bse(B $Bsf(B $Bsg(B $Bsh(B $Bsi(B $Bsj(B $Bsk(B $Bsl(B $Bsm(B $Bsn(B $Bso(B
++$Bsp(B $Bsq(B $Bsr(B $Bss(B $Bst(B $Bsu(B $Bsv(B $Bsw(B $Bsx(B $Bsy(B $Bsz(B $Bs{(B $Bs|(B $Bs}(B $Bs~(B
++   $Bt!(B $Bt"(B $Bt#(B $Bt$(B $Bt%(B $Bt&(B
++   $By!(B $By"(B $By#(B $By$(B $By%(B $By&(B $By'(B $By((B $By)(B $By*(B $By+(B $By,(B $By-(B $By.(B $By/(B
++$By0(B $By1(B $By2(B $By3(B $By4(B $By5(B $By6(B $By7(B $By8(B $By9(B $By:(B $By;(B $By<(B $By=(B $By>(B $By?(B
++$By@(B $ByA(B $ByB(B $ByC(B $ByD(B $ByE(B $ByF(B $ByG(B $ByH(B $ByI(B $ByJ(B $ByK(B $ByL(B $ByM(B $ByN(B $ByO(B
++$ByP(B $ByQ(B $ByR(B $ByS(B $ByT(B $ByU(B $ByV(B $ByW(B $ByX(B $ByY(B $ByZ(B $By[(B $By\(B $By](B $By^(B $By_(B
++$By`(B $Bya(B $Byb(B $Byc(B $Byd(B $Bye(B $Byf(B $Byg(B $Byh(B $Byi(B $Byj(B $Byk(B $Byl(B $Bym(B $Byn(B $Byo(B
++$Byp(B $Byq(B $Byr(B $Bys(B $Byt(B $Byu(B $Byv(B $Byw(B $Byx(B $Byy(B $Byz(B $By{(B $By|(B $By}(B $By~(B
++   $Bz!(B $Bz"(B $Bz#(B $Bz$(B $Bz%(B $Bz&(B $Bz'(B $Bz((B $Bz)(B $Bz*(B $Bz+(B $Bz,(B $Bz-(B $Bz.(B $Bz/(B
++$Bz0(B $Bz1(B $Bz2(B $Bz3(B $Bz4(B $Bz5(B $Bz6(B $Bz7(B $Bz8(B $Bz9(B $Bz:(B $Bz;(B $Bz<(B $Bz=(B $Bz>(B $Bz?(B
++$Bz@(B $BzA(B $BzB(B $BzC(B $BzD(B $BzE(B $BzF(B $BzG(B $BzH(B $BzI(B $BzJ(B $BzK(B $BzL(B $BzM(B $BzN(B $BzO(B
++$BzP(B $BzQ(B $BzR(B $BzS(B $BzT(B $BzU(B $BzV(B $BzW(B $BzX(B $BzY(B $BzZ(B $Bz[(B $Bz\(B $Bz](B $Bz^(B $Bz_(B
++$Bz`(B $Bza(B $Bzb(B $Bzc(B $Bzd(B $Bze(B $Bzf(B $Bzg(B $Bzh(B $Bzi(B $Bzj(B $Bzk(B $Bzl(B $Bzm(B $Bzn(B $Bzo(B
++$Bzp(B $Bzq(B $Bzr(B $Bzs(B $Bzt(B $Bzu(B $Bzv(B $Bzw(B $Bzx(B $Bzy(B $Bzz(B $Bz{(B $Bz|(B $Bz}(B $Bz~(B
++   $B{!(B $B{"(B $B{#(B $B{$(B $B{%(B $B{&(B $B{'(B $B{((B $B{)(B $B{*(B $B{+(B $B{,(B $B{-(B $B{.(B $B{/(B
++$B{0(B $B{1(B $B{2(B $B{3(B $B{4(B $B{5(B $B{6(B $B{7(B $B{8(B $B{9(B $B{:(B $B{;(B $B{<(B $B{=(B $B{>(B $B{?(B
++$B{@(B $B{A(B $B{B(B $B{C(B $B{D(B $B{E(B $B{F(B $B{G(B $B{H(B $B{I(B $B{J(B $B{K(B $B{L(B $B{M(B $B{N(B $B{O(B
++$B{P(B $B{Q(B $B{R(B $B{S(B $B{T(B $B{U(B $B{V(B $B{W(B $B{X(B $B{Y(B $B{Z(B $B{[(B $B{\(B $B{](B $B{^(B $B{_(B
++$B{`(B $B{a(B $B{b(B $B{c(B $B{d(B $B{e(B $B{f(B $B{g(B $B{h(B $B{i(B $B{j(B $B{k(B $B{l(B $B{m(B $B{n(B $B{o(B
++$B{p(B $B{q(B $B{r(B $B{s(B $B{t(B $B{u(B $B{v(B $B{w(B $B{x(B $B{y(B $B{z(B $B{{(B $B{|(B $B{}(B $B{~(B
++   $B|!(B $B|"(B $B|#(B $B|$(B $B|%(B $B|&(B $B|'(B $B|((B $B|)(B $B|*(B $B|+(B $B|,(B $B|-(B $B|.(B $B|/(B
++$B|0(B $B|1(B $B|2(B $B|3(B $B|4(B $B|5(B $B|6(B $B|7(B $B|8(B $B|9(B $B|:(B $B|;(B $B|<(B $B|=(B $B|>(B $B|?(B
++$B|@(B $B|A(B $B|B(B $B|C(B $B|D(B $B|E(B $B|F(B $B|G(B $B|H(B $B|I(B $B|J(B $B|K(B $B|L(B $B|M(B $B|N(B $B|O(B
++$B|P(B $B|Q(B $B|R(B $B|S(B $B|T(B $B|U(B $B|V(B $B|W(B $B|X(B $B|Y(B $B|Z(B $B|[(B $B|\(B $B|](B $B|^(B $B|_(B
++$B|`(B $B|a(B $B|b(B $B|c(B $B|d(B $B|e(B $B|f(B $B|g(B $B|h(B $B|i(B $B|j(B $B|k(B $B|l(B $B|m(B $B|n(B   
++   $B|q(B $B|r(B $B|s(B $B|t(B $B|u(B $B|v(B $B|w(B $B|x(B $B|y(B $B|z(B $B"L(B $B||(B $B|}(B $B|~(B
++   $(?!!(B $(?!"(B $(?!#(B $(?!$(B $(?!%(B $(?!&(B $(?!'(B $(?!((B $(?!)(B $(?!*(B $(?!+(B $(?!,(B $(?!-(B $(?!.(B $(?!/(B
++$(?!0(B $(?!1(B $(?!2(B $(?!3(B $(?!4(B $(?!5(B $(?!6(B $(?!7(B $(?!8(B $(?!9(B $(?!:(B $(?!;(B $(?!<(B $(?!=(B $(?!>(B $(?!?(B
++$(?!@(B $(?!A(B $(?!B(B $(?!C(B $(?!D(B $(?!E(B $(?!F(B $(?!G(B $(?!H(B $(?!I(B $(?!J(B $(?!K(B $(?!L(B $(?!M(B $(?!N(B $(?!O(B
++$(?!P(B $(?!Q(B $(?!R(B $(?!S(B $(?!T(B $(?!U(B $(?!V(B $(?!W(B $(?!X(B $(?!Y(B $(?!Z(B $(?![(B $(?!\(B $(?!](B $(?!^(B $(?!_(B
++$(?!`(B $(?!a(B $(?!b(B $(?!c(B $(?!d(B $(?!e(B $(?!f(B $(?!g(B $(?!h(B $(?!i(B $(?!j(B $(?!k(B $(?!l(B $(?!m(B $(?!n(B $(?!o(B
++$(?!p(B $(?!q(B $(?!r(B $(?!s(B $(?!t(B $(?!u(B $(?!v(B $(?!w(B $(?!x(B $(?!y(B $(?!z(B $(?!{(B $(?!|(B $(?!}(B $(?!~(B
++   $(?"!(B $(?""(B $(?"#(B $(?"$(B $(?"%(B $(?"&(B $(?"'(B $(?"((B $(?")(B $(?"*(B $(?"+(B $(?",(B $(?"-(B $(?".(B $(?"/(B
++$(?"0(B $(?"1(B $(?"2(B $(?"3(B $(?"4(B $(?"5(B $(?"6(B $(?"7(B $(?"8(B $(?"9(B $(?":(B $(?";(B $(?"<(B $(?"=(B $(?">(B $(?"?(B
++$(?"@(B $(?"A(B $(?"B(B $(?"C(B $(?"D(B $(?"E(B $(?"F(B $(?"G(B $(?"H(B $(?"I(B $(?"J(B $(?"K(B $(?"L(B $(?"M(B $(?"N(B $(?"O(B
++$(?"P(B $(?"Q(B $(?"R(B $(?"S(B $(?"T(B $(?"U(B $(?"V(B $(?"W(B $(?"X(B $(?"Y(B $(?"Z(B $(?"[(B $(?"\(B $(?"](B $(?"^(B $(?"_(B
++$(?"`(B $(?"a(B $(?"b(B $(?"c(B $(?"d(B $(?"e(B $(?"f(B $(?"g(B $(?"h(B $(?"i(B $(?"j(B $(?"k(B $(?"l(B $(?"m(B $(?"n(B $(?"o(B
++$(?"p(B $(?"q(B $(?"r(B $(?"s(B $(?"t(B $(?"u(B $(?"v(B $(?"w(B $(?"x(B $(?"y(B $(?"z(B $(?"{(B $(?"|(B $(?"}(B $(?"~(B
++   $(?#!(B $(?#"(B $(?##(B $(?#$(B $(?#%(B $(?#&(B $(?#'(B $(?#((B $(?#)(B $(?#*(B $(?#+(B $(?#,(B $(?#-(B $(?#.(B $(?#/(B
++$(?#0(B $(?#1(B $(?#2(B $(?#3(B $(?#4(B $(?#5(B $(?#6(B $(?#7(B $(?#8(B $(?#9(B $(?#:(B $(?#;(B $(?#<(B $(?#=(B $(?#>(B $(?#?(B
++$(?#@(B $(?#A(B $(?#B(B $(?#C(B $(?#D(B $(?#E(B $(?#F(B $(?#G(B $(?#H(B $(?#I(B $(?#J(B $(?#K(B $(?#L(B $(?#M(B $(?#N(B $(?#O(B
++$(?#P(B $(?#Q(B $(?#R(B $(?#S(B $(?#T(B $(?#U(B $(?#V(B $(?#W(B $(?#X(B $(?#Y(B $(?#Z(B $(?#[(B $(?#\(B $(?#](B $(?#^(B $(?#_(B
++$(?#`(B $(?#a(B $(?#b(B $(?#c(B $(?#d(B $(?#e(B $(?#f(B $(?#g(B $(?#h(B $(?#i(B $(?#j(B $(?#k(B $(?#l(B $(?#m(B $(?#n(B $(?#o(B
++$(?#p(B $(?#q(B $(?#r(B $(?#s(B $(?#t(B $(?#u(B $(?#v(B $(?#w(B $(?#x(B $(?#y(B $(?#z(B $(?#{(B $(?#|(B $(?#}(B $(?#~(B
++   $(?$!(B $(?$"(B $(?$#(B $(?$$(B $(?$%(B $(?$&(B $(?$'(B $(?$((B $(?$)(B $(?$*(B $(?$+(B $(?$,(B $(?$-(B $(?$.(B $(?$/(B
++$(?$0(B $(?$1(B $(?$2(B $(?$3(B $(?$4(B $(?$5(B $(?$6(B $(?$7(B $(?$8(B $(?$9(B $(?$:(B $(?$;(B $(?$<(B $(?$=(B $(?$>(B $(?$?(B
++$(?$@(B $(?$A(B $(?$B(B $(?$C(B $(?$D(B $(?$E(B $(?$F(B $(?$G(B $(?$H(B $(?$I(B $(?$J(B $(?$K(B $(?$L(B $(?$M(B $(?$N(B $(?$O(B
++$(?$P(B $(?$Q(B $(?$R(B $(?$S(B $(?$T(B $(?$U(B $(?$V(B $(?$W(B $(?$X(B $(?$Y(B $(?$Z(B $(?$[(B $(?$\(B $(?$](B $(?$^(B $(?$_(B
++$(?$`(B $(?$a(B $(?$b(B $(?$c(B $(?$d(B $(?$e(B $(?$f(B $(?$g(B $(?$h(B $(?$i(B $(?$j(B $(?$k(B $(?$l(B $(?$m(B $(?$n(B $(?$o(B
++$(?$p(B $(?$q(B $(?$r(B $(?$s(B $(?$t(B $(?$u(B $(?$v(B $(?$w(B $(?$x(B $(?$y(B $(?$z(B $(?${(B $(?$|(B $(?$}(B $(?$~(B
++   $(?%!(B $(?%"(B $(?%#(B $(?%$(B $(?%%(B $(?%&(B $(?%'(B $(?%((B $(?%)(B $(?%*(B $(?%+(B $(?%,(B $(?%-(B $(?%.(B $(?%/(B
++$(?%0(B $(?%1(B $(?%2(B $(?%3(B $(?%4(B $(?%5(B $(?%6(B $(?%7(B $(?%8(B $(?%9(B $(?%:(B $(?%;(B $(?%<(B $(?%=(B $(?%>(B $(?%?(B
++$(?%@(B $(?%A(B $(?%B(B $(?%C(B $(?%D(B $(?%E(B $(?%F(B $(?%G(B $(?%H(B $(?%I(B $(?%J(B $(?%K(B $(?%L(B $(?%M(B $(?%N(B $(?%O(B
++$(?%P(B $(?%Q(B $(?%R(B $(?%S(B $(?%T(B $(?%U(B $(?%V(B $(?%W(B $(?%X(B $(?%Y(B $(?%Z(B $(?%[(B $(?%\(B $(?%](B $(?%^(B $(?%_(B
++$(?%`(B $(?%a(B $(?%b(B $(?%c(B $(?%d(B $(?%e(B $(?%f(B $(?%g(B $(?%h(B $(?%i(B $(?%j(B $(?%k(B $(?%l(B $(?%m(B $(?%n(B $(?%o(B
++$(?%p(B $(?%q(B $(?%r(B $(?%s(B $(?%t(B $(?%u(B $(?%v(B $(?%w(B $(?%x(B $(?%y(B $(?%z(B $(?%{(B $(?%|(B $(?%}(B $(?%~(B
++   $(?&!(B $(?&"(B $(?&#(B $(?&$(B $(?&%(B $(?&&(B $(?&'(B $(?&((B $(?&)(B $(?&*(B $(?&+(B $(?&,(B $(?&-(B $(?&.(B $(?&/(B
++$(?&0(B $(?&1(B $(?&2(B $(?&3(B $(?&4(B $(?&5(B $(?&6(B $(?&7(B $(?&8(B $(?&9(B $(?&:(B $(?&;(B $(?&<(B $(?&=(B $(?&>(B $(?&?(B
++$(?&@(B $(?&A(B $(?&B(B $(?&C(B $(?&D(B $(?&E(B $(?&F(B $(?&G(B $(?&H(B $(?&I(B $(?&J(B $(?&K(B $(?&L(B $(?&M(B $(?&N(B $(?&O(B
++$(?&P(B $(?&Q(B $(?&R(B $(?&S(B $(?&T(B $(?&U(B $(?&V(B $(?&W(B $(?&X(B $(?&Y(B $(?&Z(B $(?&[(B $(?&\(B $(?&](B $(?&^(B $(?&_(B
++$(?&`(B $(?&a(B $(?&b(B $(?&c(B $(?&d(B $(?&e(B $(?&f(B $(?&g(B $(?&h(B $(?&i(B $(?&j(B $(?&k(B $(?&l(B $(?&m(B $(?&n(B $(?&o(B
++$(?&p(B $(?&q(B $(?&r(B $(?&s(B $(?&t(B $(?&u(B $(?&v(B $(?&w(B $(?&x(B $(?&y(B $(?&z(B $(?&{(B $(?&|(B $(?&}(B $(?&~(B
++   $(?'!(B $(?'"(B $(?'#(B $(?'$(B $(?'%(B $(?'&(B $(?''(B $(?'((B $(?')(B $(?'*(B $(?'+(B $(?',(B $(?'-(B $(?'.(B $(?'/(B
++$(?'0(B $(?'1(B $(?'2(B $(?'3(B $(?'4(B $(?'5(B $(?'6(B $(?'7(B $(?'8(B $(?'9(B $(?':(B $(?';(B $(?'<(B $(?'=(B $(?'>(B $(?'?(B
++$(?'@(B $(?'A(B $(?'B(B $(?'C(B $(?'D(B $(?'E(B $(?'F(B $(?'G(B $(?'H(B $(?'I(B $(?'J(B $(?'K(B $(?'L(B $(?'M(B $(?'N(B $(?'O(B
++$(?'P(B $(?'Q(B $(?'R(B $(?'S(B $(?'T(B $(?'U(B $(?'V(B $(?'W(B $(?'X(B $(?'Y(B $(?'Z(B $(?'[(B $(?'\(B $(?'](B $(?'^(B $(?'_(B
++$(?'`(B $(?'a(B $(?'b(B $(?'c(B $(?'d(B $(?'e(B $(?'f(B $(?'g(B $(?'h(B $(?'i(B $(?'j(B $(?'k(B $(?'l(B $(?'m(B $(?'n(B $(?'o(B
++$(?'p(B $(?'q(B $(?'r(B $(?'s(B $(?'t(B $(?'u(B $(?'v(B $(?'w(B $(?'x(B $(?'y(B $(?'z(B $(?'{(B $(?'|(B $(?'}(B $(?'~(B
++   $(?(!(B $(?("(B $(?(#(B $(?($(B $(?(%(B $(?(&(B $(?('(B $(?(((B $(?()(B $(?(*(B $(?(+(B $(?(,(B $(?(-(B $(?(.(B $(?(/(B
++$(?(0(B $(?(1(B $(?(2(B $(?(3(B $(?(4(B $(?(5(B $(?(6(B $(?(7(B $(?(8(B $(?(9(B $(?(:(B $(?(;(B $(?(<(B $(?(=(B $(?(>(B $(?(?(B
++$(?(@(B $(?(A(B $(?(B(B $(?(C(B $(?(D(B $(?(E(B $(?(F(B $(?(G(B $(?(H(B $(?(I(B $(?(J(B $(?(K(B $(?(L(B $(?(M(B $(?(N(B $(?(O(B
++$(?(P(B $(?(Q(B $(?(R(B $(?(S(B $(?(T(B $(?(U(B $(?(V(B $(?(W(B $(?(X(B $(?(Y(B $(?(Z(B $(?([(B $(?(\(B $(?(](B $(?(^(B $(?(_(B
++$(?(`(B $(?(a(B $(?(b(B $(?(c(B $(?(d(B $(?(e(B $(?(f(B $(?(g(B $(?(h(B $(?(i(B $(?(j(B $(?(k(B $(?(l(B $(?(m(B $(?(n(B $(?(o(B
++$(?(p(B $(?(q(B $(?(r(B $(?(s(B $(?(t(B $(?(u(B $(?(v(B $(?(w(B $(?(x(B $(?(y(B $(?(z(B $(?({(B $(?(|(B $(?(}(B $(?(~(B
++   $(?)!(B $(?)"(B $(?)#(B $(?)$(B $(?)%(B $(?)&(B $(?)'(B $(?)((B $(?))(B $(?)*(B $(?)+(B $(?),(B $(?)-(B $(?).(B $(?)/(B
++$(?)0(B $(?)1(B $(?)2(B $(?)3(B $(?)4(B $(?)5(B $(?)6(B $(?)7(B $(?)8(B $(?)9(B $(?):(B $(?);(B $(?)<(B $(?)=(B $(?)>(B $(?)?(B
++$(?)@(B $(?)A(B $(?)B(B $(?)C(B $(?)D(B $(?)E(B $(?)F(B $(?)G(B $(?)H(B $(?)I(B $(?)J(B $(?)K(B $(?)L(B $(?)M(B $(?)N(B $(?)O(B
++$(?)P(B $(?)Q(B $(?)R(B $(?)S(B $(?)T(B $(?)U(B $(?)V(B $(?)W(B $(?)X(B $(?)Y(B $(?)Z(B $(?)[(B $(?)\(B $(?)](B $(?)^(B $(?)_(B
++$(?)`(B $(?)a(B $(?)b(B $(?)c(B $(?)d(B $(?)e(B $(?)f(B $(?)g(B $(?)h(B $(?)i(B $(?)j(B $(?)k(B $(?)l(B $(?)m(B $(?)n(B $(?)o(B
++$(?)p(B $(?)q(B $(?)r(B $(?)s(B $(?)t(B $(?)u(B $(?)v(B $(?)w(B $(?)x(B $(?)y(B $(?)z(B $(?){(B $(?)|(B $(?)}(B $(?)~(B
++   $(?*!(B $(?*"(B $(?*#(B $(?*$(B $(?*%(B $(?*&(B $(?*'(B $(?*((B $(?*)(B $(?**(B $(?*+(B $(?*,(B $(?*-(B $(?*.(B $(?*/(B
++$(?*0(B $(?*1(B $(?*2(B $(?*3(B $(?*4(B $(?*5(B $(?*6(B $(?*7(B $(?*8(B $(?*9(B $(?*:(B $(?*;(B $(?*<(B $(?*=(B $(?*>(B $(?*?(B
++$(?*@(B $(?*A(B $(?*B(B $(?*C(B $(?*D(B $(?*E(B $(?*F(B $(?*G(B $(?*H(B $(?*I(B $(?*J(B $(?*K(B $(?*L(B $(?*M(B $(?*N(B $(?*O(B
++$(?*P(B $(?*Q(B $(?*R(B $(?*S(B $(?*T(B $(?*U(B $(?*V(B $(?*W(B $(?*X(B $(?*Y(B $(?*Z(B $(?*[(B $(?*\(B $(?*](B $(?*^(B $(?*_(B
++$(?*`(B $(?*a(B $(?*b(B $(?*c(B $(?*d(B $(?*e(B $(?*f(B $(?*g(B $(?*h(B $(?*i(B $(?*j(B $(?*k(B $(?*l(B $(?*m(B $(?*n(B $(?*o(B
++$(?*p(B $(?*q(B $(?*r(B $(?*s(B $(?*t(B $(?*u(B $(?*v(B $(?*w(B $(?*x(B $(?*y(B $(?*z(B $(?*{(B $(?*|(B $(?*}(B $(?*~(B
++   $(?+!(B $(?+"(B $(?+#(B $(?+$(B $(?+%(B $(?+&(B $(?+'(B $(?+((B $(?+)(B $(?+*(B $(?++(B $(?+,(B $(?+-(B $(?+.(B $(?+/(B
++$(?+0(B $(?+1(B $(?+2(B $(?+3(B $(?+4(B $(?+5(B $(?+6(B $(?+7(B $(?+8(B $(?+9(B $(?+:(B $(?+;(B $(?+<(B $(?+=(B $(?+>(B $(?+?(B
++$(?+@(B $(?+A(B $(?+B(B $(?+C(B $(?+D(B $(?+E(B $(?+F(B $(?+G(B $(?+H(B $(?+I(B $(?+J(B $(?+K(B $(?+L(B $(?+M(B $(?+N(B $(?+O(B
++$(?+P(B $(?+Q(B $(?+R(B $(?+S(B $(?+T(B $(?+U(B $(?+V(B $(?+W(B $(?+X(B $(?+Y(B $(?+Z(B $(?+[(B $(?+\(B $(?+](B $(?+^(B $(?+_(B
++$(?+`(B $(?+a(B $(?+b(B $(?+c(B $(?+d(B $(?+e(B $(?+f(B $(?+g(B $(?+h(B $(?+i(B $(?+j(B $(?+k(B $(?+l(B $(?+m(B $(?+n(B $(?+o(B
++$(?+p(B $(?+q(B $(?+r(B $(?+s(B $(?+t(B $(?+u(B $(?+v(B $(?+w(B $(?+x(B $(?+y(B $(?+z(B $(?+{(B $(?+|(B $(?+}(B $(?+~(B
++   $(?,!(B $(?,"(B $(?,#(B $(?,$(B $(?,%(B $(?,&(B $(?,'(B $(?,((B $(?,)(B $(?,*(B $(?,+(B $(?,,(B $(?,-(B $(?,.(B $(?,/(B
++$(?,0(B $(?,1(B $(?,2(B $(?,3(B $(?,4(B $(?,5(B $(?,6(B $(?,7(B $(?,8(B $(?,9(B $(?,:(B $(?,;(B $(?,<(B $(?,=(B $(?,>(B $(?,?(B
++$(?,@(B $(?,A(B $(?,B(B $(?,C(B $(?,D(B $(?,E(B $(?,F(B $(?,G(B $(?,H(B $(?,I(B $(?,J(B $(?,K(B $(?,L(B $(?,M(B $(?,N(B $(?,O(B
++$(?,P(B $(?,Q(B $(?,R(B $(?,S(B $(?,T(B $(?,U(B $(?,V(B $(?,W(B $(?,X(B $(?,Y(B $(?,Z(B $(?,[(B $(?,\(B $(?,](B $(?,^(B $(?,_(B
++$(?,`(B $(?,a(B $(?,b(B $(?,c(B $(?,d(B $(?,e(B $(?,f(B $(?,g(B $(?,h(B $(?,i(B $(?,j(B $(?,k(B $(?,l(B $(?,m(B $(?,n(B $(?,o(B
++$(?,p(B $(?,q(B $(?,r(B $(?,s(B $(?,t(B $(?,u(B $(?,v(B $(?,w(B $(?,x(B $(?,y(B $(?,z(B $(?,{(B $(?,|(B $(?,}(B $(?,~(B
++   $(?-!(B $(?-"(B $(?-#(B $(?-$(B $(?-%(B $(?-&(B $(?-'(B $(?-((B $(?-)(B $(?-*(B $(?-+(B $(?-,(B $(?--(B $(?-.(B $(?-/(B
++$(?-0(B $(?-1(B $(?-2(B $(?-3(B $(?-4(B $(?-5(B $(?-6(B $(?-7(B $(?-8(B $(?-9(B $(?-:(B $(?-;(B $(?-<(B $(?-=(B $(?->(B $(?-?(B
++$(?-@(B $(?-A(B $(?-B(B $(?-C(B $(?-D(B $(?-E(B $(?-F(B $(?-G(B $(?-H(B $(?-I(B $(?-J(B $(?-K(B $(?-L(B $(?-M(B $(?-N(B $(?-O(B
++$(?-P(B $(?-Q(B $(?-R(B $(?-S(B $(?-T(B $(?-U(B $(?-V(B $(?-W(B $(?-X(B $(?-Y(B $(?-Z(B $(?-[(B $(?-\(B $(?-](B $(?-^(B $(?-_(B
++$(?-`(B $(?-a(B $(?-b(B $(?-c(B $(?-d(B $(?-e(B $(?-f(B $(?-g(B $(?-h(B $(?-i(B $(?-j(B $(?-k(B $(?-l(B $(?-m(B $(?-n(B $(?-o(B
++$(?-p(B $(?-q(B $(?-r(B $(?-s(B $(?-t(B $(?-u(B $(?-v(B $(?-w(B $(?-x(B $(?-y(B $(?-z(B $(?-{(B $(?-|(B $(?-}(B $(?-~(B
++   $(?.!(B $(?."(B $(?.#(B $(?.$(B $(?.%(B $(?.&(B $(?.'(B $(?.((B $(?.)(B $(?.*(B $(?.+(B $(?.,(B $(?.-(B $(?..(B $(?./(B
++$(?.0(B $(?.1(B $(?.2(B $(?.3(B $(?.4(B $(?.5(B $(?.6(B $(?.7(B $(?.8(B $(?.9(B $(?.:(B $(?.;(B $(?.<(B $(?.=(B $(?.>(B $(?.?(B
++$(?.@(B $(?.A(B $(?.B(B $(?.C(B $(?.D(B $(?.E(B $(?.F(B $(?.G(B $(?.H(B $(?.I(B $(?.J(B $(?.K(B $(?.L(B $(?.M(B $(?.N(B $(?.O(B
++$(?.P(B $(?.Q(B $(?.R(B $(?.S(B $(?.T(B $(?.U(B $(?.V(B $(?.W(B $(?.X(B $(?.Y(B $(?.Z(B $(?.[(B $(?.\(B $(?.](B $(?.^(B $(?._(B
++$(?.`(B $(?.a(B $(?.b(B $(?.c(B $(?.d(B $(?.e(B $(?.f(B $(?.g(B $(?.h(B $(?.i(B $(?.j(B $(?.k(B $(?.l(B $(?.m(B $(?.n(B $(?.o(B
++$(?.p(B $(?.q(B $(?.r(B $(?.s(B $(?.t(B $(?.u(B $(?.v(B $(?.w(B $(?.x(B $(?.y(B $(?.z(B $(?.{(B $(?.|(B $(?.}(B $(?.~(B
++   $(?/!(B $(?/"(B $(?/#(B $(?/$(B $(?/%(B $(?/&(B $(?/'(B $(?/((B $(?/)(B $(?/*(B $(?/+(B $(?/,(B $(?/-(B $(?/.(B $(?//(B
++$(?/0(B $(?/1(B $(?/2(B $(?/3(B $(?/4(B $(?/5(B $(?/6(B $(?/7(B $(?/8(B $(?/9(B $(?/:(B $(?/;(B $(?/<(B $(?/=(B $(?/>(B $(?/?(B
++$(?/@(B $(?/A(B $(?/B(B $(?/C(B $(?/D(B $(?/E(B $(?/F(B $(?/G(B $(?/H(B $(?/I(B $(?/J(B $(?/K(B $(?/L(B $(?/M(B $(?/N(B $(?/O(B
++$(?/P(B $(?/Q(B $(?/R(B $(?/S(B $(?/T(B $(?/U(B $(?/V(B $(?/W(B $(?/X(B $(?/Y(B $(?/Z(B $(?/[(B $(?/\(B $(?/](B $(?/^(B $(?/_(B
++$(?/`(B $(?/a(B $(?/b(B $(?/c(B $(?/d(B $(?/e(B $(?/f(B $(?/g(B $(?/h(B $(?/i(B $(?/j(B $(?/k(B $(?/l(B $(?/m(B $(?/n(B $(?/o(B
++$(?/p(B $(?/q(B $(?/r(B $(?/s(B $(?/t(B $(?/u(B $(?/v(B $(?/w(B $(?/x(B $(?/y(B $(?/z(B $(?/{(B $(?/|(B $(?/}(B $(?/~(B
++   $(?0!(B $(?0"(B $(?0#(B $(?0$(B $(?0%(B $(?0&(B $(?0'(B $(?0((B $(?0)(B $(?0*(B $(?0+(B $(?0,(B $(?0-(B $(?0.(B $(?0/(B
++$(?00(B $(?01(B $(?02(B $(?03(B $(?04(B $(?05(B $(?06(B $(?07(B $(?08(B $(?09(B $(?0:(B $(?0;(B $(?0<(B $(?0=(B $(?0>(B $(?0?(B
++$(?0@(B $(?0A(B $(?0B(B $(?0C(B $(?0D(B $(?0E(B $(?0F(B $(?0G(B $(?0H(B $(?0I(B $(?0J(B $(?0K(B $(?0L(B $(?0M(B $(?0N(B $(?0O(B
++$(?0P(B $(?0Q(B $(?0R(B $(?0S(B $(?0T(B $(?0U(B $(?0V(B $(?0W(B $(?0X(B $(?0Y(B $(?0Z(B $(?0[(B $(?0\(B $(?0](B $(?0^(B $(?0_(B
++$(?0`(B $(?0a(B $(?0b(B $(?0c(B $(?0d(B $(?0e(B $(?0f(B $(?0g(B $(?0h(B $(?0i(B $(?0j(B $(?0k(B $(?0l(B $(?0m(B $(?0n(B $(?0o(B
++$(?0p(B $(?0q(B $(?0r(B $(?0s(B $(?0t(B $(?0u(B $(?0v(B $(?0w(B $(?0x(B $(?0y(B $(?0z(B $(?0{(B $(?0|(B $(?0}(B $(?0~(B
++   $(?1!(B $(?1"(B $(?1#(B $(?1$(B $(?1%(B $(?1&(B $(?1'(B $(?1((B $(?1)(B $(?1*(B $(?1+(B $(?1,(B $(?1-(B $(?1.(B $(?1/(B
++$(?10(B $(?11(B $(?12(B $(?13(B $(?14(B $(?15(B $(?16(B $(?17(B $(?18(B $(?19(B $(?1:(B $(?1;(B $(?1<(B $(?1=(B $(?1>(B $(?1?(B
++$(?1@(B $(?1A(B $(?1B(B $(?1C(B $(?1D(B $(?1E(B $(?1F(B $(?1G(B $(?1H(B $(?1I(B $(?1J(B $(?1K(B $(?1L(B $(?1M(B $(?1N(B $(?1O(B
++$(?1P(B $(?1Q(B $(?1R(B $(?1S(B $(?1T(B $(?1U(B $(?1V(B $(?1W(B $(?1X(B $(?1Y(B $(?1Z(B $(?1[(B $(?1\(B $(?1](B $(?1^(B $(?1_(B
++$(?1`(B $(?1a(B $(?1b(B $(?1c(B $(?1d(B $(?1e(B $(?1f(B $(?1g(B $(?1h(B $(?1i(B $(?1j(B $(?1k(B $(?1l(B $(?1m(B $(?1n(B $(?1o(B
++$(?1p(B $(?1q(B $(?1r(B $(?1s(B $(?1t(B $(?1u(B $(?1v(B $(?1w(B $(?1x(B $(?1y(B $(?1z(B $(?1{(B $(?1|(B $(?1}(B $(?1~(B
++   $(?2!(B $(?2"(B $(?2#(B $(?2$(B $(?2%(B $(?2&(B $(?2'(B $(?2((B $(?2)(B $(?2*(B $(?2+(B $(?2,(B $(?2-(B $(?2.(B $(?2/(B
++$(?20(B $(?21(B $(?22(B $(?23(B $(?24(B $(?25(B $(?26(B $(?27(B $(?28(B $(?29(B $(?2:(B $(?2;(B $(?2<(B $(?2=(B $(?2>(B $(?2?(B
++$(?2@(B $(?2A(B $(?2B(B $(?2C(B $(?2D(B $(?2E(B $(?2F(B $(?2G(B $(?2H(B $(?2I(B $(?2J(B $(?2K(B $(?2L(B $(?2M(B $(?2N(B $(?2O(B
++$(?2P(B $(?2Q(B $(?2R(B $(?2S(B $(?2T(B $(?2U(B $(?2V(B $(?2W(B $(?2X(B $(?2Y(B $(?2Z(B $(?2[(B $(?2\(B $(?2](B $(?2^(B $(?2_(B
++$(?2`(B $(?2a(B $(?2b(B $(?2c(B $(?2d(B $(?2e(B $(?2f(B $(?2g(B $(?2h(B $(?2i(B $(?2j(B $(?2k(B $(?2l(B $(?2m(B $(?2n(B $(?2o(B
++$(?2p(B $(?2q(B $(?2r(B $(?2s(B $(?2t(B $(?2u(B $(?2v(B $(?2w(B $(?2x(B $(?2y(B $(?2z(B $(?2{(B $(?2|(B $(?2}(B $(?2~(B
++   $(?3!(B $(?3"(B $(?3#(B $(?3$(B $(?3%(B $(?3&(B $(?3'(B $(?3((B $(?3)(B $(?3*(B $(?3+(B $(?3,(B $(?3-(B $(?3.(B $(?3/(B
++$(?30(B $(?31(B $(?32(B $(?33(B $(?34(B $(?35(B $(?36(B $(?37(B $(?38(B $(?39(B $(?3:(B $(?3;(B $(?3<(B $(?3=(B $(?3>(B $(?3?(B
++$(?3@(B $(?3A(B $(?3B(B $(?3C(B $(?3D(B $(?3E(B $(?3F(B $(?3G(B $(?3H(B $(?3I(B $(?3J(B $(?3K(B $(?3L(B $(?3M(B $(?3N(B $(?3O(B
++$(?3P(B $(?3Q(B $(?3R(B $(?3S(B $(?3T(B $(?3U(B $(?3V(B $(?3W(B $(?3X(B $(?3Y(B $(?3Z(B $(?3[(B $(?3\(B $(?3](B $(?3^(B $(?3_(B
++$(?3`(B $(?3a(B $(?3b(B $(?3c(B $(?3d(B $(?3e(B $(?3f(B $(?3g(B $(?3h(B $(?3i(B $(?3j(B $(?3k(B $(?3l(B $(?3m(B $(?3n(B $(?3o(B
++$(?3p(B $(?3q(B $(?3r(B $(?3s(B $(?3t(B $(?3u(B $(?3v(B $(?3w(B $(?3x(B $(?3y(B $(?3z(B $(?3{(B $(?3|(B $(?3}(B $(?3~(B
++   $(?4!(B $(?4"(B $(?4#(B $(?4$(B $(?4%(B $(?4&(B $(?4'(B $(?4((B $(?4)(B $(?4*(B $(?4+(B $(?4,(B $(?4-(B $(?4.(B $(?4/(B
++$(?40(B $(?41(B $(?42(B $(?43(B $(?44(B $(?45(B $(?46(B $(?47(B $(?48(B $(?49(B $(?4:(B $(?4;(B $(?4<(B $(?4=(B $(?4>(B $(?4?(B
++$(?4@(B $(?4A(B $(?4B(B $(?4C(B $(?4D(B $(?4E(B $(?4F(B $(?4G(B $(?4H(B $(?4I(B $(?4J(B $(?4K(B $(?4L(B $(?4M(B $(?4N(B $(?4O(B
++$(?4P(B $(?4Q(B $(?4R(B $(?4S(B $(?4T(B $(?4U(B $(?4V(B $(?4W(B $(?4X(B $(?4Y(B $(?4Z(B $(?4[(B $(?4\(B $(?4](B $(?4^(B $(?4_(B
++$(?4`(B $(?4a(B $(?4b(B $(?4c(B $(?4d(B $(?4e(B $(?4f(B $(?4g(B $(?4h(B $(?4i(B $(?4j(B $(?4k(B $(?4l(B $(?4m(B $(?4n(B $(?4o(B
++$(?4p(B $(?4q(B $(?4r(B $(?4s(B $(?4t(B $(?4u(B $(?4v(B $(?4w(B $(?4x(B $(?4y(B $(?4z(B $(?4{(B $(?4|(B $(?4}(B $(?4~(B
++
++Japanese ($BF|K\8l(B)		$B$3$s$K$A$O(B
++	JIS  -- $B855$(B  $B3+H/(B
++	NEC$BFC<lJ8;z(B  -- $B-!-"-#(B
++	NEC$BA*Dj(BIBM$B3HD%J8;z(B -- $BFbEDI4|N(B  $B|bEg20(B  $BApy,9d(B
+diff -urN origsrc/libiconv-1.17/tests/ISO-2022-JP-MS-PATCH-snippet.UTF-8 src/libiconv-1.17/tests/ISO-2022-JP-MS-PATCH-snippet.UTF-8
+--- origsrc/libiconv-1.17/tests/ISO-2022-JP-MS-PATCH-snippet.UTF-8	1970-01-01 09:00:00.000000000 +0900
++++ src/libiconv-1.17/tests/ISO-2022-JP-MS-PATCH-snippet.UTF-8	2023-07-30 16:33:48.209186496 +0900
+@@ -0,0 +1,614 @@
++  ! " # $ % & ' ( ) * + , - . /
++0 1 2 3 4 5 6 7 8 9 : ; < = > ?
++@ A B C D E F G H I J K L M N O
++P Q R S T U V W X Y Z [ \ ] ^ _
++` a b c d e f g h i j k l m n o
++p q r s t u v w x y z { | } ~
++   ｡ ｢ ｣ ､ ･ ｦ ｧ ｨ ｩ ｪ ｫ ｬ ｭ ｮ ｯ
++ｰ ｱ ｲ ｳ ｴ ｵ ｶ ｷ ｸ ｹ ｺ ｻ ｼ ｽ ｾ ｿ
++ﾀ ﾁ ﾂ ﾃ ﾄ ﾅ ﾆ ﾇ ﾈ ﾉ ﾊ ﾋ ﾌ ﾍ ﾎ ﾏ
++ﾐ ﾑ ﾒ ﾓ ﾔ ﾕ ﾖ ﾗ ﾘ ﾙ ﾚ ﾛ ﾜ ﾝ ﾞ ﾟ
++  　 、 。 ， ． ・ ： ； ？ ！ ゛ ゜ ´ ｀ ¨
++＾ ￣ ＿ ヽ ヾ ゝ ゞ 〃 仝 々 〆 〇 ー ― ‐ ／
++  ～ ∥ ｜ … ‥ ‘ ’ “ ” （ ） 〔 〕 ［ ］
++｛ ｝ 〈 〉 《 》 「 」 『 』 【 】 ＋ － ± ×
++÷ ＝ ≠ ＜ ＞ ≦ ≧ ∞ ∴ ♂ ♀ ° ′ ″ ℃ ￥
++＄ ￠ ￡ ％ ＃ ＆ ＊ ＠ § ☆ ★ ○ ● ◎ ◇
++  ◆ □ ■ △ ▲ ▽ ▼ ※ 〒 → ← ↑ ↓ 〓
++                    ∈ ∋ ⊆ ⊇ ⊂ ⊃
++∪ ∩                 ∧ ∨ ￢ ⇒ ⇔ ∀
++∃                       ∠ ⊥ ⌒ ∂
++∇ ≡ ≒ ≪ ≫ √ ∽ ∝ ∵ ∫ ∬
++    Å ‰ ♯ ♭ ♪ † ‡ ¶         ◯
++０ １ ２ ３ ４ ５ ６ ７ ８ ９
++   Ａ Ｂ Ｃ Ｄ Ｅ Ｆ Ｇ Ｈ Ｉ Ｊ Ｋ Ｌ Ｍ Ｎ Ｏ
++Ｐ Ｑ Ｒ Ｓ Ｔ Ｕ Ｖ Ｗ Ｘ Ｙ Ｚ
++   ａ ｂ ｃ ｄ ｅ ｆ ｇ ｈ ｉ ｊ ｋ ｌ ｍ ｎ ｏ
++ｐ ｑ ｒ ｓ ｔ ｕ ｖ ｗ ｘ ｙ ｚ
++   ぁ あ ぃ い ぅ う ぇ え ぉ お か が き ぎ く
++ぐ け げ こ ご さ ざ し じ す ず せ ぜ そ ぞ た
++だ ち ぢ っ つ づ て で と ど な に ぬ ね の は
++ば ぱ ひ び ぴ ふ ぶ ぷ へ べ ぺ ほ ぼ ぽ ま み
++む め も ゃ や ゅ ゆ ょ よ ら り る れ ろ ゎ わ
++ゐ ゑ を ん
++   ァ ア ィ イ ゥ ウ ェ エ ォ オ カ ガ キ ギ ク
++グ ケ ゲ コ ゴ サ ザ シ ジ ス ズ セ ゼ ソ ゾ タ
++ダ チ ヂ ッ ツ ヅ テ デ ト ド ナ ニ ヌ ネ ノ ハ
++バ パ ヒ ビ ピ フ ブ プ ヘ ベ ペ ホ ボ ポ マ ミ
++ム メ モ ャ ヤ ュ ユ ョ ヨ ラ リ ル レ ロ ヮ ワ
++ヰ ヱ ヲ ン ヴ ヵ ヶ
++  Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο
++Π Ρ Σ Τ Υ Φ Χ Ψ Ω
++  α β γ δ ε ζ η θ ι κ λ μ ν ξ ο
++π ρ σ τ υ φ χ ψ ω
++  А Б В Г Д Е Ё Ж З И Й К Л М Н
++О П Р С Т У Ф Х Ц Ч Ш Щ Ъ Ы Ь Э
++Ю Я
++  а б в г д е ё ж з и й к л м н
++о п р с т у ф х ц ч ш щ ъ ы ь э
++ю я
++  ─ │ ┌ ┐ ┘ └ ├ ┬ ┤ ┴ ┼ ━ ┃ ┏ ┓
++┛ ┗ ┣ ┳ ┫ ┻ ╋ ┠ ┯ ┨ ┷ ┿ ┝ ┰ ┥ ┸
++╂
++   ① ② ③ ④ ⑤ ⑥ ⑦ ⑧ ⑨ ⑩ ⑪ ⑫ ⑬ ⑭ ⑮
++⑯ ⑰ ⑱ ⑲ ⑳ Ⅰ Ⅱ Ⅲ Ⅳ Ⅴ Ⅵ Ⅶ Ⅷ Ⅸ Ⅹ   
++㍉ ㌔ ㌢ ㍍ ㌘ ㌧ ㌃ ㌶ ㍑ ㍗ ㌍ ㌦ ㌣ ㌫ ㍊ ㌻
++㎜ ㎝ ㎞ ㎎ ㎏ ㏄ ㎡                         ㍻
++〝 〟 № ㏍ ℡ ㊤ ㊥ ㊦ ㊧ ㊨ ㈱ ㈲ ㈹ ㍾ ㍽ ㍼
++≒ ≡ ∫ ∮ ∑ √ ⊥ ∠ ∟ ⊿ ∵ ∩ ∪      
++   亜 唖 娃 阿 哀 愛 挨 姶 逢 葵 茜 穐 悪 握 渥
++旭 葦 芦 鯵 梓 圧 斡 扱 宛 姐 虻 飴 絢 綾 鮎 或
++粟 袷 安 庵 按 暗 案 闇 鞍 杏 以 伊 位 依 偉 囲
++夷 委 威 尉 惟 意 慰 易 椅 為 畏 異 移 維 緯 胃
++萎 衣 謂 違 遺 医 井 亥 域 育 郁 磯 一 壱 溢 逸
++稲 茨 芋 鰯 允 印 咽 員 因 姻 引 飲 淫 胤 蔭
++   院 陰 隠 韻 吋 右 宇 烏 羽 迂 雨 卯 鵜 窺 丑
++碓 臼 渦 嘘 唄 欝 蔚 鰻 姥 厩 浦 瓜 閏 噂 云 運
++雲 荏 餌 叡 営 嬰 影 映 曳 栄 永 泳 洩 瑛 盈 穎
++頴 英 衛 詠 鋭 液 疫 益 駅 悦 謁 越 閲 榎 厭 円
++園 堰 奄 宴 延 怨 掩 援 沿 演 炎 焔 煙 燕 猿 縁
++艶 苑 薗 遠 鉛 鴛 塩 於 汚 甥 凹 央 奥 往 応
++   押 旺 横 欧 殴 王 翁 襖 鴬 鴎 黄 岡 沖 荻 億
++屋 憶 臆 桶 牡 乙 俺 卸 恩 温 穏 音 下 化 仮 何
++伽 価 佳 加 可 嘉 夏 嫁 家 寡 科 暇 果 架 歌 河
++火 珂 禍 禾 稼 箇 花 苛 茄 荷 華 菓 蝦 課 嘩 貨
++迦 過 霞 蚊 俄 峨 我 牙 画 臥 芽 蛾 賀 雅 餓 駕
++介 会 解 回 塊 壊 廻 快 怪 悔 恢 懐 戒 拐 改
++   魁 晦 械 海 灰 界 皆 絵 芥 蟹 開 階 貝 凱 劾
++外 咳 害 崖 慨 概 涯 碍 蓋 街 該 鎧 骸 浬 馨 蛙
++垣 柿 蛎 鈎 劃 嚇 各 廓 拡 撹 格 核 殻 獲 確 穫
++覚 角 赫 較 郭 閣 隔 革 学 岳 楽 額 顎 掛 笠 樫
++橿 梶 鰍 潟 割 喝 恰 括 活 渇 滑 葛 褐 轄 且 鰹
++叶 椛 樺 鞄 株 兜 竃 蒲 釜 鎌 噛 鴨 栢 茅 萱
++   粥 刈 苅 瓦 乾 侃 冠 寒 刊 勘 勧 巻 喚 堪 姦
++完 官 寛 干 幹 患 感 慣 憾 換 敢 柑 桓 棺 款 歓
++汗 漢 澗 潅 環 甘 監 看 竿 管 簡 緩 缶 翰 肝 艦
++莞 観 諌 貫 還 鑑 間 閑 関 陥 韓 館 舘 丸 含 岸
++巌 玩 癌 眼 岩 翫 贋 雁 頑 顔 願 企 伎 危 喜 器
++基 奇 嬉 寄 岐 希 幾 忌 揮 机 旗 既 期 棋 棄
++   機 帰 毅 気 汽 畿 祈 季 稀 紀 徽 規 記 貴 起
++軌 輝 飢 騎 鬼 亀 偽 儀 妓 宜 戯 技 擬 欺 犠 疑
++祇 義 蟻 誼 議 掬 菊 鞠 吉 吃 喫 桔 橘 詰 砧 杵
++黍 却 客 脚 虐 逆 丘 久 仇 休 及 吸 宮 弓 急 救
++朽 求 汲 泣 灸 球 究 窮 笈 級 糾 給 旧 牛 去 居
++巨 拒 拠 挙 渠 虚 許 距 鋸 漁 禦 魚 亨 享 京
++   供 侠 僑 兇 競 共 凶 協 匡 卿 叫 喬 境 峡 強
++彊 怯 恐 恭 挟 教 橋 況 狂 狭 矯 胸 脅 興 蕎 郷
++鏡 響 饗 驚 仰 凝 尭 暁 業 局 曲 極 玉 桐 粁 僅
++勤 均 巾 錦 斤 欣 欽 琴 禁 禽 筋 緊 芹 菌 衿 襟
++謹 近 金 吟 銀 九 倶 句 区 狗 玖 矩 苦 躯 駆 駈
++駒 具 愚 虞 喰 空 偶 寓 遇 隅 串 櫛 釧 屑 屈
++   掘 窟 沓 靴 轡 窪 熊 隈 粂 栗 繰 桑 鍬 勲 君
++薫 訓 群 軍 郡 卦 袈 祁 係 傾 刑 兄 啓 圭 珪 型
++契 形 径 恵 慶 慧 憩 掲 携 敬 景 桂 渓 畦 稽 系
++経 継 繋 罫 茎 荊 蛍 計 詣 警 軽 頚 鶏 芸 迎 鯨
++劇 戟 撃 激 隙 桁 傑 欠 決 潔 穴 結 血 訣 月 件
++倹 倦 健 兼 券 剣 喧 圏 堅 嫌 建 憲 懸 拳 捲
++   検 権 牽 犬 献 研 硯 絹 県 肩 見 謙 賢 軒 遣
++鍵 険 顕 験 鹸 元 原 厳 幻 弦 減 源 玄 現 絃 舷
++言 諺 限 乎 個 古 呼 固 姑 孤 己 庫 弧 戸 故 枯
++湖 狐 糊 袴 股 胡 菰 虎 誇 跨 鈷 雇 顧 鼓 五 互
++伍 午 呉 吾 娯 後 御 悟 梧 檎 瑚 碁 語 誤 護 醐
++乞 鯉 交 佼 侯 候 倖 光 公 功 効 勾 厚 口 向
++   后 喉 坑 垢 好 孔 孝 宏 工 巧 巷 幸 広 庚 康
++弘 恒 慌 抗 拘 控 攻 昂 晃 更 杭 校 梗 構 江 洪
++浩 港 溝 甲 皇 硬 稿 糠 紅 紘 絞 綱 耕 考 肯 肱
++腔 膏 航 荒 行 衡 講 貢 購 郊 酵 鉱 砿 鋼 閤 降
++項 香 高 鴻 剛 劫 号 合 壕 拷 濠 豪 轟 麹 克 刻
++告 国 穀 酷 鵠 黒 獄 漉 腰 甑 忽 惚 骨 狛 込
++   此 頃 今 困 坤 墾 婚 恨 懇 昏 昆 根 梱 混 痕
++紺 艮 魂 些 佐 叉 唆 嵯 左 差 査 沙 瑳 砂 詐 鎖
++裟 坐 座 挫 債 催 再 最 哉 塞 妻 宰 彩 才 採 栽
++歳 済 災 采 犀 砕 砦 祭 斎 細 菜 裁 載 際 剤 在
++材 罪 財 冴 坂 阪 堺 榊 肴 咲 崎 埼 碕 鷺 作 削
++咋 搾 昨 朔 柵 窄 策 索 錯 桜 鮭 笹 匙 冊 刷
++   察 拶 撮 擦 札 殺 薩 雑 皐 鯖 捌 錆 鮫 皿 晒
++三 傘 参 山 惨 撒 散 桟 燦 珊 産 算 纂 蚕 讃 賛
++酸 餐 斬 暫 残 仕 仔 伺 使 刺 司 史 嗣 四 士 始
++姉 姿 子 屍 市 師 志 思 指 支 孜 斯 施 旨 枝 止
++死 氏 獅 祉 私 糸 紙 紫 肢 脂 至 視 詞 詩 試 誌
++諮 資 賜 雌 飼 歯 事 似 侍 児 字 寺 慈 持 時
++   次 滋 治 爾 璽 痔 磁 示 而 耳 自 蒔 辞 汐 鹿
++式 識 鴫 竺 軸 宍 雫 七 叱 執 失 嫉 室 悉 湿 漆
++疾 質 実 蔀 篠 偲 柴 芝 屡 蕊 縞 舎 写 射 捨 赦
++斜 煮 社 紗 者 謝 車 遮 蛇 邪 借 勺 尺 杓 灼 爵
++酌 釈 錫 若 寂 弱 惹 主 取 守 手 朱 殊 狩 珠 種
++腫 趣 酒 首 儒 受 呪 寿 授 樹 綬 需 囚 収 周
++   宗 就 州 修 愁 拾 洲 秀 秋 終 繍 習 臭 舟 蒐
++衆 襲 讐 蹴 輯 週 酋 酬 集 醜 什 住 充 十 従 戎
++柔 汁 渋 獣 縦 重 銃 叔 夙 宿 淑 祝 縮 粛 塾 熟
++出 術 述 俊 峻 春 瞬 竣 舜 駿 准 循 旬 楯 殉 淳
++準 潤 盾 純 巡 遵 醇 順 処 初 所 暑 曙 渚 庶 緒
++署 書 薯 藷 諸 助 叙 女 序 徐 恕 鋤 除 傷 償
++   勝 匠 升 召 哨 商 唱 嘗 奨 妾 娼 宵 将 小 少
++尚 庄 床 廠 彰 承 抄 招 掌 捷 昇 昌 昭 晶 松 梢
++樟 樵 沼 消 渉 湘 焼 焦 照 症 省 硝 礁 祥 称 章
++笑 粧 紹 肖 菖 蒋 蕉 衝 裳 訟 証 詔 詳 象 賞 醤
++鉦 鍾 鐘 障 鞘 上 丈 丞 乗 冗 剰 城 場 壌 嬢 常
++情 擾 条 杖 浄 状 畳 穣 蒸 譲 醸 錠 嘱 埴 飾
++   拭 植 殖 燭 織 職 色 触 食 蝕 辱 尻 伸 信 侵
++唇 娠 寝 審 心 慎 振 新 晋 森 榛 浸 深 申 疹 真
++神 秦 紳 臣 芯 薪 親 診 身 辛 進 針 震 人 仁 刃
++塵 壬 尋 甚 尽 腎 訊 迅 陣 靭 笥 諏 須 酢 図 厨
++逗 吹 垂 帥 推 水 炊 睡 粋 翠 衰 遂 酔 錐 錘 随
++瑞 髄 崇 嵩 数 枢 趨 雛 据 杉 椙 菅 頗 雀 裾
++   澄 摺 寸 世 瀬 畝 是 凄 制 勢 姓 征 性 成 政
++整 星 晴 棲 栖 正 清 牲 生 盛 精 聖 声 製 西 誠
++誓 請 逝 醒 青 静 斉 税 脆 隻 席 惜 戚 斥 昔 析
++石 積 籍 績 脊 責 赤 跡 蹟 碩 切 拙 接 摂 折 設
++窃 節 説 雪 絶 舌 蝉 仙 先 千 占 宣 専 尖 川 戦
++扇 撰 栓 栴 泉 浅 洗 染 潜 煎 煽 旋 穿 箭 線
++   繊 羨 腺 舛 船 薦 詮 賎 践 選 遷 銭 銑 閃 鮮
++前 善 漸 然 全 禅 繕 膳 糎 噌 塑 岨 措 曾 曽 楚
++狙 疏 疎 礎 祖 租 粗 素 組 蘇 訴 阻 遡 鼠 僧 創
++双 叢 倉 喪 壮 奏 爽 宋 層 匝 惣 想 捜 掃 挿 掻
++操 早 曹 巣 槍 槽 漕 燥 争 痩 相 窓 糟 総 綜 聡
++草 荘 葬 蒼 藻 装 走 送 遭 鎗 霜 騒 像 増 憎
++   臓 蔵 贈 造 促 側 則 即 息 捉 束 測 足 速 俗
++属 賊 族 続 卒 袖 其 揃 存 孫 尊 損 村 遜 他 多
++太 汰 詑 唾 堕 妥 惰 打 柁 舵 楕 陀 駄 騨 体 堆
++対 耐 岱 帯 待 怠 態 戴 替 泰 滞 胎 腿 苔 袋 貸
++退 逮 隊 黛 鯛 代 台 大 第 醍 題 鷹 滝 瀧 卓 啄
++宅 托 択 拓 沢 濯 琢 託 鐸 濁 諾 茸 凧 蛸 只
++   叩 但 達 辰 奪 脱 巽 竪 辿 棚 谷 狸 鱈 樽 誰
++丹 単 嘆 坦 担 探 旦 歎 淡 湛 炭 短 端 箪 綻 耽
++胆 蛋 誕 鍛 団 壇 弾 断 暖 檀 段 男 談 値 知 地
++弛 恥 智 池 痴 稚 置 致 蜘 遅 馳 築 畜 竹 筑 蓄
++逐 秩 窒 茶 嫡 着 中 仲 宙 忠 抽 昼 柱 注 虫 衷
++註 酎 鋳 駐 樗 瀦 猪 苧 著 貯 丁 兆 凋 喋 寵
++   帖 帳 庁 弔 張 彫 徴 懲 挑 暢 朝 潮 牒 町 眺
++聴 脹 腸 蝶 調 諜 超 跳 銚 長 頂 鳥 勅 捗 直 朕
++沈 珍 賃 鎮 陳 津 墜 椎 槌 追 鎚 痛 通 塚 栂 掴
++槻 佃 漬 柘 辻 蔦 綴 鍔 椿 潰 坪 壷 嬬 紬 爪 吊
++釣 鶴 亭 低 停 偵 剃 貞 呈 堤 定 帝 底 庭 廷 弟
++悌 抵 挺 提 梯 汀 碇 禎 程 締 艇 訂 諦 蹄 逓
++   邸 鄭 釘 鼎 泥 摘 擢 敵 滴 的 笛 適 鏑 溺 哲
++徹 撤 轍 迭 鉄 典 填 天 展 店 添 纏 甜 貼 転 顛
++点 伝 殿 澱 田 電 兎 吐 堵 塗 妬 屠 徒 斗 杜 渡
++登 菟 賭 途 都 鍍 砥 砺 努 度 土 奴 怒 倒 党 冬
++凍 刀 唐 塔 塘 套 宕 島 嶋 悼 投 搭 東 桃 梼 棟
++盗 淘 湯 涛 灯 燈 当 痘 祷 等 答 筒 糖 統 到
++   董 蕩 藤 討 謄 豆 踏 逃 透 鐙 陶 頭 騰 闘 働
++動 同 堂 導 憧 撞 洞 瞳 童 胴 萄 道 銅 峠 鴇 匿
++得 徳 涜 特 督 禿 篤 毒 独 読 栃 橡 凸 突 椴 届
++鳶 苫 寅 酉 瀞 噸 屯 惇 敦 沌 豚 遁 頓 呑 曇 鈍
++奈 那 内 乍 凪 薙 謎 灘 捺 鍋 楢 馴 縄 畷 南 楠
++軟 難 汝 二 尼 弐 迩 匂 賑 肉 虹 廿 日 乳 入
++   如 尿 韮 任 妊 忍 認 濡 禰 祢 寧 葱 猫 熱 年
++念 捻 撚 燃 粘 乃 廼 之 埜 嚢 悩 濃 納 能 脳 膿
++農 覗 蚤 巴 把 播 覇 杷 波 派 琶 破 婆 罵 芭 馬
++俳 廃 拝 排 敗 杯 盃 牌 背 肺 輩 配 倍 培 媒 梅
++楳 煤 狽 買 売 賠 陪 這 蝿 秤 矧 萩 伯 剥 博 拍
++柏 泊 白 箔 粕 舶 薄 迫 曝 漠 爆 縛 莫 駁 麦
++   函 箱 硲 箸 肇 筈 櫨 幡 肌 畑 畠 八 鉢 溌 発
++醗 髪 伐 罰 抜 筏 閥 鳩 噺 塙 蛤 隼 伴 判 半 反
++叛 帆 搬 斑 板 氾 汎 版 犯 班 畔 繁 般 藩 販 範
++釆 煩 頒 飯 挽 晩 番 盤 磐 蕃 蛮 匪 卑 否 妃 庇
++彼 悲 扉 批 披 斐 比 泌 疲 皮 碑 秘 緋 罷 肥 被
++誹 費 避 非 飛 樋 簸 備 尾 微 枇 毘 琵 眉 美
++   鼻 柊 稗 匹 疋 髭 彦 膝 菱 肘 弼 必 畢 筆 逼
++桧 姫 媛 紐 百 謬 俵 彪 標 氷 漂 瓢 票 表 評 豹
++廟 描 病 秒 苗 錨 鋲 蒜 蛭 鰭 品 彬 斌 浜 瀕 貧
++賓 頻 敏 瓶 不 付 埠 夫 婦 富 冨 布 府 怖 扶 敷
++斧 普 浮 父 符 腐 膚 芙 譜 負 賦 赴 阜 附 侮 撫
++武 舞 葡 蕪 部 封 楓 風 葺 蕗 伏 副 復 幅 服
++   福 腹 複 覆 淵 弗 払 沸 仏 物 鮒 分 吻 噴 墳
++憤 扮 焚 奮 粉 糞 紛 雰 文 聞 丙 併 兵 塀 幣 平
++弊 柄 並 蔽 閉 陛 米 頁 僻 壁 癖 碧 別 瞥 蔑 箆
++偏 変 片 篇 編 辺 返 遍 便 勉 娩 弁 鞭 保 舗 鋪
++圃 捕 歩 甫 補 輔 穂 募 墓 慕 戊 暮 母 簿 菩 倣
++俸 包 呆 報 奉 宝 峰 峯 崩 庖 抱 捧 放 方 朋
++   法 泡 烹 砲 縫 胞 芳 萌 蓬 蜂 褒 訪 豊 邦 鋒
++飽 鳳 鵬 乏 亡 傍 剖 坊 妨 帽 忘 忙 房 暴 望 某
++棒 冒 紡 肪 膨 謀 貌 貿 鉾 防 吠 頬 北 僕 卜 墨
++撲 朴 牧 睦 穆 釦 勃 没 殆 堀 幌 奔 本 翻 凡 盆
++摩 磨 魔 麻 埋 妹 昧 枚 毎 哩 槙 幕 膜 枕 鮪 柾
++鱒 桝 亦 俣 又 抹 末 沫 迄 侭 繭 麿 万 慢 満
++   漫 蔓 味 未 魅 巳 箕 岬 密 蜜 湊 蓑 稔 脈 妙
++粍 民 眠 務 夢 無 牟 矛 霧 鵡 椋 婿 娘 冥 名 命
++明 盟 迷 銘 鳴 姪 牝 滅 免 棉 綿 緬 面 麺 摸 模
++茂 妄 孟 毛 猛 盲 網 耗 蒙 儲 木 黙 目 杢 勿 餅
++尤 戻 籾 貰 問 悶 紋 門 匁 也 冶 夜 爺 耶 野 弥
++矢 厄 役 約 薬 訳 躍 靖 柳 薮 鑓 愉 愈 油 癒
++   諭 輸 唯 佑 優 勇 友 宥 幽 悠 憂 揖 有 柚 湧
++涌 猶 猷 由 祐 裕 誘 遊 邑 郵 雄 融 夕 予 余 与
++誉 輿 預 傭 幼 妖 容 庸 揚 揺 擁 曜 楊 様 洋 溶
++熔 用 窯 羊 耀 葉 蓉 要 謡 踊 遥 陽 養 慾 抑 欲
++沃 浴 翌 翼 淀 羅 螺 裸 来 莱 頼 雷 洛 絡 落 酪
++乱 卵 嵐 欄 濫 藍 蘭 覧 利 吏 履 李 梨 理 璃
++   痢 裏 裡 里 離 陸 律 率 立 葎 掠 略 劉 流 溜
++琉 留 硫 粒 隆 竜 龍 侶 慮 旅 虜 了 亮 僚 両 凌
++寮 料 梁 涼 猟 療 瞭 稜 糧 良 諒 遼 量 陵 領 力
++緑 倫 厘 林 淋 燐 琳 臨 輪 隣 鱗 麟 瑠 塁 涙 累
++類 令 伶 例 冷 励 嶺 怜 玲 礼 苓 鈴 隷 零 霊 麗
++齢 暦 歴 列 劣 烈 裂 廉 恋 憐 漣 煉 簾 練 聯
++   蓮 連 錬 呂 魯 櫓 炉 賂 路 露 労 婁 廊 弄 朗
++楼 榔 浪 漏 牢 狼 篭 老 聾 蝋 郎 六 麓 禄 肋 録
++論 倭 和 話 歪 賄 脇 惑 枠 鷲 亙 亘 鰐 詫 藁 蕨
++椀 湾 碗 腕
++   弌 丐 丕 个 丱 丶 丼 丿 乂 乖 乘 亂 亅 豫 亊
++舒 弍 于 亞 亟 亠 亢 亰 亳 亶 从 仍 仄 仆 仂 仗
++仞 仭 仟 价 伉 佚 估 佛 佝 佗 佇 佶 侈 侏 侘 佻
++佩 佰 侑 佯 來 侖 儘 俔 俟 俎 俘 俛 俑 俚 俐 俤
++俥 倚 倨 倔 倪 倥 倅 伜 俶 倡 倩 倬 俾 俯 們 倆
++偃 假 會 偕 偐 偈 做 偖 偬 偸 傀 傚 傅 傴 傲
++   僉 僊 傳 僂 僖 僞 僥 僭 僣 僮 價 僵 儉 儁 儂
++儖 儕 儔 儚 儡 儺 儷 儼 儻 儿 兀 兒 兌 兔 兢 竸
++兩 兪 兮 冀 冂 囘 册 冉 冏 冑 冓 冕 冖 冤 冦 冢
++冩 冪 冫 决 冱 冲 冰 况 冽 凅 凉 凛 几 處 凩 凭
++凰 凵 凾 刄 刋 刔 刎 刧 刪 刮 刳 刹 剏 剄 剋 剌
++剞 剔 剪 剴 剩 剳 剿 剽 劍 劔 劒 剱 劈 劑 辨
++   辧 劬 劭 劼 劵 勁 勍 勗 勞 勣 勦 飭 勠 勳 勵
++勸 勹 匆 匈 甸 匍 匐 匏 匕 匚 匣 匯 匱 匳 匸 區
++卆 卅 丗 卉 卍 凖 卞 卩 卮 夘 卻 卷 厂 厖 厠 厦
++厥 厮 厰 厶 參 簒 雙 叟 曼 燮 叮 叨 叭 叺 吁 吽
++呀 听 吭 吼 吮 吶 吩 吝 呎 咏 呵 咎 呟 呱 呷 呰
++咒 呻 咀 呶 咄 咐 咆 哇 咢 咸 咥 咬 哄 哈 咨
++   咫 哂 咤 咾 咼 哘 哥 哦 唏 唔 哽 哮 哭 哺 哢
++唹 啀 啣 啌 售 啜 啅 啖 啗 唸 唳 啝 喙 喀 咯 喊
++喟 啻 啾 喘 喞 單 啼 喃 喩 喇 喨 嗚 嗅 嗟 嗄 嗜
++嗤 嗔 嘔 嗷 嘖 嗾 嗽 嘛 嗹 噎 噐 營 嘴 嘶 嘲 嘸
++噫 噤 嘯 噬 噪 嚆 嚀 嚊 嚠 嚔 嚏 嚥 嚮 嚶 嚴 囂
++嚼 囁 囃 囀 囈 囎 囑 囓 囗 囮 囹 圀 囿 圄 圉
++   圈 國 圍 圓 團 圖 嗇 圜 圦 圷 圸 坎 圻 址 坏
++坩 埀 垈 坡 坿 垉 垓 垠 垳 垤 垪 垰 埃 埆 埔 埒
++埓 堊 埖 埣 堋 堙 堝 塲 堡 塢 塋 塰 毀 塒 堽 塹
++墅 墹 墟 墫 墺 壞 墻 墸 墮 壅 壓 壑 壗 壙 壘 壥
++壜 壤 壟 壯 壺 壹 壻 壼 壽 夂 夊 夐 夛 梦 夥 夬
++夭 夲 夸 夾 竒 奕 奐 奎 奚 奘 奢 奠 奧 奬 奩
++   奸 妁 妝 佞 侫 妣 妲 姆 姨 姜 妍 姙 姚 娥 娟
++娑 娜 娉 娚 婀 婬 婉 娵 娶 婢 婪 媚 媼 媾 嫋 嫂
++媽 嫣 嫗 嫦 嫩 嫖 嫺 嫻 嬌 嬋 嬖 嬲 嫐 嬪 嬶 嬾
++孃 孅 孀 孑 孕 孚 孛 孥 孩 孰 孳 孵 學 斈 孺 宀
++它 宦 宸 寃 寇 寉 寔 寐 寤 實 寢 寞 寥 寫 寰 寶
++寳 尅 將 專 對 尓 尠 尢 尨 尸 尹 屁 屆 屎 屓
++   屐 屏 孱 屬 屮 乢 屶 屹 岌 岑 岔 妛 岫 岻 岶
++岼 岷 峅 岾 峇 峙 峩 峽 峺 峭 嶌 峪 崋 崕 崗 嵜
++崟 崛 崑 崔 崢 崚 崙 崘 嵌 嵒 嵎 嵋 嵬 嵳 嵶 嶇
++嶄 嶂 嶢 嶝 嶬 嶮 嶽 嶐 嶷 嶼 巉 巍 巓 巒 巖 巛
++巫 已 巵 帋 帚 帙 帑 帛 帶 帷 幄 幃 幀 幎 幗 幔
++幟 幢 幤 幇 幵 并 幺 麼 广 庠 廁 廂 廈 廐 廏
++   廖 廣 廝 廚 廛 廢 廡 廨 廩 廬 廱 廳 廰 廴 廸
++廾 弃 弉 彝 彜 弋 弑 弖 弩 弭 弸 彁 彈 彌 彎 弯
++彑 彖 彗 彙 彡 彭 彳 彷 徃 徂 彿 徊 很 徑 徇 從
++徙 徘 徠 徨 徭 徼 忖 忻 忤 忸 忱 忝 悳 忿 怡 恠
++怙 怐 怩 怎 怱 怛 怕 怫 怦 怏 怺 恚 恁 恪 恷 恟
++恊 恆 恍 恣 恃 恤 恂 恬 恫 恙 悁 悍 惧 悃 悚
++   悄 悛 悖 悗 悒 悧 悋 惡 悸 惠 惓 悴 忰 悽 惆
++悵 惘 慍 愕 愆 惶 惷 愀 惴 惺 愃 愡 惻 惱 愍 愎
++慇 愾 愨 愧 慊 愿 愼 愬 愴 愽 慂 慄 慳 慷 慘 慙
++慚 慫 慴 慯 慥 慱 慟 慝 慓 慵 憙 憖 憇 憬 憔 憚
++憊 憑 憫 憮 懌 懊 應 懷 懈 懃 懆 憺 懋 罹 懍 懦
++懣 懶 懺 懴 懿 懽 懼 懾 戀 戈 戉 戍 戌 戔 戛
++   戞 戡 截 戮 戰 戲 戳 扁 扎 扞 扣 扛 扠 扨 扼
++抂 抉 找 抒 抓 抖 拔 抃 抔 拗 拑 抻 拏 拿 拆 擔
++拈 拜 拌 拊 拂 拇 抛 拉 挌 拮 拱 挧 挂 挈 拯 拵
++捐 挾 捍 搜 捏 掖 掎 掀 掫 捶 掣 掏 掉 掟 掵 捫
++捩 掾 揩 揀 揆 揣 揉 插 揶 揄 搖 搴 搆 搓 搦 搶
++攝 搗 搨 搏 摧 摯 摶 摎 攪 撕 撓 撥 撩 撈 撼
++   據 擒 擅 擇 撻 擘 擂 擱 擧 舉 擠 擡 抬 擣 擯
++攬 擶 擴 擲 擺 攀 擽 攘 攜 攅 攤 攣 攫 攴 攵 攷
++收 攸 畋 效 敖 敕 敍 敘 敞 敝 敲 數 斂 斃 變 斛
++斟 斫 斷 旃 旆 旁 旄 旌 旒 旛 旙 无 旡 旱 杲 昊
++昃 旻 杳 昵 昶 昴 昜 晏 晄 晉 晁 晞 晝 晤 晧 晨
++晟 晢 晰 暃 暈 暎 暉 暄 暘 暝 曁 暹 曉 暾 暼
++   曄 暸 曖 曚 曠 昿 曦 曩 曰 曵 曷 朏 朖 朞 朦
++朧 霸 朮 朿 朶 杁 朸 朷 杆 杞 杠 杙 杣 杤 枉 杰
++枩 杼 杪 枌 枋 枦 枡 枅 枷 柯 枴 柬 枳 柩 枸 柤
++柞 柝 柢 柮 枹 柎 柆 柧 檜 栞 框 栩 桀 桍 栲 桎
++梳 栫 桙 档 桷 桿 梟 梏 梭 梔 條 梛 梃 檮 梹 桴
++梵 梠 梺 椏 梍 桾 椁 棊 椈 棘 椢 椦 棡 椌 棍
++   棔 棧 棕 椶 椒 椄 棗 棣 椥 棹 棠 棯 椨 椪 椚
++椣 椡 棆 楹 楷 楜 楸 楫 楔 楾 楮 椹 楴 椽 楙 椰
++楡 楞 楝 榁 楪 榲 榮 槐 榿 槁 槓 榾 槎 寨 槊 槝
++榻 槃 榧 樮 榑 榠 榜 榕 榴 槞 槨 樂 樛 槿 權 槹
++槲 槧 樅 榱 樞 槭 樔 槫 樊 樒 櫁 樣 樓 橄 樌 橲
++樶 橸 橇 橢 橙 橦 橈 樸 樢 檐 檍 檠 檄 檢 檣
++   檗 蘗 檻 櫃 櫂 檸 檳 檬 櫞 櫑 櫟 檪 櫚 櫪 櫻
++欅 蘖 櫺 欒 欖 鬱 欟 欸 欷 盜 欹 飮 歇 歃 歉 歐
++歙 歔 歛 歟 歡 歸 歹 歿 殀 殄 殃 殍 殘 殕 殞 殤
++殪 殫 殯 殲 殱 殳 殷 殼 毆 毋 毓 毟 毬 毫 毳 毯
++麾 氈 氓 气 氛 氤 氣 汞 汕 汢 汪 沂 沍 沚 沁 沛
++汾 汨 汳 沒 沐 泄 泱 泓 沽 泗 泅 泝 沮 沱 沾
++   沺 泛 泯 泙 泪 洟 衍 洶 洫 洽 洸 洙 洵 洳 洒
++洌 浣 涓 浤 浚 浹 浙 涎 涕 濤 涅 淹 渕 渊 涵 淇
++淦 涸 淆 淬 淞 淌 淨 淒 淅 淺 淙 淤 淕 淪 淮 渭
++湮 渮 渙 湲 湟 渾 渣 湫 渫 湶 湍 渟 湃 渺 湎 渤
++滿 渝 游 溂 溪 溘 滉 溷 滓 溽 溯 滄 溲 滔 滕 溏
++溥 滂 溟 潁 漑 灌 滬 滸 滾 漿 滲 漱 滯 漲 滌
++   漾 漓 滷 澆 潺 潸 澁 澀 潯 潛 濳 潭 澂 潼 潘
++澎 澑 濂 潦 澳 澣 澡 澤 澹 濆 澪 濟 濕 濬 濔 濘
++濱 濮 濛 瀉 瀋 濺 瀑 瀁 瀏 濾 瀛 瀚 潴 瀝 瀘 瀟
++瀰 瀾 瀲 灑 灣 炙 炒 炯 烱 炬 炸 炳 炮 烟 烋 烝
++烙 焉 烽 焜 焙 煥 煕 熈 煦 煢 煌 煖 煬 熏 燻 熄
++熕 熨 熬 燗 熹 熾 燒 燉 燔 燎 燠 燬 燧 燵 燼
++   燹 燿 爍 爐 爛 爨 爭 爬 爰 爲 爻 爼 爿 牀 牆
++牋 牘 牴 牾 犂 犁 犇 犒 犖 犢 犧 犹 犲 狃 狆 狄
++狎 狒 狢 狠 狡 狹 狷 倏 猗 猊 猜 猖 猝 猴 猯 猩
++猥 猾 獎 獏 默 獗 獪 獨 獰 獸 獵 獻 獺 珈 玳 珎
++玻 珀 珥 珮 珞 璢 琅 瑯 琥 珸 琲 琺 瑕 琿 瑟 瑙
++瑁 瑜 瑩 瑰 瑣 瑪 瑶 瑾 璋 璞 璧 瓊 瓏 瓔 珱
++   瓠 瓣 瓧 瓩 瓮 瓲 瓰 瓱 瓸 瓷 甄 甃 甅 甌 甎
++甍 甕 甓 甞 甦 甬 甼 畄 畍 畊 畉 畛 畆 畚 畩 畤
++畧 畫 畭 畸 當 疆 疇 畴 疊 疉 疂 疔 疚 疝 疥 疣
++痂 疳 痃 疵 疽 疸 疼 疱 痍 痊 痒 痙 痣 痞 痾 痿
++痼 瘁 痰 痺 痲 痳 瘋 瘍 瘉 瘟 瘧 瘠 瘡 瘢 瘤 瘴
++瘰 瘻 癇 癈 癆 癜 癘 癡 癢 癨 癩 癪 癧 癬 癰
++   癲 癶 癸 發 皀 皃 皈 皋 皎 皖 皓 皙 皚 皰 皴
++皸 皹 皺 盂 盍 盖 盒 盞 盡 盥 盧 盪 蘯 盻 眈 眇
++眄 眩 眤 眞 眥 眦 眛 眷 眸 睇 睚 睨 睫 睛 睥 睿
++睾 睹 瞎 瞋 瞑 瞠 瞞 瞰 瞶 瞹 瞿 瞼 瞽 瞻 矇 矍
++矗 矚 矜 矣 矮 矼 砌 砒 礦 砠 礪 硅 碎 硴 碆 硼
++碚 碌 碣 碵 碪 碯 磑 磆 磋 磔 碾 碼 磅 磊 磬
++   磧 磚 磽 磴 礇 礒 礑 礙 礬 礫 祀 祠 祗 祟 祚
++祕 祓 祺 祿 禊 禝 禧 齋 禪 禮 禳 禹 禺 秉 秕 秧
++秬 秡 秣 稈 稍 稘 稙 稠 稟 禀 稱 稻 稾 稷 穃 穗
++穉 穡 穢 穩 龝 穰 穹 穽 窈 窗 窕 窘 窖 窩 竈 窰
++窶 竅 竄 窿 邃 竇 竊 竍 竏 竕 竓 站 竚 竝 竡 竢
++竦 竭 竰 笂 笏 笊 笆 笳 笘 笙 笞 笵 笨 笶 筐
++   筺 笄 筍 笋 筌 筅 筵 筥 筴 筧 筰 筱 筬 筮 箝
++箘 箟 箍 箜 箚 箋 箒 箏 筝 箙 篋 篁 篌 篏 箴 篆
++篝 篩 簑 簔 篦 篥 籠 簀 簇 簓 篳 篷 簗 簍 篶 簣
++簧 簪 簟 簷 簫 簽 籌 籃 籔 籏 籀 籐 籘 籟 籤 籖
++籥 籬 籵 粃 粐 粤 粭 粢 粫 粡 粨 粳 粲 粱 粮 粹
++粽 糀 糅 糂 糘 糒 糜 糢 鬻 糯 糲 糴 糶 糺 紆
++   紂 紜 紕 紊 絅 絋 紮 紲 紿 紵 絆 絳 絖 絎 絲
++絨 絮 絏 絣 經 綉 絛 綏 絽 綛 綺 綮 綣 綵 緇 綽
++綫 總 綢 綯 緜 綸 綟 綰 緘 緝 緤 緞 緻 緲 緡 縅
++縊 縣 縡 縒 縱 縟 縉 縋 縢 繆 繦 縻 縵 縹 繃 縷
++縲 縺 繧 繝 繖 繞 繙 繚 繹 繪 繩 繼 繻 纃 緕 繽
++辮 繿 纈 纉 續 纒 纐 纓 纔 纖 纎 纛 纜 缸 缺
++   罅 罌 罍 罎 罐 网 罕 罔 罘 罟 罠 罨 罩 罧 罸
++羂 羆 羃 羈 羇 羌 羔 羞 羝 羚 羣 羯 羲 羹 羮 羶
++羸 譱 翅 翆 翊 翕 翔 翡 翦 翩 翳 翹 飜 耆 耄 耋
++耒 耘 耙 耜 耡 耨 耿 耻 聊 聆 聒 聘 聚 聟 聢 聨
++聳 聲 聰 聶 聹 聽 聿 肄 肆 肅 肛 肓 肚 肭 冐 肬
++胛 胥 胙 胝 胄 胚 胖 脉 胯 胱 脛 脩 脣 脯 腋
++   隋 腆 脾 腓 腑 胼 腱 腮 腥 腦 腴 膃 膈 膊 膀
++膂 膠 膕 膤 膣 腟 膓 膩 膰 膵 膾 膸 膽 臀 臂 膺
++臉 臍 臑 臙 臘 臈 臚 臟 臠 臧 臺 臻 臾 舁 舂 舅
++與 舊 舍 舐 舖 舩 舫 舸 舳 艀 艙 艘 艝 艚 艟 艤
++艢 艨 艪 艫 舮 艱 艷 艸 艾 芍 芒 芫 芟 芻 芬 苡
++苣 苟 苒 苴 苳 苺 莓 范 苻 苹 苞 茆 苜 茉 苙
++   茵 茴 茖 茲 茱 荀 茹 荐 荅 茯 茫 茗 茘 莅 莚
++莪 莟 莢 莖 茣 莎 莇 莊 荼 莵 荳 荵 莠 莉 莨 菴
++萓 菫 菎 菽 萃 菘 萋 菁 菷 萇 菠 菲 萍 萢 萠 莽
++萸 蔆 菻 葭 萪 萼 蕚 蒄 葷 葫 蒭 葮 蒂 葩 葆 萬
++葯 葹 萵 蓊 葢 蒹 蒿 蒟 蓙 蓍 蒻 蓚 蓐 蓁 蓆 蓖
++蒡 蔡 蓿 蓴 蔗 蔘 蔬 蔟 蔕 蔔 蓼 蕀 蕣 蕘 蕈
++   蕁 蘂 蕋 蕕 薀 薤 薈 薑 薊 薨 蕭 薔 薛 藪 薇
++薜 蕷 蕾 薐 藉 薺 藏 薹 藐 藕 藝 藥 藜 藹 蘊 蘓
++蘋 藾 藺 蘆 蘢 蘚 蘰 蘿 虍 乕 虔 號 虧 虱 蚓 蚣
++蚩 蚪 蚋 蚌 蚶 蚯 蛄 蛆 蚰 蛉 蠣 蚫 蛔 蛞 蛩 蛬
++蛟 蛛 蛯 蜒 蜆 蜈 蜀 蜃 蛻 蜑 蜉 蜍 蛹 蜊 蜴 蜿
++蜷 蜻 蜥 蜩 蜚 蝠 蝟 蝸 蝌 蝎 蝴 蝗 蝨 蝮 蝙
++   蝓 蝣 蝪 蠅 螢 螟 螂 螯 蟋 螽 蟀 蟐 雖 螫 蟄
++螳 蟇 蟆 螻 蟯 蟲 蟠 蠏 蠍 蟾 蟶 蟷 蠎 蟒 蠑 蠖
++蠕 蠢 蠡 蠱 蠶 蠹 蠧 蠻 衄 衂 衒 衙 衞 衢 衫 袁
++衾 袞 衵 衽 袵 衲 袂 袗 袒 袮 袙 袢 袍 袤 袰 袿
++袱 裃 裄 裔 裘 裙 裝 裹 褂 裼 裴 裨 裲 褄 褌 褊
++褓 襃 褞 褥 褪 褫 襁 襄 褻 褶 褸 襌 褝 襠 襞
++   襦 襤 襭 襪 襯 襴 襷 襾 覃 覈 覊 覓 覘 覡 覩
++覦 覬 覯 覲 覺 覽 覿 觀 觚 觜 觝 觧 觴 觸 訃 訖
++訐 訌 訛 訝 訥 訶 詁 詛 詒 詆 詈 詼 詭 詬 詢 誅
++誂 誄 誨 誡 誑 誥 誦 誚 誣 諄 諍 諂 諚 諫 諳 諧
++諤 諱 謔 諠 諢 諷 諞 諛 謌 謇 謚 諡 謖 謐 謗 謠
++謳 鞫 謦 謫 謾 謨 譁 譌 譏 譎 證 譖 譛 譚 譫
++   譟 譬 譯 譴 譽 讀 讌 讎 讒 讓 讖 讙 讚 谺 豁
++谿 豈 豌 豎 豐 豕 豢 豬 豸 豺 貂 貉 貅 貊 貍 貎
++貔 豼 貘 戝 貭 貪 貽 貲 貳 貮 貶 賈 賁 賤 賣 賚
++賽 賺 賻 贄 贅 贊 贇 贏 贍 贐 齎 贓 賍 贔 贖 赧
++赭 赱 赳 趁 趙 跂 趾 趺 跏 跚 跖 跌 跛 跋 跪 跫
++跟 跣 跼 踈 踉 跿 踝 踞 踐 踟 蹂 踵 踰 踴 蹊
++   蹇 蹉 蹌 蹐 蹈 蹙 蹤 蹠 踪 蹣 蹕 蹶 蹲 蹼 躁
++躇 躅 躄 躋 躊 躓 躑 躔 躙 躪 躡 躬 躰 軆 躱 躾
++軅 軈 軋 軛 軣 軼 軻 軫 軾 輊 輅 輕 輒 輙 輓 輜
++輟 輛 輌 輦 輳 輻 輹 轅 轂 輾 轌 轉 轆 轎 轗 轜
++轢 轣 轤 辜 辟 辣 辭 辯 辷 迚 迥 迢 迪 迯 邇 迴
++逅 迹 迺 逑 逕 逡 逍 逞 逖 逋 逧 逶 逵 逹 迸
++   遏 遐 遑 遒 逎 遉 逾 遖 遘 遞 遨 遯 遶 隨 遲
++邂 遽 邁 邀 邊 邉 邏 邨 邯 邱 邵 郢 郤 扈 郛 鄂
++鄒 鄙 鄲 鄰 酊 酖 酘 酣 酥 酩 酳 酲 醋 醉 醂 醢
++醫 醯 醪 醵 醴 醺 釀 釁 釉 釋 釐 釖 釟 釡 釛 釼
++釵 釶 鈞 釿 鈔 鈬 鈕 鈑 鉞 鉗 鉅 鉉 鉤 鉈 銕 鈿
++鉋 鉐 銜 銖 銓 銛 鉚 鋏 銹 銷 鋩 錏 鋺 鍄 錮
++   錙 錢 錚 錣 錺 錵 錻 鍜 鍠 鍼 鍮 鍖 鎰 鎬 鎭
++鎔 鎹 鏖 鏗 鏨 鏥 鏘 鏃 鏝 鏐 鏈 鏤 鐚 鐔 鐓 鐃
++鐇 鐐 鐶 鐫 鐵 鐡 鐺 鑁 鑒 鑄 鑛 鑠 鑢 鑞 鑪 鈩
++鑰 鑵 鑷 鑽 鑚 鑼 鑾 钁 鑿 閂 閇 閊 閔 閖 閘 閙
++閠 閨 閧 閭 閼 閻 閹 閾 闊 濶 闃 闍 闌 闕 闔 闖
++關 闡 闥 闢 阡 阨 阮 阯 陂 陌 陏 陋 陷 陜 陞
++   陝 陟 陦 陲 陬 隍 隘 隕 隗 險 隧 隱 隲 隰 隴
++隶 隸 隹 雎 雋 雉 雍 襍 雜 霍 雕 雹 霄 霆 霈 霓
++霎 霑 霏 霖 霙 霤 霪 霰 霹 霽 霾 靄 靆 靈 靂 靉
++靜 靠 靤 靦 靨 勒 靫 靱 靹 鞅 靼 鞁 靺 鞆 鞋 鞏
++鞐 鞜 鞨 鞦 鞣 鞳 鞴 韃 韆 韈 韋 韜 韭 齏 韲 竟
++韶 韵 頏 頌 頸 頤 頡 頷 頽 顆 顏 顋 顫 顯 顰
++   顱 顴 顳 颪 颯 颱 颶 飄 飃 飆 飩 飫 餃 餉 餒
++餔 餘 餡 餝 餞 餤 餠 餬 餮 餽 餾 饂 饉 饅 饐 饋
++饑 饒 饌 饕 馗 馘 馥 馭 馮 馼 駟 駛 駝 駘 駑 駭
++駮 駱 駲 駻 駸 騁 騏 騅 駢 騙 騫 騷 驅 驂 驀 驃
++騾 驕 驍 驛 驗 驟 驢 驥 驤 驩 驫 驪 骭 骰 骼 髀
++髏 髑 髓 體 髞 髟 髢 髣 髦 髯 髫 髮 髴 髱 髷
++   髻 鬆 鬘 鬚 鬟 鬢 鬣 鬥 鬧 鬨 鬩 鬪 鬮 鬯 鬲
++魄 魃 魏 魍 魎 魑 魘 魴 鮓 鮃 鮑 鮖 鮗 鮟 鮠 鮨
++鮴 鯀 鯊 鮹 鯆 鯏 鯑 鯒 鯣 鯢 鯤 鯔 鯡 鰺 鯲 鯱
++鯰 鰕 鰔 鰉 鰓 鰌 鰆 鰈 鰒 鰊 鰄 鰮 鰛 鰥 鰤 鰡
++鰰 鱇 鰲 鱆 鰾 鱚 鱠 鱧 鱶 鱸 鳧 鳬 鳰 鴉 鴈 鳫
++鴃 鴆 鴪 鴦 鶯 鴣 鴟 鵄 鴕 鴒 鵁 鴿 鴾 鵆 鵈
++   鵝 鵞 鵤 鵑 鵐 鵙 鵲 鶉 鶇 鶫 鵯 鵺 鶚 鶤 鶩
++鶲 鷄 鷁 鶻 鶸 鶺 鷆 鷏 鷂 鷙 鷓 鷸 鷦 鷭 鷯 鷽
++鸚 鸛 鸞 鹵 鹹 鹽 麁 麈 麋 麌 麒 麕 麑 麝 麥 麩
++麸 麪 麭 靡 黌 黎 黏 黐 黔 黜 點 黝 黠 黥 黨 黯
++黴 黶 黷 黹 黻 黼 黽 鼇 鼈 皷 鼕 鼡 鼬 鼾 齊 齒
++齔 齣 齟 齠 齡 齦 齧 齬 齪 齷 齲 齶 龕 龜 龠
++   堯 槇 遙 瑤 凜 熙
++   纊 褜 鍈 銈 蓜 俉 炻 昱 棈 鋹 曻 彅 丨 仡 仼
++伀 伃 伹 佖 侒 侊 侚 侔 俍 偀 倢 俿 倞 偆 偰 偂
++傔 僴 僘 兊 兤 冝 冾 凬 刕 劜 劦 勀 勛 匀 匇 匤
++卲 厓 厲 叝 﨎 咜 咊 咩 哿 喆 坙 坥 垬 埈 埇 﨏
++塚 增 墲 夋 奓 奛 奝 奣 妤 妺 孖 寀 甯 寘 寬 尞
++岦 岺 峵 崧 嵓 﨑 嵂 嵭 嶸 嶹 巐 弡 弴 彧 德
++   忞 恝 悅 悊 惞 惕 愠 惲 愑 愷 愰 憘 戓 抦 揵
++摠 撝 擎 敎 昀 昕 昻 昉 昮 昞 昤 晥 晗 晙 晴 晳
++暙 暠 暲 暿 曺 朎 朗 杦 枻 桒 柀 栁 桄 棏 﨓 楨
++﨔 榘 槢 樰 橫 橆 橳 橾 櫢 櫤 毖 氿 汜 沆 汯 泚
++洄 涇 浯 涖 涬 淏 淸 淲 淼 渹 湜 渧 渼 溿 澈 澵
++濵 瀅 瀇 瀨 炅 炫 焏 焄 煜 煆 煇 凞 燁 燾 犱
++   犾 猤 猪 獷 玽 珉 珖 珣 珒 琇 珵 琦 琪 琩 琮
++瑢 璉 璟 甁 畯 皂 皜 皞 皛 皦 益 睆 劯 砡 硎 硤
++硺 礰 礼 神 祥 禔 福 禛 竑 竧 靖 竫 箞 精 絈 絜
++綷 綠 緖 繒 罇 羡 羽 茁 荢 荿 菇 菶 葈 蒴 蕓 蕙
++蕫 﨟 薰 蘒 﨡 蠇 裵 訒 訷 詹 誧 誾 諟 諸 諶 譓
++譿 賰 賴 贒 赶 﨣 軏 﨤 逸 遧 郞 都 鄕 鄧 釚
++   釗 釞 釭 釮 釤 釥 鈆 鈐 鈊 鈺 鉀 鈼 鉎 鉙 鉑
++鈹 鉧 銧 鉷 鉸 鋧 鋗 鋙 鋐 﨧 鋕 鋠 鋓 錥 錡 鋻
++﨨 錞 鋿 錝 錂 鍰 鍗 鎤 鏆 鏞 鏸 鐱 鑅 鑈 閒 隆
++﨩 隝 隯 霳 霻 靃 靍 靏 靑 靕 顗 顥 飯 飼 餧 館
++馞 驎 髙 髜 魵 魲 鮏 鮱 鮻 鰀 鵰 鵫 鶴 鸙 黑   
++   ⅰ ⅱ ⅲ ⅳ ⅴ ⅵ ⅶ ⅷ ⅸ ⅹ ￢ ￤ ＇ ＂
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++                 
++               
++               
++               
++               
++              
++
++Japanese (日本語)		こんにちは
++	JIS  -- 元気  開発
++	NEC特殊文字  -- ①②③
++	NEC選定IBM拡張文字 -- 内田百閒  髙島屋  草彅剛
 diff -urN origsrc/libiconv-1.17/tests/JIS_X0201.TXT src/libiconv-1.17/tests/JIS_X0201.TXT
 --- origsrc/libiconv-1.17/tests/JIS_X0201.TXT	2009-06-21 20:17:33.000000000 +0900
-+++ src/libiconv-1.17/tests/JIS_X0201.TXT	2023-07-30 05:36:47.876603600 +0900
++++ src/libiconv-1.17/tests/JIS_X0201.TXT	2023-07-30 16:33:48.209186496 +0900
 @@ -90,7 +90,7 @@
  0x59	0x0059
  0x5A	0x005A
@@ -27494,7 +29135,7 @@ diff -urN origsrc/libiconv-1.17/tests/JIS_X0201.TXT src/libiconv-1.17/tests/JIS_
  0xA2	0xFF62
 diff -urN origsrc/libiconv-1.17/tests/Makefile.in src/libiconv-1.17/tests/Makefile.in
 --- origsrc/libiconv-1.17/tests/Makefile.in	2022-02-12 22:13:33.000000000 +0900
-+++ src/libiconv-1.17/tests/Makefile.in	2023-07-30 05:36:47.885605000 +0900
++++ src/libiconv-1.17/tests/Makefile.in	2023-07-30 16:33:48.209186496 +0900
 @@ -17,6 +17,7 @@
  LIBTOOL_INSTALL = $(LIBTOOL) --mode=install
  LIBTOOL_UNINSTALL = $(LIBTOOL) --mode=uninstall
@@ -27503,7 +29144,7 @@ diff -urN origsrc/libiconv-1.17/tests/Makefile.in src/libiconv-1.17/tests/Makefi
  @SET_MAKE@
  
  #### End of system configuration section. ####
-@@ -118,6 +119,8 @@
+@@ -118,12 +119,15 @@
  #	$(SHELL) $(srcdir)/check-stateless $(srcdir) KSC_5601 # redundant, see EUC-KR
  #	/* CJK encodings */
  	$(SHELL) $(srcdir)/check-stateless $(srcdir) EUC-JP
@@ -27512,9 +29153,16 @@ diff -urN origsrc/libiconv-1.17/tests/Makefile.in src/libiconv-1.17/tests/Makefi
  	$(SHELL) $(srcdir)/check-stateless $(srcdir) SHIFT_JIS
  	$(SHELL) $(srcdir)/check-stateless $(srcdir) CP932
  	$(SHELL) $(srcdir)/check-stateful $(srcdir) ISO-2022-JP
+ 	$(SHELL) $(srcdir)/check-stateful $(srcdir) ISO-2022-JP-2
+ 	$(SHELL) $(srcdir)/check-stateful $(srcdir) ISO-2022-JP-1
+ 	$(SHELL) $(srcdir)/check-stateful $(srcdir) ISO-2022-JP-MS
++	$(SHELL) $(srcdir)/check-stateful $(srcdir) ISO-2022-JP-MS-PATCH
+ 	$(SHELL) $(srcdir)/check-stateless $(srcdir) EUC-CN
+ 	$(SHELL) $(srcdir)/check-stateless $(srcdir) GBK
+ 	$(SHELL) $(srcdir)/check-stateless $(srcdir) CP936
 diff -urN origsrc/libiconv-1.17/tests/SHIFT_JIS.TXT src/libiconv-1.17/tests/SHIFT_JIS.TXT
 --- origsrc/libiconv-1.17/tests/SHIFT_JIS.TXT	2009-06-21 20:17:33.000000000 +0900
-+++ src/libiconv-1.17/tests/SHIFT_JIS.TXT	2023-07-30 05:36:47.897605100 +0900
++++ src/libiconv-1.17/tests/SHIFT_JIS.TXT	2023-07-30 16:33:48.209186496 +0900
 @@ -90,7 +90,7 @@
  0x59	0x0059
  0x5A	0x005A
@@ -29428,7 +31076,7 @@ diff -urN origsrc/libiconv-1.17/tests/SHIFT_JIS.TXT src/libiconv-1.17/tests/SHIF
 -0xF9FC	0xE757
 diff -urN origsrc/libiconv-1.17/tests/SHIFT_JISX0213.TXT src/libiconv-1.17/tests/SHIFT_JISX0213.TXT
 --- origsrc/libiconv-1.17/tests/SHIFT_JISX0213.TXT	2009-06-21 20:17:33.000000000 +0900
-+++ src/libiconv-1.17/tests/SHIFT_JISX0213.TXT	2023-07-30 05:36:47.908648200 +0900
++++ src/libiconv-1.17/tests/SHIFT_JISX0213.TXT	2023-07-30 16:33:48.209186496 +0900
 @@ -90,7 +90,7 @@
  0x59	0x0059
  0x5A	0x005A
@@ -29449,7 +31097,7 @@ diff -urN origsrc/libiconv-1.17/tests/SHIFT_JISX0213.TXT src/libiconv-1.17/tests
  0x8141	0x3001
 diff -urN origsrc/libiconv-1.17/tools/Makefile src/libiconv-1.17/tools/Makefile
 --- origsrc/libiconv-1.17/tools/Makefile	2022-01-24 05:36:11.000000000 +0900
-+++ src/libiconv-1.17/tools/Makefile	2023-07-30 05:36:47.917604700 +0900
++++ src/libiconv-1.17/tools/Makefile	2023-07-30 16:33:48.209186496 +0900
 @@ -66,6 +66,7 @@
   jisx0208.h \
   jisx0212.h \
@@ -29482,7 +31130,7 @@ diff -urN origsrc/libiconv-1.17/tools/Makefile src/libiconv-1.17/tools/Makefile
  	./8bit_tab_to_h 'CP50221 JISX0208 extensions' cp50221_0208_ext < $<
 diff -urN origsrc/libiconv-1.17/tools/cjk_tab_to_h.c src/libiconv-1.17/tools/cjk_tab_to_h.c
 --- origsrc/libiconv-1.17/tools/cjk_tab_to_h.c	2020-04-04 21:50:21.000000000 +0900
-+++ src/libiconv-1.17/tools/cjk_tab_to_h.c	2023-07-30 05:36:47.929605900 +0900
++++ src/libiconv-1.17/tools/cjk_tab_to_h.c	2023-07-30 16:33:48.209186496 +0900
 @@ -1404,6 +1404,95 @@
    invert(&enc); output_uni2charset_sparse(name,&enc,false);
  }
